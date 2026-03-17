@@ -19,9 +19,10 @@ html {
 }
 
 body {
-  // Default the application to a light color theme. This can be changed to
-  // `dark` to enable the dark color theme, or to `light dark` to defer to the
-  // user's system settings.
+  // The color-scheme is controlled at runtime by ThemeService
+  // (src/app/core/services/theme.service.ts) which sets
+  // `document.body.style.colorScheme` to 'light' or 'dark'.
+  // M3 CSS variables respond to this property automatically.
   color-scheme: light;
 
   // Set a default background, font and text colors for the application using
