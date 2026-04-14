@@ -1,0 +1,21 @@
+:host {
+  display: block;
+}
+
+mat-card {
+  padding: 2rem;
+}
+
+mat-form-field {
+  width: 100%;
+}
+
+mat-icon[matPrefix] {
+  margin-right: 0.5rem;
+}
+
+.hero-icon {
+  font-size: 48px !important;
+  width: 48px !important;
+  height: 48px !important;
+}

@@ -1,0 +1,64 @@
+<div class="flex min-h-screen items-center justify-center p-4">
+  <mat-card class="w-full max-w-md">
+    <mat-card-content>
+      <div class="mb-6 text-center">
+        <mat-icon class="hero-icon text-(--mat-sys-primary)">lock</mat-icon>
+        <h1 class="mat-headline-medium mt-2">Sign in</h1>
+        <p class="mat-body-medium text-(--mat-sys-on-surface-variant)">
+          Enter your credentials to access the system
+        </p>
+      </div>
+
+      <form [formRoot]="loginForm" class="flex flex-col gap-4">
+        <mat-form-field appearance="outline">
+          <mat-label>Email</mat-label>
+          <mat-icon matPrefix>email</mat-icon>
+          <input
+            matInput
+            type="email"
+            [formField]="loginForm.email"
+            autocomplete="email"
+          />
+          @if (hasError(loginForm.email().errors(), 'required')) {
+            <mat-error>Email is required</mat-error>
+          } @else if (hasError(loginForm.email().errors(), 'email')) {
+            <mat-error>Please enter a valid email address</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Password</mat-label>
+          <mat-icon matPrefix>lock</mat-icon>
+          <input
+            matInput
+            [type]="passwordVisible() ? 'text' : 'password'"
+            [formField]="loginForm.password"
+            autocomplete="current-password"
+          />
+          <button
+            mat-icon-button
+            matSuffix
+            type="button"
+            (click)="togglePasswordVisibility()"
+            [attr.aria-label]="passwordVisible() ? 'Hide password' : 'Show password'"
+          >
+            <mat-icon>{{ passwordVisible() ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
+          @if (hasError(loginForm.password().errors(), 'required')) {
+            <mat-error>Password is required</mat-error>
+          }
+        </mat-form-field>
+
+        <button
+          mat-flat-button
+          type="submit"
+          class="mt-2 w-full"
+          [disabled]="loginForm().invalid()"
+        >
+          Sign in
+        </button>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>
+
