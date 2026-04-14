@@ -15,6 +15,7 @@ Angular 21 standalone application using **Angular Material 3** (M3) for UI compo
 - **Change detection** — prefer `ChangeDetectionStrategy.OnPush` on all components (enforced by ESLint).
 - **Material imports** — import individual M3 symbols, not full modules (e.g., `import { MatToolbar } from '@angular/material/toolbar'`; see `src/app/shared/components/header/header.ts`).
 - **Material Icons** — loaded via Google Fonts CDN in `src/index.html`, not via npm. Use `<mat-icon>icon_name</mat-icon>` in templates.
+- **Signal-based forms** — use the `@angular/forms/signals` API for forms, not `ReactiveFormsModule` or template-driven forms. Build forms with `form()`, validate with `required()` / `email()` etc., and bind with the `FormField` and `FormRoot` directives. See `src/app/features/auth/pages/login/login.ts` for the canonical example.
 
 ### Directory Structure
 
@@ -42,12 +43,12 @@ Each directory contains a guide file (`CORE.md`, `SHARED.md`, `COMMON.md`, `FEAT
 
 Components use **shortened filenames** without `.component` infix:
 
-| Purpose    | Filename pattern        |
-|------------|-------------------------|
-| Class      | `feature.ts`            |
-| Template   | `feature.html`          |
-| Styles     | `feature.css`           |
-| Tests      | `feature.spec.ts`       |
+| Purpose    | Filename pattern |
+|------------|----------------|
+| Class      | `feature.ts`   |
+| Template   | `feature.html` |
+| Styles     | `feature.scss` |
+| Tests      | `feature.spec.ts` |
 
 Selector prefix: `app-` (configured in `angular.json` under `prefix`).
 
@@ -86,7 +87,7 @@ Both conventions are enforced by ESLint (see `eslint.config.js`).
 |---------------------|--------------------------------|
 | `@angular/material` | M3 UI components               |
 | `@angular/cdk`      | Component Dev Kit (overlays, a11y, etc.) |
-| `@angular/forms`    | Reactive and template-driven forms |
+| `@angular/forms`    | Signal-based forms (`@angular/forms/signals`) |
 | `tailwindcss` v4    | Utility-first CSS (via `@tailwindcss/postcss`) |
 | `vitest`            | Unit test runner (`jsdom` environment) |
 | `angular-eslint`    | Angular-specific lint rules + template processing |
