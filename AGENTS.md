@@ -81,6 +81,18 @@ Both conventions are enforced by ESLint (see `eslint.config.js`).
 - **ESLint** flat config (`eslint.config.js`) using `angular-eslint` + `typescript-eslint`. Uses ESLint v10 `defineConfig` with CommonJS `require()`. Notable rules enforced as warnings: `prefer-on-push-component-change-detection`, `prefer-signals`, `prefer-standalone`, `no-empty-lifecycle-method`, `prefer-output-readonly`. Also extends `tseslint.configs.stylistic` for TypeScript style conventions. HTML templates are linted with `angular.configs.templateAccessibility` — accessibility violations will be flagged.
 - **Prettier** configured in `package.json`: `printWidth: 100`, `singleQuote: true`, HTML uses the `angular` parser. Integrated with ESLint via `eslint-plugin-prettier`.
 
+## i18n / Translations
+
+- **Library**: [`@jsverse/transloco`](https://jsverse.github.io/transloco/) — runtime translation with lazy-loaded JSON files. Single build, language switchable at runtime.
+- **Languages**: English (`en`) and Greek (`el`). Default is `en`, fallback is `en`.
+- **Translation files**: `public/i18n/en.json` (English) and `public/i18n/el.json` (Greek). Served as static assets from the `public/` directory.
+- **Key naming**: flat per-feature prefix, e.g., `login.title`, `header.switchToDark`. Group keys by the feature or component that owns them.
+- **Loader**: `TranslocoHttpLoader` in `src/app/core/config/transloco-loader.ts` fetches JSON files via `HttpClient`.
+- **Language service**: `LanguageService` (`src/app/core/services/language.service.ts`) manages the active locale as a signal, persists to `localStorage`, syncs with Transloco, and updates `<html lang>`.
+- **Template usage**: use the `*transloco="let t"` structural directive at the component's root element, then `{{ t('key') }}` or `[attr]="t('key')"` for bindings. Import `TranslocoDirective` in the component's `imports` array.
+- **Testing**: use `TranslocoTestingModule.forRoot({ langs: { en: {...} }, translocoConfig: {...} })` in `TestBed` to provide translations synchronously in specs.
+- **Adding a new language**: (1) create `public/i18n/{code}.json`, (2) add the code to `availableLangs` in `src/app/app.config.ts`, (3) update `Language` type and `LanguageService.toggle()` in `src/app/core/services/language.service.ts`.
+
 ## Key Dependencies
 
 | Package             | Purpose                        |
@@ -92,4 +104,5 @@ Both conventions are enforced by ESLint (see `eslint.config.js`).
 | `vitest`            | Unit test runner (`jsdom` environment) |
 | `angular-eslint`    | Angular-specific lint rules + template processing |
 | `typescript-eslint`  | TypeScript-aware ESLint rules   |
+| `@jsverse/transloco` | Runtime i18n — translation loading, language switching |
 

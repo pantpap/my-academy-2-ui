@@ -1,4 +1,4 @@
-<mat-toolbar>
+<mat-toolbar *transloco="let translate">
   <button mat-icon-button>
     <mat-icon>menu</mat-icon>
   </button>
@@ -7,7 +7,25 @@
 
   <button
     mat-icon-button
-    [matTooltip]="isDark() ? 'Switch to light mode' : 'Switch to dark mode'"
+    [matTooltip]="translate('header.switchLanguage')"
+    [matMenuTriggerFor]="languageMenu"
+  >
+    <mat-icon>translate</mat-icon>
+  </button>
+  <mat-menu #languageMenu="matMenu">
+    <button mat-menu-item (click)="setLanguage('en')" [class.active-lang]="language() === 'en'">
+      <mat-icon>{{ language() === 'en' ? 'check' : '' }}</mat-icon>
+      <span>English</span>
+    </button>
+    <button mat-menu-item (click)="setLanguage('el')" [class.active-lang]="language() === 'el'">
+      <mat-icon>{{ language() === 'el' ? 'check' : '' }}</mat-icon>
+      <span>Ελληνικά</span>
+    </button>
+  </mat-menu>
+
+  <button
+    mat-icon-button
+    [matTooltip]="isDark() ? translate('header.switchToLight') : translate('header.switchToDark')"
     (click)="toggleTheme()"
   >
     <mat-icon>{{ isDark() ? 'light_mode' : 'dark_mode' }}</mat-icon>

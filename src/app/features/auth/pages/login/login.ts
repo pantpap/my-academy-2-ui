@@ -5,6 +5,7 @@ import { MatFormField, MatLabel, MatError, MatPrefix, MatSuffix } from '@angular
 import { MatInput } from '@angular/material/input';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
+import { TranslocoDirective } from '@jsverse/transloco';
 
 interface LoginModel {
   email: string;
@@ -27,6 +28,7 @@ interface LoginModel {
     MatButton,
     MatIconButton,
     MatIcon,
+    TranslocoDirective,
   ],
   templateUrl: './login.html',
   styleUrl: './login.scss',

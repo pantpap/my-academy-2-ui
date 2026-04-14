@@ -1,17 +1,17 @@
-<div class="flex min-h-screen items-center justify-center p-4">
+<div class="flex min-h-screen items-center justify-center p-4" *transloco="let translate">
   <mat-card class="w-full max-w-md">
     <mat-card-content>
       <div class="mb-6 text-center">
         <mat-icon class="hero-icon text-(--mat-sys-primary)">lock</mat-icon>
-        <h1 class="mat-headline-medium mt-2">Sign in</h1>
+        <h1 class="mat-headline-medium mt-2">{{ translate('login.title') }}</h1>
         <p class="mat-body-medium text-(--mat-sys-on-surface-variant)">
-          Enter your credentials to access the system
+          {{ translate('login.subtitle') }}
         </p>
       </div>
 
       <form [formRoot]="loginForm" class="flex flex-col gap-4">
         <mat-form-field appearance="outline">
-          <mat-label>Email</mat-label>
+          <mat-label>{{ translate('login.emailLabel') }}</mat-label>
           <mat-icon matPrefix>email</mat-icon>
           <input
             matInput
@@ -20,14 +20,14 @@
             autocomplete="email"
           />
           @if (hasError(loginForm.email().errors(), 'required')) {
-            <mat-error>Email is required</mat-error>
+            <mat-error>{{ translate('login.emailRequired') }}</mat-error>
           } @else if (hasError(loginForm.email().errors(), 'email')) {
-            <mat-error>Please enter a valid email address</mat-error>
+            <mat-error>{{ translate('login.emailInvalid') }}</mat-error>
           }
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>Password</mat-label>
+          <mat-label>{{ translate('login.passwordLabel') }}</mat-label>
           <mat-icon matPrefix>lock</mat-icon>
           <input
             matInput
@@ -40,12 +40,14 @@
             matSuffix
             type="button"
             (click)="togglePasswordVisibility()"
-            [attr.aria-label]="passwordVisible() ? 'Hide password' : 'Show password'"
+            [attr.aria-label]="
+              passwordVisible() ? translate('login.hidePassword') : translate('login.showPassword')
+            "
           >
             <mat-icon>{{ passwordVisible() ? 'visibility_off' : 'visibility' }}</mat-icon>
           </button>
           @if (hasError(loginForm.password().errors(), 'required')) {
-            <mat-error>Password is required</mat-error>
+            <mat-error>{{ translate('login.passwordRequired') }}</mat-error>
           }
         </mat-form-field>
 
@@ -55,7 +57,7 @@
           class="mt-2 w-full"
           [disabled]="loginForm().invalid()"
         >
-          Sign in
+          {{ translate('login.submit') }}
         </button>
       </form>
     </mat-card-content>

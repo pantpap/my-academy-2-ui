@@ -1,0 +1,20 @@
+{
+  "header": {
+    "switchToLight": "Εναλλαγή σε φωτεινή λειτουργία",
+    "switchToDark": "Εναλλαγή σε σκοτεινή λειτουργία",
+    "switchLanguage": "Αλλαγή γλώσσας"
+  },
+  "login": {
+    "title": "Σύνδεση",
+    "subtitle": "Εισαγάγετε τα στοιχεία σας για πρόσβαση στο σύστημα",
+    "emailLabel": "Email",
+    "passwordLabel": "Κωδικός",
+    "emailRequired": "Το email είναι υποχρεωτικό",
+    "emailInvalid": "Παρακαλώ εισαγάγετε μια έγκυρη διεύθυνση email",
+    "passwordRequired": "Ο κωδικός είναι υποχρεωτικός",
+    "hidePassword": "Απόκρυψη κωδικού",
+    "showPassword": "Εμφάνιση κωδικού",
+    "submit": "Σύνδεση"
+  }
+}
+

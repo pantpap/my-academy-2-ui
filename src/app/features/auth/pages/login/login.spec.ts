@@ -1,10 +1,35 @@
 import { TestBed } from '@angular/core/testing';
+import { TranslocoTestingModule } from '@jsverse/transloco';
 import { Login } from './login';
+
+const en = {
+  login: {
+    title: 'Sign in',
+    subtitle: 'Enter your credentials to access the system',
+    emailLabel: 'Email',
+    passwordLabel: 'Password',
+    emailRequired: 'Email is required',
+    emailInvalid: 'Please enter a valid email address',
+    passwordRequired: 'Password is required',
+    hidePassword: 'Hide password',
+    showPassword: 'Show password',
+    submit: 'Sign in',
+  },
+};
 
 describe('Login', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Login],
+      imports: [
+        Login,
+        TranslocoTestingModule.forRoot({
+          langs: { en },
+          translocoConfig: {
+            availableLangs: ['en', 'el'],
+            defaultLang: 'en',
+          },
+        }),
+      ],
     }).compileComponents();
   });
 

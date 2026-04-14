@@ -1,0 +1,20 @@
+{
+  "header": {
+    "switchToLight": "Switch to light mode",
+    "switchToDark": "Switch to dark mode",
+    "switchLanguage": "Switch language"
+  },
+  "login": {
+    "title": "Sign in",
+    "subtitle": "Enter your credentials to access the system",
+    "emailLabel": "Email",
+    "passwordLabel": "Password",
+    "emailRequired": "Email is required",
+    "emailInvalid": "Please enter a valid email address",
+    "passwordRequired": "Password is required",
+    "hidePassword": "Hide password",
+    "showPassword": "Show password",
+    "submit": "Sign in"
+  }
+}
+

@@ -1,10 +1,24 @@
 import { TestBed } from '@angular/core/testing';
+import { TranslocoTestingModule } from '@jsverse/transloco';
 import { App } from './app';
 
 describe('App', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [App],
+      imports: [
+        App,
+        TranslocoTestingModule.forRoot({
+          langs: {
+            en: {
+              header: { switchToLight: '', switchToDark: '', switchLanguage: '' },
+            },
+          },
+          translocoConfig: {
+            availableLangs: ['en', 'el'],
+            defaultLang: 'en',
+          },
+        }),
+      ],
     }).compileComponents();
   });
 
