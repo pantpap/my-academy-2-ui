@@ -51,6 +51,11 @@ Components use **shortened filenames** without `.component` infix:
 
 Selector prefix: `app-` (configured in `angular.json` under `prefix`).
 
+- **Component selectors**: `element` type, `kebab-case` → `app-feature-name`
+- **Directive selectors**: `attribute` type, `camelCase` → `appFeatureName`
+
+Both conventions are enforced by ESLint (see `eslint.config.js`).
+
 ## Commands
 
 | Task       | Command      | Notes                                |
@@ -72,7 +77,7 @@ Selector prefix: `app-` (configured in `angular.json` under `prefix`).
 ## Code Quality
 
 - **TypeScript strict mode** enabled with `noImplicitOverride`, `noImplicitReturns`, `noPropertyAccessFromIndexSignature`, `noFallthroughCasesInSwitch`, `strictTemplates`, `strictInjectionParameters`, `strictInputAccessModifiers`.
-- **ESLint** flat config (`eslint.config.js`) using `angular-eslint` + `typescript-eslint`. Notable rules enforced as warnings: `prefer-on-push-component-change-detection`, `prefer-signals`, `prefer-standalone`, `no-empty-lifecycle-method`, `prefer-output-readonly`.
+- **ESLint** flat config (`eslint.config.js`) using `angular-eslint` + `typescript-eslint`. Uses ESLint v10 `defineConfig` with CommonJS `require()`. Notable rules enforced as warnings: `prefer-on-push-component-change-detection`, `prefer-signals`, `prefer-standalone`, `no-empty-lifecycle-method`, `prefer-output-readonly`. Also extends `tseslint.configs.stylistic` for TypeScript style conventions. HTML templates are linted with `angular.configs.templateAccessibility` — accessibility violations will be flagged.
 - **Prettier** configured in `package.json`: `printWidth: 100`, `singleQuote: true`, HTML uses the `angular` parser. Integrated with ESLint via `eslint-plugin-prettier`.
 
 ## Key Dependencies
@@ -81,6 +86,7 @@ Selector prefix: `app-` (configured in `angular.json` under `prefix`).
 |---------------------|--------------------------------|
 | `@angular/material` | M3 UI components               |
 | `@angular/cdk`      | Component Dev Kit (overlays, a11y, etc.) |
+| `@angular/forms`    | Reactive and template-driven forms |
 | `tailwindcss` v4    | Utility-first CSS (via `@tailwindcss/postcss`) |
 | `vitest`            | Unit test runner (`jsdom` environment) |
 | `angular-eslint`    | Angular-specific lint rules + template processing |
