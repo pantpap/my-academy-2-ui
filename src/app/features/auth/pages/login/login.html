@@ -1,66 +1,114 @@
-<div class="flex min-h-screen items-center justify-center p-4" *transloco="let translate">
-  <mat-card class="w-full max-w-md">
-    <mat-card-content>
-      <div class="mb-6 text-center">
-        <mat-icon class="hero-icon text-(--mat-sys-primary)">lock</mat-icon>
-        <h1 class="mat-headline-medium mt-2">{{ translate('login.title') }}</h1>
-        <p class="mat-body-medium text-(--mat-sys-on-surface-variant)">
-          {{ translate('login.subtitle') }}
-        </p>
+<div class="flex min-h-screen" *transloco="let translate">
+
+  <!-- LEFT PANEL -->
+  <div class="hidden lg:flex lg:w-1/2 relative flex-col justify-end p-12 overflow-hidden bg-[#111827]">
+
+    <!-- dot grid -->
+    <div class="absolute inset-0"
+         style="background-image: radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px); background-size: 28px 28px;">
+    </div>
+
+    <!-- decorative circles -->
+    <div class="absolute -top-16 -left-16 w-72 h-72 rounded-full border border-white/10"></div>
+    <div class="absolute top-10 -right-10 w-48 h-48 rounded-full bg-white/[0.03]"></div>
+    <div class="absolute bottom-28 right-8 w-40 h-40 rounded-full border border-white/[0.06]"></div>
+
+    <!-- content -->
+    <div class="relative z-10">
+      <div class="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 mb-5">
+        <span class="w-1.5 h-1.5 rounded-full bg-green-400"></span>
+        <span class="text-[11px] font-medium tracking-widest text-white/70 uppercase">Client Management</span>
       </div>
 
-      <form [formRoot]="loginForm" class="flex flex-col gap-4">
-        <mat-form-field appearance="outline">
-          <mat-label>{{ translate('login.emailLabel') }}</mat-label>
-          <mat-icon matPrefix>email</mat-icon>
-          <input
-            matInput
-            type="email"
-            [formField]="loginForm.email"
-            autocomplete="email"
-          />
-          @if (hasError(loginForm.email().errors(), 'required')) {
-            <mat-error>{{ translate('login.emailRequired') }}</mat-error>
-          } @else if (hasError(loginForm.email().errors(), 'email')) {
-            <mat-error>{{ translate('login.emailInvalid') }}</mat-error>
-          }
-        </mat-form-field>
+      <h2 class="text-3xl font-serif font-semibold text-white leading-snug mb-3">
+        Manage your clients,<br>effortlessly.
+      </h2>
+      <p class="text-sm text-white/50 leading-relaxed">
+        Track payments, monitor activity,<br>and keep everything organized in one place.
+      </p>
 
-        <mat-form-field appearance="outline">
-          <mat-label>{{ translate('login.passwordLabel') }}</mat-label>
-          <mat-icon matPrefix>lock</mat-icon>
-          <input
-            matInput
-            [type]="passwordVisible() ? 'text' : 'password'"
-            [formField]="loginForm.password"
-            autocomplete="current-password"
-          />
+      <div class="flex gap-8 mt-7">
+        <div>
+          <p class="text-xl font-medium text-white">248</p>
+          <p class="text-[11px] text-white/40 mt-0.5">Active clients</p>
+        </div>
+        <div>
+          <p class="text-xl font-medium text-white">94%</p>
+          <p class="text-[11px] text-white/40 mt-0.5">Payment rate</p>
+        </div>
+        <div>
+          <p class="text-xl font-medium text-white">12</p>
+          <p class="text-[11px] text-white/40 mt-0.5">Pending</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL — existing form untouched -->
+  <div class="flex w-full lg:w-1/2 items-center justify-center p-4">
+    <mat-card class="w-full max-w-md">
+      <mat-card-content>
+        <div class="mb-6 text-center">
+          <mat-icon class="hero-icon text-(--mat-sys-primary)">lock</mat-icon>
+          <h1 class="mat-headline-medium mt-2">{{ translate('login.title') }}</h1>
+          <p class="mat-body-medium text-(--mat-sys-on-surface-variant)">
+            {{ translate('login.subtitle') }}
+          </p>
+        </div>
+
+        <form [formRoot]="loginForm" class="flex flex-col gap-4">
+          <mat-form-field appearance="outline">
+            <mat-label>{{ translate('login.emailLabel') }}</mat-label>
+            <mat-icon matPrefix>email</mat-icon>
+            <input
+              matInput
+              type="email"
+              [formField]="loginForm.email"
+              autocomplete="email"
+            />
+            @if (hasError(loginForm.email().errors(), 'required')) {
+              <mat-error>{{ translate('login.emailRequired') }}</mat-error>
+            } @else if (hasError(loginForm.email().errors(), 'email')) {
+              <mat-error>{{ translate('login.emailInvalid') }}</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>{{ translate('login.passwordLabel') }}</mat-label>
+            <mat-icon matPrefix>lock</mat-icon>
+            <input
+              matInput
+              [type]="passwordVisible() ? 'text' : 'password'"
+              [formField]="loginForm.password"
+              autocomplete="current-password"
+            />
+            <button
+              mat-icon-button
+              matSuffix
+              type="button"
+              (click)="togglePasswordVisibility()"
+              [attr.aria-label]="
+                passwordVisible() ? translate('login.hidePassword') : translate('login.showPassword')
+              "
+            >
+              <mat-icon>{{ passwordVisible() ? 'visibility_off' : 'visibility' }}</mat-icon>
+            </button>
+            @if (hasError(loginForm.password().errors(), 'required')) {
+              <mat-error>{{ translate('login.passwordRequired') }}</mat-error>
+            }
+          </mat-form-field>
+
           <button
-            mat-icon-button
-            matSuffix
-            type="button"
-            (click)="togglePasswordVisibility()"
-            [attr.aria-label]="
-              passwordVisible() ? translate('login.hidePassword') : translate('login.showPassword')
-            "
+            mat-flat-button
+            type="submit"
+            class="mt-2 w-full"
+            [disabled]="loginForm().invalid()"
           >
-            <mat-icon>{{ passwordVisible() ? 'visibility_off' : 'visibility' }}</mat-icon>
+            {{ translate('login.submit') }}
           </button>
-          @if (hasError(loginForm.password().errors(), 'required')) {
-            <mat-error>{{ translate('login.passwordRequired') }}</mat-error>
-          }
-        </mat-form-field>
+        </form>
+      </mat-card-content>
+    </mat-card>
+  </div>
 
-        <button
-          mat-flat-button
-          type="submit"
-          class="mt-2 w-full"
-          [disabled]="loginForm().invalid()"
-        >
-          {{ translate('login.submit') }}
-        </button>
-      </form>
-    </mat-card-content>
-  </mat-card>
 </div>
-
