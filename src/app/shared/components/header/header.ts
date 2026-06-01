@@ -5,8 +5,8 @@ import { MatIcon } from '@angular/material/icon';
 import { MatTooltip } from '@angular/material/tooltip';
 import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
 import { TranslocoDirective } from '@jsverse/transloco';
-import { ThemeService } from '../../../core/services/theme.service';
-import { LanguageService, Language } from '../../../core/services/language.service';
+import { ThemeService } from '../../../core/services/theme/theme.service';
+import { LanguageService, Language } from '../../../core/services/language/language.service';
 
 @Component({
   selector: 'app-header',
