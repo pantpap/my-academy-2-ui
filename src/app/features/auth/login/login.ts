@@ -6,10 +6,10 @@ import { MatInput } from '@angular/material/input';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { TranslocoDirective } from '@jsverse/transloco';
-import { Auth } from '../../services/auth';
+import { Auth } from '../services/auth';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { AUTH_TOKEN, ORGANIZATION } from '../../../../common/constants/local-storage-constants';
-import { LocalStorage } from '../../../../core/services/localStorage/local-storage';
+import { AUTH_TOKEN, ORGANIZATION } from '../../../common/constants/local-storage-constants';
+import { LocalStorage } from '../../../core/services/localStorage/local-storage';
 
 interface LoginModel {
   email: string;

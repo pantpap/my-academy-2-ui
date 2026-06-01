@@ -12,17 +12,18 @@ export const layoutRoutes: Routes = [
       },
       {
         path: 'dashboard',
-        loadComponent: () =>
-          import('../../features/dashboard/dashboard').then((c) => c.Dashboard),
+        loadComponent: () => import('../../features/dashboard/dashboard').then((c) => c.Dashboard),
+      },
+      {
+        path: 'customers',
+        loadChildren: () =>
+          import('../../features/customers/customer-routes').then((m) => m.customerRoutes),
       },
       // {
       //   path: 'profile',
       //   loadComponent: () => import('../user-profile/user-profile').then((c) => c.UserProfile),
       // },
-      // {
-      //   path: 'customers',
-      //   loadComponent: () => import('../customers/customers').then((c) => c.Customers),
-      // },
+
       // {
       //   path: 'customer-details',
       //   loadComponent: () =>
