@@ -7,4 +7,8 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/auth/pages/login/login').then((m) => m.Login),
   },
+  {
+    path: 'app',
+    loadChildren: () => import('./core/layout/layout-routes').then((m) => m.layoutRoutes),
+  }
 ];
