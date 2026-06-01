@@ -1,0 +1,18 @@
+<div class="min-h-screen xl:flex">
+  <div>
+<!--    <app-sidebar/>-->
+  </div>
+  <div
+    class="flex-1 transition-all duration-300 ease-in-out">
+    <app-header/>
+    <div class="p-4 mx-auto max-w-(--breakpoint-2xl) md:p-6">
+      <router-outlet/>
+    </div>
+  </div>
+</div>
+
+<!--[ngClass]="{-->
+<!--'xl:ml-[290px]': sidebarService.isExpanded() || sidebarService.isHovered(),-->
+<!--'xl:ml-[90px]': !sidebarService.isExpanded() && !sidebarService.isHovered(),-->
+<!--'ml-0': sidebarService.isMobileOpen()-->
+<!--}"-->
