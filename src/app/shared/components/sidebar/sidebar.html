@@ -1,0 +1,64 @@
+<aside class="flex h-screen w-56 flex-col">
+
+  <!-- Logo -->
+  <div class="flex items-center gap-2.5 border-b border-white/[0.07] px-4 py-5">
+    <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10">
+      <mat-icon style="font-size:18px; width:18px; height:18px;">store</mat-icon>
+    </div>
+    <span class="text-sm font-medium ">ClientTrack</span>
+  </div>
+
+  <!-- Nav sections -->
+  <nav class="flex-1 overflow-y-auto px-2.5 py-3">
+    @for (section of sections; track section.label; let last = $last) {
+
+      <p class="mb-1 px-1.5 text-[10px] font-medium uppercase tracking-widest">
+        {{ section.label }}
+      </p>
+
+      @for (item of section.items; track item.route) {
+        <a
+          [routerLink]="item.route"
+          routerLinkActive="bg-white/10 !text-white [&_mat-icon]:!text-white"
+          class="group mb-0.5 flex items-center gap-2.5 rounded-lg px-2.5 py-2 transition-colors hover:bg-white/[0.06]"
+        >
+          <mat-icon class="text-white/50 transition-colors group-hover:text-white/70"
+                    style="font-size:19px; width:19px; height:19px;">
+            {{ item.icon }}
+          </mat-icon>
+
+          <span class="flex-1 text-[13px]">{{ item.label }}</span>
+
+          @if (item.badge) {
+            <span
+              class="min-w-[18px] rounded-full px-1.5 py-px text-center text-[10px] font-medium text-white"
+              [class.bg-red-600]="item.badgeType === 'danger'"
+              [class.bg-amber-600]="item.badgeType === 'warning'"
+            >
+              {{ item.badge }}
+            </span>
+          }
+        </a>
+      }
+
+      @if (!last) {
+        <hr class="my-2 border-white/[0.07]" />
+      }
+    }
+  </nav>
+
+  <!-- User -->
+  <div class="border-t border-white/[0.07] p-2.5">
+    <div class="flex items-center gap-2.5 rounded-lg px-2.5 py-2">
+      <div class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-white/10 text-[11px] font-medium text-white/70">
+        ΓΠ
+      </div>
+      <div class="min-w-0 flex-1">
+        <p class="truncate text-[12px] font-medium text-white/80">Γιώργης Παπαδάκης</p>
+        <p class="text-[10px] text-white/35">Διαχειριστής</p>
+      </div>
+      <mat-icon class="text-white/30" style="font-size:16px; width:16px; height:16px;">expand_more</mat-icon>
+    </div>
+  </div>
+
+</aside>
