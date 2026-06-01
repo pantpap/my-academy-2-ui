@@ -1,8 +1,8 @@
-import { computed, effect, Injectable, signal } from '@angular/core';
+import { computed, effect, inject, Injectable, signal } from '@angular/core';
+import { THEME } from '../../../common/constants/local-storage-constants';
+import { LocalStorage } from '../localStorage/local-storage';
 
 export type Theme = 'light' | 'dark';
-
-const STORAGE_KEY = 'theme-preference';
 
 /**
  * Application-wide theme service.
@@ -15,6 +15,9 @@ const STORAGE_KEY = 'theme-preference';
  */
 @Injectable({ providedIn: 'root' })
 export class ThemeService {
+
+  private readonly localStorageService = inject(LocalStorage)
+
   /** Current theme signal. */
   readonly theme = signal<Theme>(this.storedTheme());
 
@@ -25,7 +28,7 @@ export class ThemeService {
     effect(() => {
       const value = this.theme();
       document.body.style.colorScheme = value;
-      localStorage.setItem(STORAGE_KEY, value);
+      this.localStorageService.setItem(THEME, value);
     });
   }
 
@@ -40,7 +43,7 @@ export class ThemeService {
   }
 
   private storedTheme(): Theme {
-    const stored = localStorage.getItem(STORAGE_KEY);
+    const stored = this.localStorageService.getItem(THEME);
     if (stored === 'light' || stored === 'dark') {
       return stored;
     }
