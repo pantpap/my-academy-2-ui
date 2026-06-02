@@ -10,6 +10,7 @@ import { Auth } from '../services/auth';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AUTH_TOKEN, ORGANIZATION } from '../../../common/constants/local-storage-constants';
 import { LocalStorage } from '../../../core/services/localStorage/local-storage';
+import { Router } from '@angular/router';
 
 interface LoginModel {
   email: string;
@@ -44,6 +45,7 @@ export class Login {
   private readonly destroyRef = inject(DestroyRef);
   private readonly authService = inject(Auth);
   private readonly localStorageService = inject(LocalStorage);
+  private readonly router = inject(Router);
 
   protected readonly loginForm = form(
     this.model,
@@ -62,6 +64,7 @@ export class Login {
             .subscribe((res) => {
               this.localStorageService.setItem(AUTH_TOKEN, res.accessToken);
               this.localStorageService.setItem(ORGANIZATION, res.organization);
+              this.router.navigate(['/app']);
             });
           return undefined;
         },
