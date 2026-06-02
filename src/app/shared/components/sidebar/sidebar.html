@@ -31,7 +31,7 @@
 
           @if (item.badge) {
             <span
-              class="min-w-[18px] rounded-full px-1.5 py-px text-center text-[10px] font-medium text-white"
+              class="min-w-4.5 rounded-full px-1.5 py-px text-center text-[10px] font-medium text-white"
               [class.bg-red-600]="item.badgeType === 'danger'"
               [class.bg-amber-600]="item.badgeType === 'warning'"
             >
@@ -50,15 +50,14 @@
   <!-- User -->
   <div class="border-t border-white/[0.07] p-2.5">
     <div class="flex items-center gap-2.5 rounded-lg px-2.5 py-2">
-      <div class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-white/10 text-[11px] font-medium text-white/70">
-        ΓΠ
+      <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/10 text-[11px] font-medium ">
+        {{initials()}}
       </div>
       <div class="min-w-0 flex-1">
-        <p class="truncate text-[12px] font-medium text-white/80">Γιώργης Παπαδάκης</p>
-        <p class="text-[10px] text-white/35">Διαχειριστής</p>
+        <p class="truncate text-[12px] font-medium">{{userData().name}}</p>
+<!--        <p class="text-[10px]">Διαχειριστής</p>-->
       </div>
-      <mat-icon class="text-white/30" style="font-size:16px; width:16px; height:16px;">expand_more</mat-icon>
+      <mat-icon class="" style="font-size:16px; width:16px; height:16px;">expand_more</mat-icon>
     </div>
   </div>
-
 </aside>
