@@ -14,7 +14,7 @@ export class LocalStorage {
     try {
       return JSON.parse(localStorage.getItem(`${this.keyPrefix}${key}`) ?? '');
     } catch (e) {
-      return `Error retrieving item with key ${key} from localStorage: ${e}`;
+      return null;
     }
   }
 
