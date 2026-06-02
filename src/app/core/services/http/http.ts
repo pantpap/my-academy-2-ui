@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../config/environment';
 
@@ -9,6 +9,17 @@ import { environment } from '../../config/environment';
 export class Http {
   private readonly httpClient = inject(HttpClient);
   private apiUrl = environment.apiUrl;
+
+  get<T>(url: string, params?: Record<string, string | number>): Observable<T> {
+    const endpoint = `${this.apiUrl}/${url}`;
+    let httpParams = new HttpParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        httpParams = httpParams.set(key, value.toString());
+      });
+    }
+    return this.httpClient.get<T>(endpoint, { params: httpParams });
+  }
 
   post<T>(url: string, body?: T): Observable<any> {
     const endpoint = `${this.apiUrl}/${url}`;

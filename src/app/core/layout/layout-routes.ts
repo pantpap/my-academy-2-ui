@@ -15,7 +15,7 @@ export const layoutRoutes: Routes = [
         loadComponent: () => import('../../features/dashboard/dashboard').then((c) => c.Dashboard),
       },
       {
-        path: 'customers',
+        path: 'customer',
         loadChildren: () =>
           import('../../features/customers/customer-routes').then((m) => m.customerRoutes),
       },
