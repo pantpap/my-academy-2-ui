@@ -4,6 +4,12 @@
     "switchToDark": "Switch to dark mode",
     "switchLanguage": "Switch language"
   },
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred. Please try again later.",
+    "noData": "No data available",
+    "edit": "Edit"
+  },
   "login": {
     "title": "Sign in",
     "subtitle": "Enter your credentials to access the system",
@@ -15,6 +21,13 @@
     "hidePassword": "Hide password",
     "showPassword": "Show password",
     "submit": "Sign in"
+  },
+  "table": {
+    "name": "Name",
+    "birthDate": "Birth date",
+    "contact": "Contact",
+    "gender": "Gender",
+    "sport": "Sport"
   }
 }
 
