@@ -2,9 +2,10 @@ import { BaseResponse } from './base-response';
 
 export interface Customer {
   id: number;
-  name: string;
-  surname: string;
+  firstName: string;
+  lastName: string;
   birthDate: string;
+  gender: string;
   phone: string;
 }
 

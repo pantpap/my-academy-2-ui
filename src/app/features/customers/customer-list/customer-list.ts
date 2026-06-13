@@ -1,10 +1,11 @@
-import { Component, ChangeDetectionStrategy, input, ResourceRef } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, ResourceRef, inject } from '@angular/core';
 import { MatCell, MatCellDef, MatColumnDef, MatHeaderCell, MatHeaderCellDef, MatHeaderRow,
   MatHeaderRowDef, MatRow, MatRowDef, MatTable } from '@angular/material/table';
 import { Customer, CustomersPagedResponse } from '../../../common/interfaces/customer';
 import { MatIcon } from '@angular/material/icon';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { MatTooltip } from '@angular/material/tooltip';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-customer-list',
@@ -28,6 +29,7 @@ import { MatTooltip } from '@angular/material/tooltip';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CustomerList {
+  private readonly router = inject(Router)
   readonly dataSourceResourceValue =
     input.required<ResourceRef<CustomersPagedResponse | undefined>>();
 
@@ -35,6 +37,6 @@ export class CustomerList {
 
   onEditClick(customer: Customer) {
     console.log(customer);
-    //   TODO: navigate to customer details using id
+    this.router.navigate(['/app/customers', customer.id]);
   }
 }

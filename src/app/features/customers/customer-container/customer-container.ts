@@ -24,7 +24,7 @@ export class CustomerContainer {
     stream: ({ params: orgId }) => {
       if (!orgId) return EMPTY;
 
-      return this.customerService.getCustomers(orgId, 1, 10);
+      return this.customerService.getCustomers( 1, 10);
     },
   });
 }

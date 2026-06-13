@@ -6,11 +6,12 @@ export const customerRoutes: Route[] = [
     loadComponent: () => import('./customer-container/customer-container').then((c) => c.CustomerContainer),
   },
   {
-    path: ':id',
+    path: 'new',
     loadComponent: () => import('./customer-details/customer-details').then((c) => c.CustomerDetails),
   },
   {
-    path: 'new',
+    path: ':id',
     loadComponent: () => import('./customer-details/customer-details').then((c) => c.CustomerDetails),
-  }
+  },
+
 ]
