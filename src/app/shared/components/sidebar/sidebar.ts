@@ -19,7 +19,7 @@ export class Sidebar {
       label: 'Κύριο',
       items: [
         { label: 'Dashboard', icon: 'dashboard', route: 'dashboard' },
-        { label: 'Πελάτες', icon: 'group', route: 'customer' },
+        { label: 'Πελάτες', icon: 'group', route: 'customers' },
         { label: 'Πληρωμές', icon: 'payments', route: 'payments' },
         {
           label: 'Εκκρεμή',
