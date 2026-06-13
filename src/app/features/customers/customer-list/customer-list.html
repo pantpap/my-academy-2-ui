@@ -1,32 +1,32 @@
 isLoading: ({{dataSourceResourceValue().isLoading()}})
 @let data = dataSourceResourceValue().value()?.data ?? [];
-<table mat-table [dataSource]="data" class="mat-elevation-z8">
+<table mat-table [dataSource]="data" class="mat-elevation-z8" *transloco="let translate">
 
   <!--- Note that these columns can be defined in any order.
         The actual rendered columns are set as a property on the row definition" -->
 
   <ng-container matColumnDef="name">
-    <th mat-header-cell *matHeaderCellDef> Όνομα </th>
+    <th mat-header-cell *matHeaderCellDef> {{translate('table.name')}} </th>
     <td mat-cell *matCellDef="let element"> {{element.firstName}} {{element.lastName}} </td>
   </ng-container>
 
   <ng-container matColumnDef="birthDate">
-    <th mat-header-cell *matHeaderCellDef> Ημ. Γένησης </th>
+    <th mat-header-cell *matHeaderCellDef> {{ translate('table.birthDate') }} </th>
     <td mat-cell *matCellDef="let element"> {{element.birthDate}} </td>
   </ng-container>
 
   <ng-container matColumnDef="phone">
-    <th mat-header-cell *matHeaderCellDef> Επικοινωνία </th>
+    <th mat-header-cell *matHeaderCellDef> {{ translate('table.contact') }} </th>
     <td mat-cell *matCellDef="let element"> {{element.phone}} </td>
   </ng-container>
 
   <ng-container matColumnDef="gender">
-    <th mat-header-cell *matHeaderCellDef> Φύλλο </th>
+    <th mat-header-cell *matHeaderCellDef> {{ translate('table.gender') }} </th>
     <td mat-cell *matCellDef="let element"> {{element.gender}} </td>
   </ng-container>
 
   <ng-container matColumnDef="sport">
-    <th mat-header-cell *matHeaderCellDef> Άθλημα </th>
+    <th mat-header-cell *matHeaderCellDef> {{translate('table.sport')}} </th>
     <td mat-cell *matCellDef="let element">
       @for(sport of element.sportNames; track sport){
         {{sport}}
@@ -37,7 +37,15 @@ isLoading: ({{dataSourceResourceValue().isLoading()}})
   <ng-container matColumnDef="actions">
     <th mat-header-cell *matHeaderCellDef>  </th>
     <td mat-cell *matCellDef="let customer">
-      <mat-icon aria-hidden="false" aria-label="Edit customer" fontIcon="edit" (click)="onRowClick(customer)"></mat-icon>
+      <mat-icon
+        aria-hidden="false"
+        aria-label="Edit customer"
+        fontIcon="edit"
+        class="cursor-pointer"
+        matTooltip="{{translate('common.edit')}}"
+        matTooltipPosition="right"
+        (click)="onEditClick(customer)">
+      </mat-icon>
     </td>
   </ng-container>
 

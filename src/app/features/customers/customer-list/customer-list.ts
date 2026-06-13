@@ -3,6 +3,8 @@ import { MatCell, MatCellDef, MatColumnDef, MatHeaderCell, MatHeaderCellDef, Mat
   MatHeaderRowDef, MatRow, MatRowDef, MatTable } from '@angular/material/table';
 import { Customer, CustomersPagedResponse } from '../../../common/interfaces/customer';
 import { MatIcon } from '@angular/material/icon';
+import { TranslocoDirective } from '@jsverse/transloco';
+import { MatTooltip } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-customer-list',
@@ -18,6 +20,8 @@ import { MatIcon } from '@angular/material/icon';
     MatHeaderRowDef,
     MatRowDef,
     MatIcon,
+    TranslocoDirective,
+    MatTooltip,
   ],
   templateUrl: './customer-list.html',
   styleUrl: './customer-list.scss',
@@ -29,9 +33,8 @@ export class CustomerList {
 
   displayedColumns: string[] = ['name', 'birthDate', 'gender', 'phone', 'sport', 'actions'];
 
-  onRowClick(customer: Customer) {
+  onEditClick(customer: Customer) {
     console.log(customer);
-  //   TODO: navigate to customer details using id
-
+    //   TODO: navigate to customer details using id
   }
 }
