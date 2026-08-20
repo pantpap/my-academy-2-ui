@@ -8,7 +8,11 @@
     "loading": "Loading...",
     "error": "An error occurred. Please try again later.",
     "noData": "No data available",
-    "edit": "Edit"
+    "edit": "Edit",
+    "add": "Add",
+    "delete": "Delete",
+    "save": "Save",
+    "cancel": "Cancel"
   },
   "login": {
     "title": "Sign in",

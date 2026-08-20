@@ -1,1 +1,10 @@
-<app-customer-list [dataSourceResourceValue]="dataSourceResource"/>
+
+  <div *transloco="let translate" class="flex justify-end mt-2">
+    <button mat-flat-button (click)="addNewCustomer()">
+      <mat-icon>add</mat-icon>
+      {{ translate('common.add') }}
+    </button>
+  </div>
+  <app-customer-list [dataSourceResourceValue]="dataSourceResource"/>
+
+

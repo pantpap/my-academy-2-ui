@@ -5,10 +5,14 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { Customer } from '../../../shared/services/customer/customer';
 import { ORGANIZATION } from '../../../common/constants/local-storage-constants';
 import { EMPTY } from 'rxjs';
+import { MatButton } from '@angular/material/button';
+import { TranslocoDirective } from '@jsverse/transloco';
+import { MatIcon } from '@angular/material/icon';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-customer-container',
-  imports: [CustomerList],
+  imports: [CustomerList, MatButton, TranslocoDirective, MatIcon],
   templateUrl: './customer-container.html',
   styleUrl: './customer-container.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -16,6 +20,7 @@ import { EMPTY } from 'rxjs';
 export class CustomerContainer {
   private readonly localStorageService = inject(LocalStorage);
   private readonly customerService = inject(Customer);
+  private readonly router = inject(Router)
 
   readonly organizationId = signal(this.localStorageService.getItem(ORGANIZATION).id);
 
@@ -24,7 +29,11 @@ export class CustomerContainer {
     stream: ({ params: orgId }) => {
       if (!orgId) return EMPTY;
 
-      return this.customerService.getCustomers( 1, 10);
+      return this.customerService.getCustomers(1, 10);
     },
   });
+
+  addNewCustomer(){
+    this.router.navigate(['/app/customers', 'new']);
+  }
 }
