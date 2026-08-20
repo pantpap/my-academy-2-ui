@@ -1,4 +1,4 @@
-import { inject, Injectable, signal } from '@angular/core';
+ import { inject, Injectable, signal } from '@angular/core';
 import { Http } from '../../../core/services/http/http';
 import { ATHLETES_API } from '../../../common/constants/endpoints';
 import { CustomersPagedResponse } from '../../../common/interfaces/customer';
@@ -23,6 +23,6 @@ export class Customer {
   }
 
   getCustomer(id: number) {
-    return this.httpService.get<Customer>(`${ATHLETES_API}/${id}`, { organizationId: this.organizationId() });
+    return this.httpService.get<Customer>(`${ATHLETES_API}/${id}`);
   }
 }
