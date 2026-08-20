@@ -6,7 +6,6 @@ import { ORGANIZATION } from '../../../common/constants/local-storage-constants'
 import { LocalStorage } from '../../../core/services/localStorage/local-storage';
 
 @Injectable({
-  providedIn: 'root',
 })
 export class Customer {
   private readonly httpService = inject(Http);
