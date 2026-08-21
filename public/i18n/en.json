@@ -32,6 +32,24 @@
     "contact": "Contact",
     "gender": "Gender",
     "sport": "Sport"
+  },
+  "customerDetails": {
+    "createTitle": "New Customer",
+    "editTitle": "Edit Customer",
+    "firstNameLabel": "First Name",
+    "firstNameRequired": "First name is required",
+    "lastNameLabel": "Last Name",
+    "lastNameRequired": "Last name is required",
+    "birthDateLabel": "Date of Birth",
+    "birthDateRequired": "Date of birth is required",
+    "genderLabel": "Gender",
+    "genderRequired": "Gender is required",
+    "phoneLabel": "Phone",
+    "phoneRequired": "Phone number is required",
+    "phoneInvalid": "Please enter a valid phone number",
+    "createSuccess": "Customer created successfully.",
+    "updateSuccess": "Customer updated successfully.",
+    "saveError": "Something went wrong while saving. Please try again."
   }
 }
 

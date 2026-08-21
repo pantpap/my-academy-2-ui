@@ -1,5 +1,88 @@
-<p>customer-details works!</p>
-<p>A form with customer details that the organization can create or edit a user and save.</p>
-id: {{id()}}
+<div *transloco="let translate" class="flex justify-center p-4">
+  <mat-card class="w-full max-w-2xl">
+    <mat-card-content>
+      <div class="mb-6 text-center">
+        <mat-icon class="hero-icon text-(--mat-sys-primary)">badge</mat-icon>
+        <h1 class="mat-headline-medium mt-2">
+          {{ isEditMode() ? translate('customerDetails.editTitle') : translate('customerDetails.createTitle') }}
+        </h1>
+      </div>
 
-{{customerDetailsResource.value() | json}}
+      @if (isEditMode() && customerDetailsResource.isLoading()) {
+        <p class="text-center">{{ translate('common.loading') }}</p>
+      } @else if (isEditMode() && customerDetailsResource.error()) {
+        <p class="text-center text-(--mat-sys-error)">{{ translate('common.error') }}</p>
+      } @else {
+        @if (saveSuccess()) {
+          <div class="mb-4 rounded p-3 bg-(--mat-sys-primary-container) text-(--mat-sys-on-primary-container)">
+            {{ saveSuccess() === 'created'
+              ? translate('customerDetails.createSuccess')
+              : translate('customerDetails.updateSuccess') }}
+          </div>
+        }
+        @if (saveError()) {
+          <div class="mb-4 rounded p-3 bg-(--mat-sys-error-container) text-(--mat-sys-on-error-container)">
+            {{ translate('customerDetails.saveError') }}
+          </div>
+        }
+
+        <form [formRoot]="customerForm" class="flex flex-col gap-4">
+          <div class="flex flex-col sm:flex-row gap-4">
+            <mat-form-field appearance="outline" class="flex-1">
+              <mat-label>{{ translate('customerDetails.firstNameLabel') }}</mat-label>
+              <input matInput [formField]="customerForm.firstName" />
+              @if (hasError(customerForm.firstName().errors(), 'required')) {
+                <mat-error>{{ translate('customerDetails.firstNameRequired') }}</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="flex-1">
+              <mat-label>{{ translate('customerDetails.lastNameLabel') }}</mat-label>
+              <input matInput [formField]="customerForm.lastName" />
+              @if (hasError(customerForm.lastName().errors(), 'required')) {
+                <mat-error>{{ translate('customerDetails.lastNameRequired') }}</mat-error>
+              }
+            </mat-form-field>
+          </div>
+
+          <mat-form-field appearance="outline">
+            <mat-label>{{ translate('customerDetails.birthDateLabel') }}</mat-label>
+            <input matInput [matDatepicker]="picker" [formField]="customerForm.birthDate" />
+            <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+            <mat-datepicker #picker></mat-datepicker>
+            @if (hasError(customerForm.birthDate().errors(), 'required')) {
+              <mat-error>{{ translate('customerDetails.birthDateRequired') }}</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>{{ translate('customerDetails.genderLabel') }}</mat-label>
+            <input matInput [formField]="customerForm.gender" />
+            @if (hasError(customerForm.gender().errors(), 'required')) {
+              <mat-error>{{ translate('customerDetails.genderRequired') }}</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>{{ translate('customerDetails.phoneLabel') }}</mat-label>
+            <input matInput type="tel" [formField]="customerForm.phone" />
+            @if (hasError(customerForm.phone().errors(), 'required')) {
+              <mat-error>{{ translate('customerDetails.phoneRequired') }}</mat-error>
+            } @else if (hasError(customerForm.phone().errors(), 'pattern')) {
+              <mat-error>{{ translate('customerDetails.phoneInvalid') }}</mat-error>
+            }
+          </mat-form-field>
+
+          <button
+            mat-flat-button
+            type="submit"
+            class="mt-2"
+            [disabled]="customerForm().invalid() || customerForm().submitting()"
+          >
+            {{ translate('common.save') }}
+          </button>
+        </form>
+      }
+    </mat-card-content>
+  </mat-card>
+</div>

@@ -7,6 +7,9 @@ export interface Customer {
   birthDate: string;
   gender: string;
   phone: string;
+  sportNames: string[];
+  sports: { id: number; name: string }[];
+  paidUntil: string | null;
 }
 
-export type CustomersPagedResponse = BaseResponse<Customer>
+export type CustomersPagedResponse = BaseResponse<Customer>;

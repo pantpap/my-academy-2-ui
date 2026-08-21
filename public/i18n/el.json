@@ -32,6 +32,24 @@
     "contact": "Επικοινωνία",
     "gender": "Φύλο",
     "sport": "Άθλημα"
+  },
+  "customerDetails": {
+    "createTitle": "Νέος Πελάτης",
+    "editTitle": "Επεξεργασία Πελάτη",
+    "firstNameLabel": "Όνομα",
+    "firstNameRequired": "Το όνομα είναι υποχρεωτικό",
+    "lastNameLabel": "Επώνυμο",
+    "lastNameRequired": "Το επώνυμο είναι υποχρεωτικό",
+    "birthDateLabel": "Ημερομηνία Γέννησης",
+    "birthDateRequired": "Η ημερομηνία γέννησης είναι υποχρεωτική",
+    "genderLabel": "Φύλο",
+    "genderRequired": "Το φύλο είναι υποχρεωτικό",
+    "phoneLabel": "Τηλέφωνο",
+    "phoneRequired": "Ο αριθμός τηλεφώνου είναι υποχρεωτικός",
+    "phoneInvalid": "Παρακαλώ εισαγάγετε έναν έγκυρο αριθμό τηλεφώνου",
+    "createSuccess": "Ο πελάτης δημιουργήθηκε με επιτυχία.",
+    "updateSuccess": "Ο πελάτης ενημερώθηκε με επιτυχία.",
+    "saveError": "Κάτι πήγε στραβά κατά την αποθήκευση. Παρακαλώ δοκιμάστε ξανά."
   }
 }
 

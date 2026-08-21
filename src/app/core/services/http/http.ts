@@ -25,4 +25,9 @@ export class Http {
     const endpoint = `${this.apiUrl}/${url}`;
     return this.httpClient.post<T>(endpoint, body);
   }
+
+  put<T>(url: string, body?: T): Observable<any> {
+    const endpoint = `${this.apiUrl}/${url}`;
+    return this.httpClient.put<T>(endpoint, body);
+  }
 }
