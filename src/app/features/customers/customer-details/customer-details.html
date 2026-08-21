@@ -86,3 +86,20 @@
     </mat-card-content>
   </mat-card>
 </div>
+================================================================================================
+<div *transloco="let translate" class="flex justify-center p-4">
+  <mat-card class="w-full">
+    <mat-card-content>
+      <div class="mb-6">
+        <span class="font-medium text-lg mt-2">
+          {{customerDetailsResource.value()?.firstName}} {{customerDetailsResource.value()?.lastName}}
+        </span>
+        <mat-card>
+          <mat-card-content>
+            <mat-icon class="hero-icon text-(--mat-sys-primary)">badge</mat-icon>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>
