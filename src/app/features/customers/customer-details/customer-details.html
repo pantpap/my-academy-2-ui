@@ -1,105 +1,82 @@
-<div *transloco="let translate" class="flex justify-center p-4">
-  <mat-card class="w-full max-w-2xl">
-    <mat-card-content>
-      <div class="mb-6 text-center">
-        <mat-icon class="hero-icon text-(--mat-sys-primary)">badge</mat-icon>
-        <h1 class="mat-headline-medium mt-2">
-          {{ isEditMode() ? translate('customerDetails.editTitle') : translate('customerDetails.createTitle') }}
-        </h1>
-      </div>
-
-      @if (isEditMode() && customerDetailsResource.isLoading()) {
-        <p class="text-center">{{ translate('common.loading') }}</p>
-      } @else if (isEditMode() && customerDetailsResource.error()) {
-        <p class="text-center text-(--mat-sys-error)">{{ translate('common.error') }}</p>
-      } @else {
-        @if (saveSuccess()) {
-          <div class="mb-4 rounded p-3 bg-(--mat-sys-primary-container) text-(--mat-sys-on-primary-container)">
-            {{ saveSuccess() === 'created'
-              ? translate('customerDetails.createSuccess')
-              : translate('customerDetails.updateSuccess') }}
-          </div>
-        }
-        @if (saveError()) {
-          <div class="mb-4 rounded p-3 bg-(--mat-sys-error-container) text-(--mat-sys-on-error-container)">
-            {{ translate('customerDetails.saveError') }}
-          </div>
-        }
-
-        <form [formRoot]="customerForm" class="flex flex-col gap-4">
-          <div class="flex flex-col sm:flex-row gap-4">
-            <mat-form-field appearance="outline" class="flex-1">
-              <mat-label>{{ translate('customerDetails.firstNameLabel') }}</mat-label>
-              <input matInput [formField]="customerForm.firstName" />
-              @if (hasError(customerForm.firstName().errors(), 'required')) {
-                <mat-error>{{ translate('customerDetails.firstNameRequired') }}</mat-error>
-              }
-            </mat-form-field>
-
-            <mat-form-field appearance="outline" class="flex-1">
-              <mat-label>{{ translate('customerDetails.lastNameLabel') }}</mat-label>
-              <input matInput [formField]="customerForm.lastName" />
-              @if (hasError(customerForm.lastName().errors(), 'required')) {
-                <mat-error>{{ translate('customerDetails.lastNameRequired') }}</mat-error>
-              }
-            </mat-form-field>
+<div *transloco="let translate" class="flex w-full justify-center p-4">
+  @if (customerDetailsResource.isLoading()) {
+    <p class="text-center">{{ translate('common.loading') }}</p>
+  } @else if (customerDetailsResource.error()) {
+    <p class="text-center text-(--mat-sys-error)">{{ translate('common.error') }}</p>
+  } @else {
+    <div class="w-full flex flex-col gap-4">
+      <mat-card>
+        <mat-card-content>
+          <div class="flex items-start justify-between gap-4 mb-6">
+            <div class="flex items-center gap-4">
+              <div class="flex items-center justify-center size-16 rounded-full bg-(--mat-sys-primary-container)">
+                <mat-icon class="hero-icon text-(--mat-sys-on-primary-container)">badge</mat-icon>
+              </div>
+              <div>
+                <h1 class="mat-headline-medium">
+                  {{ customerDetailsResource.value()?.firstName }} {{ customerDetailsResource.value()?.lastName }}
+                </h1>
+                <p class="mat-body-medium text-(--mat-sys-on-surface-variant)">
+                  {{ customerDetailsResource.value()?.gender }}
+                </p>
+              </div>
+            </div>
+            <button mat-stroked-button type="button">
+              <mat-icon>edit</mat-icon>
+              {{ translate('customerDetails.editButton') }}
+            </button>
           </div>
 
-          <mat-form-field appearance="outline">
-            <mat-label>{{ translate('customerDetails.birthDateLabel') }}</mat-label>
-            <input matInput [matDatepicker]="picker" [formField]="customerForm.birthDate" />
-            <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-            <mat-datepicker #picker></mat-datepicker>
-            @if (hasError(customerForm.birthDate().errors(), 'required')) {
-              <mat-error>{{ translate('customerDetails.birthDateRequired') }}</mat-error>
-            }
-          </mat-form-field>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <p class="mat-body-small text-(--mat-sys-on-surface-variant)">{{ translate('customerDetails.firstNameLabel') }}</p>
+              <p class="font-medium">{{ customerDetailsResource.value()?.firstName }}</p>
+            </div>
+            <div>
+              <p class="mat-body-small text-(--mat-sys-on-surface-variant)">{{ translate('customerDetails.lastNameLabel') }}</p>
+              <p class="font-medium">{{ customerDetailsResource.value()?.lastName }}</p>
+            </div>
+            <div>
+              <p class="mat-body-small text-(--mat-sys-on-surface-variant)">{{ translate('customerDetails.genderLabel') }}</p>
+              <p class="font-medium">{{ customerDetailsResource.value()?.gender }}</p>
+            </div>
+            <div>
+              <p class="mat-body-small text-(--mat-sys-on-surface-variant)">{{ translate('customerDetails.phoneLabel') }}</p>
+              <p class="font-medium">{{ customerDetailsResource.value()?.phone }}</p>
+            </div>
+            <div>
+              <p class="mat-body-small text-(--mat-sys-on-surface-variant)">{{ translate('customerDetails.birthDateLabel') }}</p>
+              <p class="font-medium">{{ customerDetailsResource.value()?.birthDate }}</p>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
 
-          <mat-form-field appearance="outline">
-            <mat-label>{{ translate('customerDetails.genderLabel') }}</mat-label>
-            <input matInput [formField]="customerForm.gender" />
-            @if (hasError(customerForm.gender().errors(), 'required')) {
-              <mat-error>{{ translate('customerDetails.genderRequired') }}</mat-error>
-            }
-          </mat-form-field>
-
-          <mat-form-field appearance="outline">
-            <mat-label>{{ translate('customerDetails.phoneLabel') }}</mat-label>
-            <input matInput type="tel" [formField]="customerForm.phone" />
-            @if (hasError(customerForm.phone().errors(), 'required')) {
-              <mat-error>{{ translate('customerDetails.phoneRequired') }}</mat-error>
-            } @else if (hasError(customerForm.phone().errors(), 'pattern')) {
-              <mat-error>{{ translate('customerDetails.phoneInvalid') }}</mat-error>
-            }
-          </mat-form-field>
-
-          <button
-            mat-flat-button
-            type="submit"
-            class="mt-2"
-            [disabled]="customerForm().invalid() || customerForm().submitting()"
-          >
-            {{ translate('common.save') }}
-          </button>
-        </form>
-      }
-    </mat-card-content>
-  </mat-card>
-</div>
-================================================================================================
-<div *transloco="let translate" class="flex justify-center p-4">
-  <mat-card class="w-full">
-    <mat-card-content>
-      <div class="mb-6">
-        <span class="font-medium text-lg mt-2">
-          {{customerDetailsResource.value()?.firstName}} {{customerDetailsResource.value()?.lastName}}
-        </span>
-        <mat-card>
-          <mat-card-content>
-            <mat-icon class="hero-icon text-(--mat-sys-primary)">badge</mat-icon>
-          </mat-card-content>
-        </mat-card>
-      </div>
-    </mat-card-content>
-  </mat-card>
+      <mat-card>
+        <mat-card-content>
+          <h2 class="mat-title-medium mb-4">{{ translate('customerDetails.membershipTitle') }}</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <p class="mat-body-small text-(--mat-sys-on-surface-variant)">{{ translate('customerDetails.sportsLabel') }}</p>
+              <p class="font-medium">
+                @if (customerDetailsResource.value()?.sportNames?.length) {
+                  @for (sport of customerDetailsResource.value()?.sportNames; track sport) {
+                    {{ sport }}
+                  }
+                } @else {
+                  {{ translate('customerDetails.noSports') }}
+                }
+              </p>
+            </div>
+            <div>
+              <p class="mat-body-small text-(--mat-sys-on-surface-variant)">{{ translate('customerDetails.paidUntilLabel') }}</p>
+              <p class="font-medium">
+                {{ customerDetailsResource.value()?.paidUntil ?? translate('customerDetails.notPaid') }}
+              </p>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  }
 </div>
