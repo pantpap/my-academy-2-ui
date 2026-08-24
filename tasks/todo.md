@@ -6,7 +6,7 @@ Plan: [`tasks/plan.md`](./plan.md). Do not start until the plan is approved.
 
 ## Phase 1: Foundation
 
-## Task 1: Create the `CustomerFormDialog` component with the form markup
+## Task 1: Create the `CustomerFormDialog` component with the form markup ✅ done
 
 **Description:** Add a standalone Material dialog component under
 `src/app/features/customers/customer-form-dialog/` containing the customer form's HTML — the
@@ -16,19 +16,19 @@ stays minimal: read the optional injected customer from `MAT_DIALOG_DATA` and de
 human's.
 
 **Acceptance criteria:**
-- [ ] `CustomerFormDialog` is a standalone `OnPush` component, selector `app-customer-form-dialog`, following the repo's no-`.component`-infix filename convention (`customer-form-dialog.ts` / `.html` / `.scss` / `.spec.ts`).
-- [ ] Template uses `mat-dialog-title`, `<mat-dialog-content>`, `<mat-dialog-actions>`, with `*transloco="let translate"` at the root; title reads `customerDetails.editTitle` when a customer was passed and `customerDetails.createTitle` otherwise.
-- [ ] Content renders exactly five `<mat-form-field>` blocks — `firstName`, `lastName`, `birthDate` (`matDatepicker` + `mat-datepicker-toggle` in `matSuffix`), `gender` (text `matInput`), `phone` — labelled from the existing `customerDetails.*Label` keys, in that order. Inputs carry **no value bindings**.
-- [ ] Actions row has Cancel (`mat-button`, `mat-dialog-close`, `common.cancel`) and Save (`mat-flat-button`, `common.save`); Save has **no** `(click)` handler yet.
-- [ ] `data` is read with `inject(MAT_DIALOG_DATA, { optional: true })` and typed by an exported `CustomerFormDialogData { customer?: Customer }` interface, so opening with no data does not throw.
-- [ ] Material symbols are imported individually (`MatDialogTitle`, `MatDialogContent`, …), not as modules — per `AGENTS.md`.
-- [ ] **No translation files are modified** — every key already exists in `en.json` and `el.json`.
+- [x] `CustomerFormDialog` is a standalone `OnPush` component, selector `app-customer-form-dialog`, following the repo's no-`.component`-infix filename convention (`customer-form-dialog.ts` / `.html` / `.scss` / `.spec.ts`).
+- [x] Template uses `mat-dialog-title`, `<mat-dialog-content>`, `<mat-dialog-actions>`, with `*transloco="let translate"` at the root; title reads `customerDetails.editTitle` when a customer was passed and `customerDetails.createTitle` otherwise.
+- [x] Content renders exactly five `<mat-form-field>` blocks — `firstName`, `lastName`, `birthDate` (`matDatepicker` + `mat-datepicker-toggle` in `matSuffix`), `gender` (text `matInput`), `phone` — labelled from the existing `customerDetails.*Label` keys, in that order. Inputs carry **no value bindings**.
+- [x] Actions row has Cancel (`mat-button`, `mat-dialog-close`, `common.cancel`) and Save (`mat-flat-button`, `common.save`); Save has **no** `(click)` handler yet.
+- [x] `data` is read with `inject(MAT_DIALOG_DATA, { optional: true })` and typed by an exported `CustomerFormDialogData { customer?: Customer }` interface, so opening with no data does not throw.
+- [x] Material symbols are imported individually (`MatDialogTitle`, `MatDialogContent`, …), not as modules — per `AGENTS.md`.
+- [x] **No translation files are modified** — every key already exists in `en.json` and `el.json`.
 
 **Verification:**
-- [ ] Build succeeds: `npm run build`
-- [ ] Lint clean, including template accessibility rules: `npm run lint`
-- [ ] Spec passes: `npm test` — a `should create` spec using `TestBed` with `CustomerFormDialog`, `TranslocoTestingModule`, and `{ provide: MAT_DIALOG_DATA, useValue: {} }` + a `MatDialogRef` stub, matching the style of `customer-list.spec.ts`.
-- [ ] Manual check: none yet — nothing opens it until Task 2.
+- [x] Build succeeds: `npm run build`
+- [x] Lint clean, including template accessibility rules: `npm run lint`
+- [x] Spec passes: `npm test` — 6 specs covering create/edit mode, title switching, five rendered fields, and Cancel/Save actions.
+- [x] Manual check: none yet — nothing opens it until Task 2.
 
 **Dependencies:** None
 
@@ -44,10 +44,10 @@ human's.
 
 ## Checkpoint: Foundation
 
-- [ ] `npm run build` succeeds
-- [ ] `npm run lint` reports no new errors
-- [ ] `npm test` passes
-- [ ] No existing file was modified by Task 1
+- [x] `npm run build` succeeds
+- [x] `npm run lint` reports no new errors (one pre-existing lint error, in `customer-form-dialog.spec.ts`'s own `MatDialogRef` stub, was fixed before commit)
+- [x] `npm test` passes (7 pre-existing failing test files, unrelated to this change and not touched by it, remain unchanged — see `git log` on `dev`)
+- [x] No existing file was modified by Task 1
 - [ ] Review the rendered field markup with the human before wiring entry points
 
 ---
