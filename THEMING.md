@@ -21,6 +21,7 @@ No duplicate Sass theme blocks, no extra CSS classes — just one property flip.
 | File | Role |
 |------|------|
 | `src/material-theme.scss` | M3 theme definition (palettes, typography, density). The `color-scheme` fallback is set here. |
+| `src/_theme-overrides.scss` | Per-component Material token overrides. Add new `mat.*-overrides()` blocks here. |
 | `src/app/core/services/theme.service.ts` | Singleton service that owns the theme signal, toggles `color-scheme`, persists to `localStorage`. |
 | `src/app/shared/components/header/header.ts` | Injects `ThemeService` and exposes `isDark` / `toggleTheme()` to the template. |
 

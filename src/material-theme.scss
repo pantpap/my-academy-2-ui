@@ -5,6 +5,7 @@
 // Learn more about theming and how to use it for your application's
 // custom components at https://material.angular.dev/guide/theming
 @use '@angular/material' as mat;
+@use './theme-overrides' as app-theme;
 
 html {
   height: 100%;
@@ -16,6 +17,9 @@ html {
     typography: Manrope,
     density: 0,
   ));
+
+  // Per-component token overrides. See src/_theme-overrides.scss.
+  @include app-theme.overrides();
 }
 
 body {

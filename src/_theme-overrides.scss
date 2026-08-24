@@ -1,0 +1,21 @@
+@use '@angular/material' as mat;
+
+/// App-wide Angular Material component token overrides.
+///
+/// Included once from `material-theme.scss`, inside the same `html` block as
+/// `mat.theme()`. Add one `mat.<component>-overrides()` block per component.
+/// Token names are validated by Sass — a typo fails the build with the list of
+/// valid names. Find the tokens for a component under the "Styling" tab of its
+/// page on material.angular.dev.
+///
+/// Use `light-dark(<light>, <dark>)` for any color, so overrides keep working
+/// when ThemeService flips `color-scheme` on <body>.
+@mixin overrides() {
+  // Cards are plain white in light mode. In dark mode fall back to the M3
+  // surface the palette would have used, so contrast stays correct.
+  @include mat.card-overrides(
+    (
+      elevated-container-color: light-dark(#fff, var(--mat-sys-surface-container-low)),
+    )
+  );
+}
