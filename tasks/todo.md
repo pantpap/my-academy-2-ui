@@ -56,23 +56,23 @@ human's.
 
 > Tasks 2 and 3 are independent. Either order; parallelizable.
 
-## Task 2: Plus button opens the dialog in create mode
+## Task 2: Plus button opens the dialog in create mode ✅ done
 
 **Description:** Change `CustomerContainer.addNewCustomer()` from navigating to
 `/app/customers/new` to opening `CustomerFormDialog` with no data. The template's button is
 already correct and does not change.
 
 **Acceptance criteria:**
-- [ ] `addNewCustomer()` calls `MatDialog.open(CustomerFormDialog)` — no `data`, so the dialog titles itself `customerDetails.createTitle`.
-- [ ] The `inject(Router)` field and the `@angular/router` import are removed from `customer-container.ts` if nothing else uses them.
-- [ ] `customer-container.html` is unchanged.
-- [ ] `afterClosed()` is left unhandled — the list is not refreshed (form logic is the human's).
+- [x] `addNewCustomer()` calls `MatDialog.open(CustomerFormDialog)` — no `data`, so the dialog titles itself `customerDetails.createTitle`.
+- [x] The `inject(Router)` field and the `@angular/router` import are removed from `customer-container.ts` if nothing else uses them.
+- [x] `customer-container.html` is unchanged.
+- [x] `afterClosed()` is left unhandled — the list is not refreshed (form logic is the human's).
 
 **Verification:**
-- [ ] Build succeeds: `npm run build`
-- [ ] Lint clean — in particular no unused `Router` import: `npm run lint`
-- [ ] Existing spec still passes: `npx vitest run src/app/features/customers/customer-container/customer-container.spec.ts` (a `MatDialog` stub may need providing)
-- [ ] Manual check: `npm start` → `/app/customers` → click **Add**. The dialog opens over the table with the title "New Customer", five empty fields, Cancel + Save. The URL does **not** change to `/app/customers/new`. Cancel and the backdrop both close it. Re-run with the language toggled to `el` and confirm the Greek labels render.
+- [x] Build succeeds: `npm run build`
+- [x] Lint clean — in particular no unused `Router` import: `npm run lint`
+- [x] Existing spec still passes, plus a new spec for the dialog-opening behavior — both needed `TranslocoTestingModule` and seeded `localStorage` added to the spec's `beforeEach` (pre-existing gaps, not previously exercised; see commit).
+- [x] Manual check: verified live via the running dev server at `/app/customers`. Dialog opens over the table titled "New Customer" with five empty fields and Cancel/Save; URL stays `/app/customers` (confirmed via `location.pathname`); Cancel closes it; toggling to Greek and reopening shows "Νέος Πελάτης" with Greek labels and "Ακύρωση"/"Αποθήκευση". Note: an `NG0203` console error fires on the *first* lazy-route navigation per page load — reproduces identically on the pre-existing, untouched pencil-icon → `CustomerDetails` navigation, so it's a dev-server artifact unrelated to this change; not something this task should fix.
 
 **Dependencies:** Task 1
 
