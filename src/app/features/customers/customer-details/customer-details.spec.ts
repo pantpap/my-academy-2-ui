@@ -1,8 +1,13 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideNativeDateAdapter } from '@angular/material/core';
+import { MatDialog } from '@angular/material/dialog';
 import { TranslocoTestingModule } from '@jsverse/transloco';
 
 import { CustomerDetails } from './customer-details';
+import { CustomerFormDialog } from '../customer-form-dialog/customer-form-dialog';
+import { Customer as CustomerModel } from '../../../common/interfaces/customer';
 
 const en = {
   common: {
@@ -27,15 +32,31 @@ const en = {
     createSuccess: 'Customer created successfully.',
     updateSuccess: 'Customer updated successfully.',
     saveError: 'Something went wrong while saving. Please try again.',
+    editButton: 'Edit',
   },
+};
+
+const existingCustomer: CustomerModel = {
+  id: 1,
+  firstName: 'Jane',
+  lastName: 'Doe',
+  birthDate: '2000-01-01',
+  gender: 'female',
+  phone: '+30 6912345678',
+  sportNames: [],
+  sports: [],
+  paidUntil: null,
 };
 
 describe('CustomerDetails', () => {
   let component: CustomerDetails;
   let fixture: ComponentFixture<CustomerDetails>;
+  let dialogOpenSpy: ReturnType<typeof vi.fn>;
 
   beforeEach(async () => {
     localStorage.setItem('CS_ACADEMY_ORGANIZATION', JSON.stringify({ id: 1 }));
+
+    dialogOpenSpy = vi.fn();
 
     await TestBed.configureTestingModule({
       imports: [
@@ -48,7 +69,12 @@ describe('CustomerDetails', () => {
           },
         }),
       ],
-      providers: [provideNativeDateAdapter()],
+      providers: [
+        provideNativeDateAdapter(),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: MatDialog, useValue: { open: dialogOpenSpy } },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(CustomerDetails);
@@ -58,6 +84,7 @@ describe('CustomerDetails', () => {
 
   afterEach(() => {
     localStorage.removeItem('CS_ACADEMY_ORGANIZATION');
+    TestBed.inject(HttpTestingController).verify();
   });
 
   it('should create', () => {
@@ -81,5 +108,30 @@ describe('CustomerDetails', () => {
       phone: '+30 6912345678',
     });
     expect(component['customerForm']().valid()).toBe(true);
+  });
+
+  it('should open the edit dialog with the loaded customer when the edit button is clicked', async () => {
+    fixture.componentRef.setInput('id', '1');
+    fixture.detectChanges();
+
+    const req = TestBed.inject(HttpTestingController).expectOne('http://localhost:3000/athletes/1');
+    req.flush(existingCustomer);
+    await fixture.whenStable();
+
+    component['openEditDialog']();
+
+    expect(dialogOpenSpy).toHaveBeenCalledWith(CustomerFormDialog, {
+      data: { customer: existingCustomer },
+    });
+  });
+
+  it('should not render the edit button while the customer is still loading', () => {
+    fixture.componentRef.setInput('id', '1');
+    fixture.detectChanges();
+
+    const editButton: HTMLButtonElement | null = fixture.nativeElement.querySelector('button[type="button"]');
+    expect(editButton).toBeNull();
+
+    TestBed.inject(HttpTestingController).expectOne('http://localhost:3000/athletes/1').flush(existingCustomer);
   });
 });

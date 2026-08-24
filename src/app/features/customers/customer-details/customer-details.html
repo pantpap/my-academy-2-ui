@@ -21,7 +21,12 @@
                 </p>
               </div>
             </div>
-            <button mat-stroked-button type="button">
+            <button
+              mat-stroked-button
+              type="button"
+              [disabled]="customerDetailsResource.isLoading()"
+              (click)="openEditDialog()"
+            >
               <mat-icon>edit</mat-icon>
               {{ translate('customerDetails.editButton') }}
             </button>

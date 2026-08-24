@@ -7,10 +7,12 @@ import { MatFormField, MatLabel, MatError, MatSuffix } from '@angular/material/f
 import { MatInput } from '@angular/material/input';
 import { MatDatepicker, MatDatepickerInput, MatDatepickerToggle } from '@angular/material/datepicker';
 import { MatButton } from '@angular/material/button';
+import { MatDialog } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { Customer as CustomerService } from '../../../shared/services/customer/customer';
 import { Customer as CustomerModel } from '../../../common/interfaces/customer';
+import { CustomerFormDialog } from '../customer-form-dialog/customer-form-dialog';
 
 interface CustomerFormModel {
   firstName: string;
@@ -78,6 +80,7 @@ const PHONE_PATTERN = /^[0-9+()\-\s]{7,20}$/;
 })
 export class CustomerDetails {
   private readonly customerService = inject(CustomerService);
+  private readonly dialog = inject(MatDialog);
 
   readonly id = input<string>();
 
@@ -154,5 +157,11 @@ export class CustomerDetails {
 
   protected hasError(errors: readonly ValidationError.WithFieldTree[], kind: string): boolean {
     return errors.some((e) => e.kind === kind);
+  }
+
+  protected openEditDialog() {
+    this.dialog.open(CustomerFormDialog, {
+      data: { customer: this.customerDetailsResource.value() },
+    });
   }
 }
