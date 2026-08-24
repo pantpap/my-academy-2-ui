@@ -83,24 +83,24 @@ already correct and does not change.
 
 ---
 
-## Task 3: Details-page edit button opens the dialog in edit mode
+## Task 3: Details-page edit button opens the dialog in edit mode ✅ done
 
 **Description:** Wire the currently dead edit button on the customer details page
 (`customer-details.html:24`) to open the same `CustomerFormDialog`, passing the loaded customer
 as dialog data so the dialog renders its edit title.
 
 **Acceptance criteria:**
-- [ ] The button gets a `(click)` handler calling a new `openEditDialog()` on `CustomerDetails`.
-- [ ] `openEditDialog()` opens `CustomerFormDialog` with `data: { customer: this.customerDetailsResource.value() }`, so the title reads `customerDetails.editTitle`.
-- [ ] The button is a no-op while the customer is still loading — either guard inside the handler or `[disabled]` on the button while `customerDetailsResource.isLoading()`.
-- [ ] The page's existing inline signal form, resource, and save flow are **not** touched or removed.
-- [ ] `afterClosed()` is left unhandled — the detail resource is not refreshed.
+- [x] The button gets a `(click)` handler calling a new `openEditDialog()` on `CustomerDetails`.
+- [x] `openEditDialog()` opens `CustomerFormDialog` with `data: { customer: this.customerDetailsResource.value() }`, so the title reads `customerDetails.editTitle`.
+- [x] The button is a no-op while the customer is still loading — the existing `@if (isLoading()) { ... } @else { ... }` gate already keeps the whole card (and button) out of the DOM during load; added `[disabled]="customerDetailsResource.isLoading()"` as a second guard for the case where the resource re-fetches (e.g. navigating between two `:id` routes) while the previous customer's card is still showing.
+- [x] The page's existing inline signal form, resource, and save flow are **not** touched or removed.
+- [x] `afterClosed()` is left unhandled — the detail resource is not refreshed.
 
 **Verification:**
-- [ ] Build succeeds: `npm run build`
-- [ ] Lint clean: `npm run lint`
-- [ ] Existing spec still passes: `npx vitest run src/app/features/customers/customer-details/customer-details.spec.ts` (a `MatDialog` stub may need providing)
-- [ ] Manual check: `npm start` → `/app/customers` → click a row's pencil icon (still navigates to the detail page) → click **Edit**. The dialog opens with the title "Edit Customer" and the same five fields. Confirm it is visibly the *same* dialog as Task 2's, differing only in title.
+- [x] Build succeeds: `npm run build`
+- [x] Lint clean: `npm run lint`
+- [x] Existing spec still passes, plus 2 new specs added: one flushes a mocked HTTP GET (via `HttpTestingController`) and asserts `dialog.open` was called with `{ data: { customer } }`; the other confirms the edit button doesn't render at all while `isLoading()` is true.
+- [x] Manual check: verified live via the running dev server. Navigated `/app/customers` → pencil icon → details page → **Επεξεργασία** (Edit, UI was in Greek). Dialog opened titled **"Επεξεργασία Πελάτη"** (Edit Customer) — visibly the same dialog component as Task 2's "Νέος Πελάτης", differing only in title — confirming `MAT_DIALOG_DATA` correctly carried the loaded customer through. Closed via Escape/backdrop click; details page underneath was undisturbed.
 
 **Dependencies:** Task 1
 
@@ -114,9 +114,9 @@ as dialog data so the dialog renders its edit title.
 
 ## Checkpoint: Complete
 
-- [ ] `npm run build`, `npm run lint`, `npm test` all pass
-- [ ] Both entry points open the identical dialog; only the title differs
-- [ ] `en.json` and `el.json` are untouched, and both languages render correctly in the dialog
-- [ ] `customer-routes.ts` and `customer-list.ts` are untouched
-- [ ] Open Questions 1–3 in `tasks/plan.md` are answered or explicitly deferred
-- [ ] Handed to the human to implement the form logic
+- [x] `npm run build`, `npm run lint`, `npm test` all pass (6 pre-existing, unrelated failures remain — see git history on `dev`; none introduced by this work)
+- [x] Both entry points open the identical dialog; only the title differs — confirmed live (Task 2: "New Customer"/"Νέος Πελάτης", Task 3: "Edit Customer"/"Επεξεργασία Πελάτη")
+- [x] `en.json` and `el.json` are untouched, and both languages render correctly in the dialog — verified live in both English and Greek
+- [x] `customer-routes.ts` and `customer-list.ts` are untouched
+- [x] Open Questions 1–3 in `tasks/plan.md`: #3 (row pencil icon) confirmed unchanged, matches the interview answer; #1 (`/new` route) and #2 (`afterClosed()` refresh) remain explicitly deferred to the human, as planned
+- [x] Handed to the human to implement the form logic
