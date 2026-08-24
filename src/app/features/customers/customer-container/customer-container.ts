@@ -6,9 +6,10 @@ import { Customer } from '../../../shared/services/customer/customer';
 import { ORGANIZATION } from '../../../common/constants/local-storage-constants';
 import { EMPTY } from 'rxjs';
 import { MatButton } from '@angular/material/button';
+import { MatDialog } from '@angular/material/dialog';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { MatIcon } from '@angular/material/icon';
-import { Router } from '@angular/router';
+import { CustomerFormDialog } from '../customer-form-dialog/customer-form-dialog';
 
 @Component({
   selector: 'app-customer-container',
@@ -20,7 +21,7 @@ import { Router } from '@angular/router';
 export class CustomerContainer {
   private readonly localStorageService = inject(LocalStorage);
   private readonly customerService = inject(Customer);
-  private readonly router = inject(Router)
+  private readonly dialog = inject(MatDialog);
 
   readonly organizationId = signal(this.localStorageService.getItem(ORGANIZATION).id);
 
@@ -34,6 +35,6 @@ export class CustomerContainer {
   });
 
   addNewCustomer(){
-    this.router.navigate(['/app/customers', 'new']);
+    this.dialog.open(CustomerFormDialog);
   }
 }
