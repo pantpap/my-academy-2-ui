@@ -225,4 +225,92 @@ describe('CustomerFormDialog', () => {
       expect(fixture.nativeElement.textContent).toContain('Something went wrong while saving. Please try again.');
     });
   });
+
+  describe('create mode', () => {
+    const newCustomer: Customer = {
+      id: 5,
+      firstName: 'Alex',
+      lastName: 'Smith',
+      birthDate: '1990-05-05',
+      gender: 'male',
+      phone: '+30 6911111111',
+      sportNames: [],
+      sports: [],
+      paidUntil: null,
+    };
+
+    it('shows all five inputs empty and no paidUntil line', async () => {
+      const fixture = await createFixture({});
+
+      expect(inputByName(fixture, 'firstName').value).toBe('');
+      expect(inputByName(fixture, 'lastName').value).toBe('');
+      expect(inputByName(fixture, 'gender').value).toBe('');
+      expect(inputByName(fixture, 'phone').value).toBe('');
+      expect(fixture.componentInstance['model']().birthDate).toBeNull();
+      expect(fixture.nativeElement.textContent).not.toContain('Paid Until');
+    });
+
+    it('calls createCustomer (not updateCustomer) with the mapped payload, then closes with the created customer', async () => {
+      const createCustomer = vi.fn(() => of(newCustomer));
+      const updateCustomer = vi.fn(() => of(existingCustomer));
+      const close = vi.fn();
+      const fixture = await createFixture({}, { createCustomer, updateCustomer, close });
+
+      fixture.componentInstance['model'].set({
+        firstName: 'Alex',
+        lastName: 'Smith',
+        birthDate: new Date('1990-05-05'),
+        gender: 'male',
+        phone: '+30 6911111111',
+      });
+
+      const result = await submit(fixture.componentInstance['customerForm']);
+
+      expect(result).toBe(true);
+      expect(createCustomer).toHaveBeenCalledWith(
+        expect.objectContaining({
+          firstName: 'Alex',
+          lastName: 'Smith',
+          gender: 'male',
+          phone: '+30 6911111111',
+          birthDate: '1990-05-05',
+        }),
+      );
+      expect(updateCustomer).not.toHaveBeenCalled();
+      expect(close).toHaveBeenCalledWith(newCustomer);
+    });
+
+    it('does not call createCustomer or close when a required field is empty', async () => {
+      const createCustomer = vi.fn(() => of(newCustomer));
+      const close = vi.fn();
+      const fixture = await createFixture({}, { createCustomer, close });
+
+      const result = await submit(fixture.componentInstance['customerForm']);
+
+      expect(result).toBe(false);
+      expect(createCustomer).not.toHaveBeenCalled();
+      expect(close).not.toHaveBeenCalled();
+    });
+
+    it('shows an inline error and does not close when createCustomer fails', async () => {
+      const createCustomer = vi.fn(() => throwError(() => new Error('network error')));
+      const close = vi.fn();
+      const fixture = await createFixture({}, { createCustomer, close });
+
+      fixture.componentInstance['model'].set({
+        firstName: 'Alex',
+        lastName: 'Smith',
+        birthDate: new Date('1990-05-05'),
+        gender: 'male',
+        phone: '+30 6911111111',
+      });
+
+      await submit(fixture.componentInstance['customerForm']);
+      fixture.detectChanges();
+
+      expect(close).not.toHaveBeenCalled();
+      expect(fixture.componentInstance['saveError']()).toBe(true);
+      expect(fixture.nativeElement.textContent).toContain('Something went wrong while saving. Please try again.');
+    });
+  });
 });

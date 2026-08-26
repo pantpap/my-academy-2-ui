@@ -135,11 +135,16 @@ it against). Task 5 depends on Task 4 (reuses its `form()`/model/save infrastruc
 
 ### Checkpoint: Complete (Phases 1–2)
 
-### Phase 3: Bind, Validate, Save (`dialog-core` — new, awaiting review)
-- [ ] Task 4: Edit mode — bind, populate, validate, and save via `updateCustomer`
-- [ ] Task 5: Create mode — extend the same form to `createCustomer`
+### Phase 3: Bind, Validate, Save (`dialog-core` — implemented, live-verification pending)
+- [x] Task 4: Edit mode — bind, populate, validate, and save via `updateCustomer`
+- [x] Task 5: Create mode — extend the same form to `createCustomer` (required no production
+      code — Task 4's `isEditMode` branch already handled it generically; test coverage only)
 
 ### Checkpoint: dialog-core Complete
+
+Automated verification (build/lint/test) is done. Live browser verification of both flows is
+still outstanding — no browser-automation tool was available in this session. See
+`tasks/todo.md`'s checkpoint for what to check.
 
 Full task detail — acceptance criteria, verification, files touched — lives in
 [`tasks/todo.md`](./todo.md).

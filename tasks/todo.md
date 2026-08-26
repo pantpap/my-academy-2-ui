@@ -227,27 +227,35 @@ Task-4 signature, so this task is mostly about verifying and locking in behavior
 already falls out of Task 4's code, not writing new binding logic.
 
 **Acceptance criteria:**
-- [ ] Opening the dialog with no `data` (or `data: {}`) shows all 5 inputs empty and shows no
-      `paidUntil` line (or shows it blank/omitted — pick whichever reads cleaner and confirm
-      with the human in review; `data.customer` is `undefined` so there is no value to show).
-- [ ] Submitting a valid create calls `this.customerService.createCustomer(payload)` (not
+- [x] Opening the dialog with no `data` (or `data: {}`) shows all 5 inputs empty and shows no
+      `paidUntil` line — resolved as "omitted entirely," which fell out of Task 4's `isEditMode`
+      guard with no extra code needed.
+- [x] Submitting a valid create calls `this.customerService.createCustomer(payload)` (not
       `updateCustomer`) via `firstValueFrom`, then `this.dialogRef.close(saved)` with the created
       `Customer` (including its server-assigned `id`).
-- [ ] The same validation rules from Task 4 apply unchanged in create mode.
-- [ ] A failed `createCustomer` call sets the same inline `saveError` text as Task 4's failure
+- [x] The same validation rules from Task 4 apply unchanged in create mode.
+- [x] A failed `createCustomer` call sets the same inline `saveError` text as Task 4's failure
       path; the dialog does not close.
 
+As anticipated in `tasks/plan.md`'s Task List note, this task required **zero production-code
+changes** — Task 4's `customerId === undefined ? createCustomer : updateCustomer` branch and
+`toFormModel(undefined)` already handled create mode generically. This task added only test
+coverage locking that behavior in.
+
 **Verification:**
-- [ ] Build succeeds: `npm run build`
-- [ ] Lint clean: `npm run lint`
-- [ ] `customer-form-dialog.spec.ts`: new specs cover — create mode starts with all 5 inputs
-      empty; submitting valid input calls `createCustomer` (and asserts `updateCustomer` was
-      **not** called) then closes with the created customer; a mocked `createCustomer` failure
-      sets the inline error and does not close.
-- [ ] `npm test` — no new failures beyond the pre-existing, documented ones.
-- [ ] Manual check: run `npm start`, navigate to `/app/customers`, click the "+ New" button, fill
-      in all 5 fields, click Save, confirm via the Network tab that `POST /athletes` fired with
-      the entered values and the dialog closed.
+- [x] Build succeeds: `npm run build`
+- [x] Lint clean: `npm run lint` (same 6 pre-existing problems, all in untouched files)
+- [x] `customer-form-dialog.spec.ts`: new specs cover — create mode starts with all 5 inputs
+      empty and no `paidUntil` line; submitting valid input calls `createCustomer` (and asserts
+      `updateCustomer` was **not** called) then closes with the created customer; an empty
+      required field blocks submission and calls neither service method; a mocked
+      `createCustomer` failure sets the inline error and does not close.
+- [x] `npm test` — 59 passed (up from 55 after Task 4), same 7 pre-existing failing files, none
+      newly introduced.
+- [ ] **Manual check: NOT performed** — same reason as Task 4 (no browser-automation tool
+      available in this session). Someone should verify live: `npm start`, navigate to
+      `/app/customers`, click "+ New", fill in all 5 fields, click Save, confirm via the Network
+      tab that `POST /athletes` fired with the entered values and the dialog closed.
 
 **Dependencies:** Task 4 (reuses its `form()`/model/save infrastructure), Task 2 (create entry
 point to exercise this against)
@@ -263,14 +271,18 @@ action; the binding/validation layer is already in place from Task 4)
 
 ## Checkpoint: dialog-core Complete
 
-- [ ] `npm run build`, `npm run lint`, `npm test` all pass (only the pre-existing, documented
-      failures remain; none newly introduced)
-- [ ] Both edit and create flows verified live against the running dev server and a real backend
-      save (Network tab confirms the correct HTTP method/body in each case)
-- [ ] `customer-form-dialog.spec.ts` has no remaining assertions describing the old unbound-input
+- [x] `npm run build`, `npm run lint`, `npm test` all pass (only the pre-existing, documented
+      failures remain; none newly introduced) — 59 tests passing, verified against a stashed
+      baseline that the same 7 files fail before and after
+- [ ] **Both edit and create flows verified live against the running dev server and a real
+      backend save — NOT done.** No browser-automation tool (Chrome DevTools MCP,
+      claude-in-chrome) was available in this session. The dev server is already running at
+      `localhost:4200`; someone with a browser should walk through both flows and confirm the
+      Network tab shows the correct HTTP method/body before this checkpoint is fully closed.
+- [x] `customer-form-dialog.spec.ts` has no remaining assertions describing the old unbound-input
       behavior (e.g. the five-fields count assertion still holds, but nothing asserts fields lack
       bindings)
-- [ ] Neither `customer-details.ts`'s dead `form()` nor `customer-container.ts`'s
+- [x] Neither `customer-details.ts`'s dead `form()` nor `customer-container.ts`'s
       `addNewCustomer()` was touched — both callers still don't read `afterClosed()`; that is
       explicitly `dialog-consolidation`'s job, not this checkpoint's
 - [ ] Review with the human before starting `dialog-address` / `dialog-sports` (both extend this
