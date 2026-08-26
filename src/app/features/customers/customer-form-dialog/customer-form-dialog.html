@@ -55,6 +55,19 @@
         }
       </mat-form-field>
 
+      <mat-form-field>
+        <mat-label>{{ translate('customerDetails.sportsLabel') }}</mat-label>
+        <mat-select
+          multiple
+          [value]="model().sportIds"
+          (selectionChange)="onSportIdsChange($event.value)"
+        >
+          @for (sport of sportsResource.value(); track sport.id) {
+            <mat-option [value]="sport.id">{{ sport.name }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
       @if (isEditMode) {
         <div class="flex flex-col justify-center">
           <p class="mat-body-small text-(--mat-sys-on-surface-variant)">

@@ -285,5 +285,87 @@ action; the binding/validation layer is already in place from Task 4)
 - [x] Neither `customer-details.ts`'s dead `form()` nor `customer-container.ts`'s
       `addNewCustomer()` was touched — both callers still don't read `afterClosed()`; that is
       explicitly `dialog-consolidation`'s job, not this checkpoint's
-- [ ] Review with the human before starting `dialog-address` / `dialog-sports` (both extend this
-      same `form()`/`toFormModel`/`toCustomerPayload`) or `dialog-consolidation`
+- [x] Review with the human before starting `dialog-address` / `dialog-sports` — human directed
+      `dialog-sports` next (2026-08-26); `dialog-address` deferred, blocked on `backend-address`
+
+---
+
+## Phase 4: Sports Assignment
+
+## Task 6: Add sports assignment to the dialog ✅ done
+
+**Description:** Per `SPEC-dialog-sports.md`. Add a `Sports` service (`GET /sports`, already
+supported by the backend), a `Sport` interface, and a `mat-select multiple` field to the dialog,
+bound to a new `sportIds: number[]` on `CustomerFormModel`/`toFormModel`/`toCustomerPayload`.
+
+**Acceptance criteria:**
+- [x] `src/app/common/interfaces/sport.ts` — new `Sport { id: number; name: string }`.
+- [x] `src/app/common/constants/endpoints.ts` — new `SPORTS_API = 'sports'`.
+- [x] `src/app/shared/services/sports/sports.ts` — new `Sports` service, exact same shape as
+      `Customer`'s service (`organizationId` signal from `LocalStorage`, `getSports()` via
+      `Http.get`).
+- [x] `customer-form-dialog.ts`: `CustomerFormModel` gains `sportIds: number[]`; `toFormModel`
+      sources it from `customer?.sports.map(s => s.id) ?? []`; a `sportsResource = rxResource({
+      stream: () => this.sportsService.getSports() })` fetches the organization's sports list;
+      `onSportIdsChange(sportIds)` updates the model, mirroring `onBirthDateChange`.
+- [x] `customer-form-dialog.html`: a 6th `mat-form-field` wraps `<mat-select multiple>`, bound
+      via `[value]="model().sportIds"` / `(selectionChange)="onSportIdsChange($event.value)"`
+      (**not** `[formField]` — see Plan Architecture Decision 13: verified by reading
+      `FormField`'s source that `mat-select` isn't a compatible binding target, same class of
+      issue as `birthDate`/`MatDatepickerInput` in Phase 3), with `<mat-option>` per
+      `sportsResource.value()` entry, labelled via the existing `customerDetails.sportsLabel` key
+      (reused, no new i18n keys).
+- [x] `customer.ts` (`CustomerService`): **discovered necessary while implementing, not
+      originally specced** — `createCustomer`/`updateCustomer` were typed to exactly
+      `Omit<CustomerModel, 'id'>`, with no room for a request-only `sportIds` field. Widened both
+      to a new exported `CustomerPayload = Omit<CustomerModel, 'id'> & { sportIds?: number[] }`.
+- [x] No validation added requiring at least one sport — a customer with zero sports remains
+      valid, per the spec's boundary.
+
+**Verification:**
+- [x] Build succeeds: `npm run build`
+- [x] Lint clean: `npm run lint` (same 6 pre-existing problems, all in untouched files)
+- [x] New `sports.spec.ts` — this repo's first use of `provideHttpClient()` +
+      `provideHttpClientTesting()` + `HttpTestingController` (no prior precedent existed;
+      `customer.spec.ts` turned out to be trivial boilerplate, not an HTTP-mocking example as the
+      spec assumed — corrected in `SPEC-dialog-sports.md`).
+- [x] `customer-form-dialog.spec.ts` extended: available sports list (asserted via
+      `sportsResource.value()`, not DOM — `mat-option`s render into a CDK overlay only once the
+      panel opens); sports pre-selected from `customer.sports` in edit mode (asserted via both
+      the `model` signal and the select's rendered trigger text); empty in create mode; saving
+      includes `sportIds` in the `updateCustomer` payload. The "renders exactly five form fields"
+      test became "renders exactly six" (five profile fields + sports).
+- [x] `npm test` — 64 passed (up from 60 after `dialog-core`), same 7 pre-existing failing files,
+      none newly introduced (re-confirmed the same way as Phase 3, by comparing counts before and
+      after).
+- [ ] **Manual check: NOT performed** — same reason as Phase 3 (no browser-automation tool
+      available in this session). Someone should verify live: edit a customer, change their
+      sports, save, confirm via the Network tab that `PATCH /athletes/:id` includes the right
+      `sportIds` and that the change actually applies server-side.
+
+**Dependencies:** Task 4 (`dialog-core`'s form to extend)
+
+**Files touched:**
+- `src/app/common/interfaces/sport.ts` (new)
+- `src/app/common/constants/endpoints.ts`
+- `src/app/shared/services/sports/sports.ts` (new)
+- `src/app/shared/services/sports/sports.spec.ts` (new)
+- `src/app/shared/services/customer/customer.ts`
+- `src/app/features/customers/customer-form-dialog/customer-form-dialog.ts`
+- `src/app/features/customers/customer-form-dialog/customer-form-dialog.html`
+- `src/app/features/customers/customer-form-dialog/customer-form-dialog.spec.ts`
+
+**Estimated scope:** Medium (8 files, one new service + dialog extension)
+
+---
+
+## Checkpoint: dialog-sports Complete
+
+- [x] `npm run build`, `npm run lint`, `npm test` all pass (only the same 7 pre-existing failures
+      remain; none newly introduced)
+- [ ] **Sports assignment verified live against the running dev server and a real backend save —
+      NOT done.** Same gap as `dialog-core`'s checkpoint; no browser-automation tool available.
+- [x] `mat-select` confirmed incompatible with `[formField]` by reading source, not assumed —
+      documented in `SPEC-dialog-sports.md` and `tasks/plan.md` Architecture Decision 13
+- [ ] Review with the human before starting `dialog-address` (blocked on `backend-address`,
+      implemented but not committed in `BE/my-academy-2-be`) or `dialog-consolidation`

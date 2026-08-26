@@ -1,11 +1,12 @@
 # Implementation Plan: Customer Form Dialog
 
 **Repo:** `FE/my-academy-2-UI` (Angular 21 + Material 21 + Transloco)
-**Status:** Phases 1–2 (below) shipped and are marked done. Phase 3 is new — awaiting human
-review, do not implement until approved. It covers the `dialog-core` module from
-[`CAPABILITY-MAP.md`](../CAPABILITY-MAP.md) / [`SPEC-dialog-core.md`](../SPEC-dialog-core.md):
-the form logic that Phases 1–2 explicitly deferred to a human (see "Explicitly out of scope"
-below) is now in scope.
+**Status:** Phases 1–3 shipped and marked done (`dialog-core`, see
+[`SPEC-dialog-core.md`](../SPEC-dialog-core.md)). Phase 4 (below) is new — `dialog-sports`, see
+[`SPEC-dialog-sports.md`](../SPEC-dialog-sports.md) — implemented and verified
+(build/lint/test), not yet reviewed by the human. `dialog-address` (blocked on `backend-address`,
+implemented in `BE/my-academy-2-be` but not yet committed there) and `dialog-consolidation` are
+still pending. See [`CAPABILITY-MAP.md`](../CAPABILITY-MAP.md) for the full module picture.
 
 ## Overview
 
@@ -94,6 +95,16 @@ handling, and refreshing the customer list after a save. This plan delivers the 
     display-only per `SPEC-dialog-core.md`, and editing it is out of scope for the whole
     capability map (payment recording is a separate, future module).
 
+### Phase 4 (`dialog-sports`) additions
+
+13. **`sportIds` binds manually too, not via `[formField]` — same reasoning as `birthDate`.**
+    Verified directly this time rather than assumed: read `FormField`'s own source, whose error
+    message states the binding contract explicitly — a native form element, or a component
+    implementing `FormValueControl`. `MatSelect` implements neither (`ControlValueAccessor` +
+    self-injecting `NgControl`, an older, different mechanism `FormField` doesn't fall back to).
+    `mat-select multiple` binds via `[value]="model().sportIds"` and
+    `(selectionChange)="onSportIdsChange($event.value)"`, mirroring `birthDate`'s pattern exactly.
+
 ## Dependency Graph
 
 ```
@@ -146,6 +157,15 @@ Automated verification (build/lint/test) is done. Live browser verification of b
 still outstanding — no browser-automation tool was available in this session. See
 `tasks/todo.md`'s checkpoint for what to check.
 
+### Phase 4: Sports Assignment (`dialog-sports` — implemented, live-verification pending)
+- [x] Task 6: Add `Sports` service + `Sport` interface, extend the dialog's form/payload with
+      `sportIds`, add a `mat-select multiple` bound manually (see Architecture Decision 13 below)
+
+### Checkpoint: dialog-sports Complete
+
+Automated verification done (build/lint/test — 64 passed, same 7 pre-existing failures as
+before). Live browser verification not performed — same reason as `dialog-core`.
+
 Full task detail — acceptance criteria, verification, files touched — lives in
 [`tasks/todo.md`](./todo.md).
 
@@ -162,6 +182,10 @@ Full task detail — acceptance criteria, verification, files touched — lives 
 | `field().value()` inside an async `submission.action`, then `dialogRef.close()` after `firstValueFrom(...)` resolves | Low | Same pattern already proven working in `customer-details.ts`'s dead code and in `login.ts`'s live `submission.action` — porting it, not inventing it. |
 | Save-error UX has no existing pattern to match (no snackbar/toast service in the app) | Medium | Architecture Decision 10 above: minimal inline `saveError` text in `mat-dialog-content`. Flag to the human in review — if a toast/snackbar service gets added to the app later, this becomes a follow-up to migrate. |
 | `paidUntil` display styling has no dialog precedent (only exists read-only in `customer-details.html`'s Membership card, a full `<mat-card>` section) | Low | Task 4 renders it as a single labeled line near the other fields, not a full card section — the dialog is a compact form, not a details page. Confirm the rendering reads acceptably at runtime during the checkpoint. |
+| `mat-select` is not `[formField]`-compatible (confirmed by reading `FormField`'s source, same class of issue as `MatDatepickerInput` in Phase 3) | Low | Task 6 binds `sportIds` manually via `mat-select`'s own `[value]`/`(selectionChange)`, same pattern as `birthDate`. |
+| `CustomerService.createCustomer`/`updateCustomer` had no room in their payload type for `sportIds` | Low | Widened to a new exported `CustomerPayload` type in `customer.ts` (Task 6) — small, additive, not a breaking change to existing callers. |
+| No `HttpTestingController` precedent anywhere in this repo for the new `Sports` service's test | Low | Used Angular's standard testing utilities directly; documented in `SPEC-dialog-sports.md` as this repo's first example of the pattern. |
+| `mat-option` elements render into a CDK overlay only once the select panel opens — not eagerly in the DOM | Low | Tests assert against `sportsResource.value()` and the select's trigger text instead of querying `mat-option` in the main DOM. |
 
 ## Open Questions
 

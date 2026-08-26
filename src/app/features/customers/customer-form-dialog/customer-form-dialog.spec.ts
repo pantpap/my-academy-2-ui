@@ -8,6 +8,13 @@ import { of, throwError } from 'rxjs';
 import { CustomerFormDialog, CustomerFormDialogData } from './customer-form-dialog';
 import { Customer } from '../../../common/interfaces/customer';
 import { Customer as CustomerService } from '../../../shared/services/customer/customer';
+import { Sport } from '../../../common/interfaces/sport';
+import { Sports as SportsService } from '../../../shared/services/sports/sports';
+
+const availableSports: Sport[] = [
+  { id: 1, name: 'Football' },
+  { id: 2, name: 'Basketball' },
+];
 
 const en = {
   common: {
@@ -48,6 +55,7 @@ async function createFixture(
     updateCustomer?: ReturnType<typeof vi.fn>;
     createCustomer?: ReturnType<typeof vi.fn>;
     close?: ReturnType<typeof vi.fn>;
+    getSports?: ReturnType<typeof vi.fn>;
   },
 ): Promise<ComponentFixture<CustomerFormDialog>> {
   await TestBed.configureTestingModule({
@@ -72,11 +80,16 @@ async function createFixture(
           createCustomer: options?.createCustomer ?? vi.fn(() => of(existingCustomer)),
         },
       },
+      {
+        provide: SportsService,
+        useValue: { getSports: options?.getSports ?? vi.fn(() => of(availableSports)) },
+      },
     ],
   }).compileComponents();
 
   const fixture = TestBed.createComponent(CustomerFormDialog);
   fixture.detectChanges();
+  await fixture.whenStable();
   return fixture;
 }
 
@@ -117,10 +130,10 @@ describe('CustomerFormDialog', () => {
     expect(title?.textContent?.trim()).toBe('Edit Customer');
   });
 
-  it('should render exactly five form fields', async () => {
+  it('should render exactly six form fields (five profile fields + sports)', async () => {
     const fixture = await createFixture({});
     const fields = fixture.nativeElement.querySelectorAll('mat-form-field');
-    expect(fields.length).toBe(5);
+    expect(fields.length).toBe(6);
   });
 
   it('should render cancel and save actions', async () => {
@@ -158,6 +171,44 @@ describe('CustomerFormDialog', () => {
     it('shows the "not paid" fallback when paidUntil is null', async () => {
       const fixture = await createFixture({ customer: { ...existingCustomer, paidUntil: null } });
       expect(fixture.nativeElement.textContent).toContain('Not paid');
+    });
+  });
+
+  describe('sports assignment', () => {
+    it('lists the organization\'s available sports fetched from SportsService', async () => {
+      // mat-select renders its mat-options into a CDK overlay only once the panel is opened,
+      // so this asserts against the resource data the template iterates over rather than
+      // querying rendered DOM (which would require driving the overlay open in jsdom).
+      const fixture = await createFixture({});
+      expect(fixture.componentInstance['sportsResource'].value()).toEqual(availableSports);
+    });
+
+    it('pre-selects the customer\'s current sports in edit mode', async () => {
+      const customerWithSports: Customer = {
+        ...existingCustomer,
+        sports: [{ id: 1, name: 'Football' }],
+        sportNames: ['Football'],
+      };
+      const fixture = await createFixture({ customer: customerWithSports });
+
+      expect(fixture.componentInstance['model']().sportIds).toEqual([1]);
+      expect(fixture.nativeElement.textContent).toContain('Football');
+    });
+
+    it('starts with no sports selected in create mode', async () => {
+      const fixture = await createFixture({});
+      expect(fixture.componentInstance['model']().sportIds).toEqual([]);
+    });
+
+    it('includes sportIds in the payload when saving', async () => {
+      const updateCustomer = vi.fn(() => of(existingCustomer));
+      const fixture = await createFixture({ customer: existingCustomer }, { updateCustomer });
+
+      fixture.componentInstance['model'].update((m) => ({ ...m, sportIds: [2] }));
+
+      await submit(fixture.componentInstance['customerForm']);
+
+      expect(updateCustomer).toHaveBeenCalledWith(1, expect.objectContaining({ sportIds: [2] }));
     });
   });
 
@@ -262,6 +313,7 @@ describe('CustomerFormDialog', () => {
         birthDate: new Date('1990-05-05'),
         gender: 'male',
         phone: '+30 6911111111',
+        sportIds: [],
       });
 
       const result = await submit(fixture.componentInstance['customerForm']);
@@ -303,6 +355,7 @@ describe('CustomerFormDialog', () => {
         birthDate: new Date('1990-05-05'),
         gender: 'male',
         phone: '+30 6911111111',
+        sportIds: [],
       });
 
       await submit(fixture.componentInstance['customerForm']);

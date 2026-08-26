@@ -5,6 +5,8 @@ import { Customer as CustomerModel, CustomersPagedResponse } from '../../../comm
 import { ORGANIZATION } from '../../../common/constants/local-storage-constants';
 import { LocalStorage } from '../../../core/services/localStorage/local-storage';
 
+export type CustomerPayload = Omit<CustomerModel, 'id'> & { sportIds?: number[] };
+
 @Injectable({
   providedIn: 'root',
 })
@@ -26,14 +28,14 @@ export class Customer {
     return this.httpService.get<CustomerModel>(`${ATHLETES_API}/${id}`);
   }
 
-  createCustomer(payload: Omit<CustomerModel, 'id'>) {
-    return this.httpService.post<Omit<CustomerModel, 'id'> & { organizationId: number }>(ATHLETES_API, {
+  createCustomer(payload: CustomerPayload) {
+    return this.httpService.post<CustomerPayload & { organizationId: number }>(ATHLETES_API, {
       ...payload,
       organizationId: this.organizationId(),
     });
   }
 
-  updateCustomer(id: number, payload: Omit<CustomerModel, 'id'>) {
-    return this.httpService.put<Omit<CustomerModel, 'id'>>(`${ATHLETES_API}/${id}`, payload);
+  updateCustomer(id: number, payload: CustomerPayload) {
+    return this.httpService.put<CustomerPayload>(`${ATHLETES_API}/${id}`, payload);
   }
 }

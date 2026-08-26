@@ -17,11 +17,17 @@ backend's existing delete-and-reinsert logic (`AthletesService.update()`) applie
 
 ## Tech Stack
 
-Same as `dialog-core` — Angular 21, `@angular/forms/signals`, Angular Material 3 (`mat-select`
-with `multiple`, or `mat-selection-list` — pick whichever the existing form already uses
-elsewhere in the app for a multi-select field; there is no precedent yet, so this decision is
-this module's to make and should follow the simplest Material pattern that fits the signal-forms
-`FormField` binding).
+Same as `dialog-core` — Angular 21, `@angular/forms/signals`, Angular Material 3.
+
+**Resolved:** `<mat-select multiple>`, bound manually via its own `[value]`/`(selectionChange)`
+API directly against the `model` signal — **not** `[formField]`. Verified against the installed
+`@angular/forms/signals` source (not assumed): `FormField` only binds to a native form element
+(`<input>`/`<select>`/`<textarea>`) or a component implementing the new `FormValueControl`
+interface — its own error message says so verbatim. `MatSelect` implements neither (it implements
+`ControlValueAccessor` and self-discovers `NgControl` via `inject(NgControl, { self: true })`,
+which is a different, older mechanism `FormField` doesn't participate in). This is the same
+finding `dialog-core` already made for `MatDatepickerInput` — `mat-select` has the identical
+incompatibility, confirmed independently rather than assumed to be the same.
 
 ## Commands
 
@@ -49,34 +55,34 @@ No backend changes — `GET /sports?organizationId=` and `sportIds?: number[]` o
 
 ## Code Style
 
-New service follows `Customer`'s existing service pattern exactly (`src/app/shared/services/customer/customer.ts`):
-
-```ts
-@Injectable({ providedIn: 'root' })
-export class Sports {
-  private readonly httpService = inject(Http);
-  private readonly localStorageService = inject(LocalStorage);
-
-  readonly organizationId = signal(this.localStorageService.getItem(ORGANIZATION).id);
-
-  getSports() {
-    return this.httpService.get<Sport[]>(SPORTS_API, { organizationId: this.organizationId() });
-  }
-}
-```
+New service follows `Customer`'s existing service pattern exactly (`src/app/shared/services/customer/customer.ts`) — implemented as specced, unchanged.
 
 Fetch the sports list with an `rxResource` in the dialog component (same pattern as
 `customer-details.ts`'s `customerDetailsResource`), not a manual subscription. Extend
 `CustomerFormModel`/`toFormModel`/`toCustomerPayload` from `dialog-core` with `sportIds:
-number[]`, sourced from `customer?.sports.map(s => s.id) ?? []`.
+number[]`, sourced from `customer?.sports.map(s => s.id) ?? []` — implemented as specced.
+
+**Discovered while implementing, not originally specced:** `CustomerService.createCustomer`/
+`updateCustomer` were typed to accept exactly `Omit<CustomerModel, 'id'>`, which has no room for
+`sportIds` (a request-only field — `Customer`'s `sports`/`sportNames` are the *response* shape).
+Widened both methods' parameter type to a new exported `CustomerPayload = Omit<CustomerModel,
+'id'> & { sportIds?: number[] }` in `customer.ts`. Small, necessary, and the natural place for
+it — not scope creep.
 
 ## Testing Strategy
 
-- New `sports.spec.ts` for the service, mirroring `customer.spec.ts`'s HTTP-mocking pattern
-  (`HttpTestingController`).
-- Extend `customer-form-dialog.spec.ts`: the multi-select is pre-checked with the customer's
-  current `sports` in edit mode; empty in create mode; saving includes `sportIds` in the payload;
-  the available-sports list comes from the mocked `GET /sports` response.
+- New `sports.spec.ts` for the service. **Correction:** `customer.spec.ts` turned out not to
+  actually mock HTTP (it's the same trivial "should be created" boilerplate as most FE service
+  specs in this repo — confirmed by reading it, not assumed) — no HTTP-mocking precedent existed
+  anywhere in this app. Used Angular's standard `provideHttpClient()` +
+  `provideHttpClientTesting()` + `HttpTestingController` instead, which is now this repo's first
+  example of that pattern.
+- Extended `customer-form-dialog.spec.ts`: multi-select pre-selects the customer's current
+  `sports` in edit mode (asserted via the `model` signal and the select's rendered trigger text —
+  **not** via querying `mat-option` elements, which only render into a CDK overlay once the panel
+  is opened, not eagerly in the DOM); empty in create mode; saving includes `sportIds` in the
+  payload; the available-sports list is asserted against `sportsResource.value()` directly, for
+  the same CDK-overlay reason.
 
 ## Boundaries
 
@@ -95,14 +101,13 @@ number[]`, sourced from `customer?.sports.map(s => s.id) ?? []`.
   pattern.
 - Dialog shows a multi-select of the organization's sports; in edit mode it's pre-checked with
   the customer's current sport IDs; in create mode, nothing is checked.
-- Saving sends `sportIds` in the payload; the backend's existing enrollment logic applies it
-  (verified via a real save in the running dev server, confirming the details page's Membership
-  card reflects the change after `dialog-consolidation` wires up the refresh).
+- Saving sends `sportIds` in the payload; the backend's existing enrollment logic applies it —
+  **not verified live**, no browser-automation tool was available in this session (same gap as
+  `dialog-core`). Someone should confirm via the running dev server that saving actually updates
+  the details page's Membership card, once `dialog-consolidation` wires up the refresh.
 - `npm run build`, `npm run lint`, `npm test` all pass.
 
 ## Open Questions
 
-- Exact Material multi-select component (`mat-select multiple` vs. `mat-selection-list`) is left
-  to implementation-time judgment — no existing precedent in this codebase to match, so pick the
-  one that binds most simply to `@angular/forms/signals`' `FormField`, and note the choice in the
-  PR for the human to review.
+None outstanding. Resolved during implementation: `mat-select multiple`, bound manually (see
+Tech Stack above) rather than via `[formField]`.
