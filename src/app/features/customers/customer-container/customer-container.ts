@@ -3,6 +3,7 @@ import { CustomerList } from '../customer-list/customer-list';
 import { LocalStorage } from '../../../core/services/localStorage/local-storage';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { Customer } from '../../../shared/services/customer/customer';
+import { Customer as CustomerModel } from '../../../common/interfaces/customer';
 import { ORGANIZATION } from '../../../common/constants/local-storage-constants';
 import { EMPTY } from 'rxjs';
 import { MatButton } from '@angular/material/button';
@@ -34,11 +35,17 @@ export class CustomerContainer {
     },
   });
 
-  addNewCustomer(){
+  addNewCustomer() {
     const options = {
       width: '800px',
       height: '500px',
     };
-    this.dialog.open(CustomerFormDialog, options);
+    const dialogRef = this.dialog.open(CustomerFormDialog, options);
+
+    dialogRef.afterClosed().subscribe((saved?: CustomerModel) => {
+      if (saved) {
+        this.dataSourceResource.reload();
+      }
+    });
   }
 }

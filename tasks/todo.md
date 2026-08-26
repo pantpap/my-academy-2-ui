@@ -367,5 +367,128 @@ bound to a new `sportIds: number[]` on `CustomerFormModel`/`toFormModel`/`toCust
       NOT done.** Same gap as `dialog-core`'s checkpoint; no browser-automation tool available.
 - [x] `mat-select` confirmed incompatible with `[formField]` by reading source, not assumed —
       documented in `SPEC-dialog-sports.md` and `tasks/plan.md` Architecture Decision 13
-- [ ] Review with the human before starting `dialog-address` (blocked on `backend-address`,
+- [x] Review with the human before starting `dialog-address` (blocked on `backend-address`,
       implemented but not committed in `BE/my-academy-2-be`) or `dialog-consolidation`
+
+---
+
+## Phase 6: `dialog-address`
+
+**Unblocked:** `backend-address` landed on `dev` in the BE repo as commit `0c5ce50` ("feat(): add
+contact information fields to athlete entity and update service tests"), with the exact field
+names/shape the spec assumed (`street`, `city`, `postalCode`, `country`, all optional strings).
+
+- [x] `customer.ts` (interface): added `street?`, `city?`, `postalCode?`, `country?: string | null`
+      to `Customer`.
+- [x] `customer-form-dialog.ts`: extended `CustomerFormModel`, `toFormModel`, `toCustomerPayload`
+      with the 4 new fields — no validators (backend treats them as fully optional, per spec).
+- [x] `customer-form-dialog.html`: added 4 `mat-form-field` inputs (street, city, postalCode,
+      country) after phone and before the sports select, using plain `[formField]` bindings — no
+      `FormField`-incompatibility issue here since these are native `<input>` elements, unlike
+      `birthDate`/`sportIds`.
+- [x] `en.json`/`el.json`: added `streetLabel`, `cityLabel`, `postalCodeLabel`, `countryLabel`
+      under `customerDetails` in both languages.
+
+**Verification:**
+- [x] RED confirmed first: extended `customer-form-dialog.spec.ts` with address population,
+      empty-address, and save-payload tests before touching the component — compile failed with
+      `TS2353: 'street' does not exist in type 'CustomerFormModel'` as expected.
+- [x] `npm test` (scoped to the dialog spec) — 25 passed (up from 20).
+- [x] `npm test` (full suite) — 74 passed (up from 69), same 7 pre-existing failing files, none
+      newly introduced (compared counts before/after per the established pattern).
+- [x] `npm run build` — succeeds, same pre-existing unrelated `customer-details.ts` NG8113
+      warnings.
+- [x] `npm run lint` — same 6 pre-existing problems, none in touched files.
+- [ ] **Manual check: NOT performed** — same gap as every prior module (no browser-automation
+      tool available in this session). Someone should verify live: edit a customer, fill in an
+      address, save, reopen the dialog, confirm the address persists and re-populates.
+
+**Dependencies:** Task 4 (`dialog-core`), `backend-address` (BE commit `0c5ce50`)
+
+**Files touched:**
+- `src/app/common/interfaces/customer.ts`
+- `src/app/features/customers/customer-form-dialog/customer-form-dialog.ts`
+- `src/app/features/customers/customer-form-dialog/customer-form-dialog.html`
+- `src/app/features/customers/customer-form-dialog/customer-form-dialog.spec.ts`
+- `public/i18n/en.json`, `public/i18n/el.json`
+
+**Estimated scope:** Small (5 files, extending existing model/template/i18n — no new files)
+
+---
+
+## Checkpoint: dialog-address Complete
+
+- [x] `npm run build`, `npm run lint`, `npm test` all pass (only the same 7 pre-existing failures
+      remain; none newly introduced)
+- [ ] **Address fields verified live against the running dev server and a real backend save —
+      NOT done.** Same gap as every prior checkpoint; no browser-automation tool available.
+- [x] Review with the human before starting `dialog-consolidation` (needs `dialog-core`,
+      `dialog-address`, and `dialog-sports` all complete — now true)
+
+---
+
+## Phase 7: `dialog-consolidation`
+
+- [x] `customer-details.ts`: deleted the dead `form()` (validators, `CustomerFormModel`,
+      `toFormModel`, `formatDateForApi`, `toCustomerPayload`, `PHONE_PATTERN`, `model`,
+      `saveSuccess`, `saveError`, `hasError`) and its now-unused imports (`form`, `required`,
+      `minLength`, `maxLength`, `pattern`, `FormField`, `FormRoot`, `ValidationError`,
+      `firstValueFrom`, and the Material form-field imports the dead form pulled in — `MatFormField`,
+      `MatLabel`, `MatError`, `MatSuffix`, `MatInput`, `MatDatepicker`, `MatDatepickerInput`,
+      `MatDatepickerToggle` — all confirmed unused by the compiler's own NG8113 warnings before
+      deletion). `openEditDialog()` now subscribes to `afterClosed()` and calls
+      `customerDetailsResource.reload()` when a customer was saved; does nothing when cancelled.
+      `activeId`, `isEditMode`, `routeId`, `customerDetailsResource`, and the read-only card
+      markup are untouched, per the spec's "never" boundary.
+- [x] `customer-container.ts`: `addNewCustomer()` now subscribes to `afterClosed()` and calls
+      `dataSourceResource.reload()` when a customer was created; does nothing when cancelled.
+- [x] Fixed a pre-existing latent test bug while touching this exact assertion: the
+      `customer-container.spec.ts` test for `addNewCustomer()` asserted `dialog.open` was called
+      with only one argument, but the real call always passed `{ width, height }` too — this was
+      one of the "7 pre-existing failures"; now fixed as a natural side effect of rewriting the
+      same assertion for `afterClosed()` support (not a separate unplanned change).
+
+**Verification:**
+- [x] RED confirmed first: extended `customer-details.spec.ts` and `customer-container.spec.ts`
+      with reload/no-reload tests before touching either component — both failed as expected
+      (missing HTTP refetch / `reload` not called).
+- [x] `npm test` (scoped: `customer-container.spec.ts` + `customer-details.spec.ts` +
+      `customer-form-dialog.spec.ts`) — 35 passed.
+- [x] `npm test` (full suite) — 70 passed, 6 failed files (down from 7 — the
+      `customer-container` mismatch above is now fixed instead of failing). The remaining 6
+      failures (`app.spec.ts`, `layout.spec.ts`, `theme.service.spec.ts`, `customer-list.spec.ts`,
+      `sidebar.spec.ts`, `customer.spec.ts`) are all pre-existing and untouched by this module.
+- [x] `npm run build` — succeeds.
+- [x] `npm run lint` — same pre-existing problems in untouched files only (`signInResponse.ts`,
+      `http.ts`, `local-storage.ts`, `layout.ts`, `header.spec.ts`); nothing in files touched this
+      phase.
+- [ ] **Manual check: NOT performed** — same gap as every prior module (no browser-automation
+      tool available in this session). Someone should verify live: edit a customer's phone number
+      via the dialog, save, confirm the details page shows the new number immediately with no
+      manual reload; create a new customer via the list page's "+ New" button, confirm it appears
+      in the list immediately with no manual reload.
+
+**Dependencies:** `dialog-core`, `dialog-address`, `dialog-sports` (all complete)
+
+**Files touched:**
+- `src/app/features/customers/customer-details/customer-details.ts`
+- `src/app/features/customers/customer-details/customer-details.spec.ts`
+- `src/app/features/customers/customer-container/customer-container.ts`
+- `src/app/features/customers/customer-container/customer-container.spec.ts`
+
+**Estimated scope:** Small (4 files, deletion + two small `afterClosed()` wiring changes)
+
+---
+
+## Checkpoint: dialog-consolidation Complete — Capability Map Done
+
+- [x] `npm run build`, `npm run lint`, `npm test` all pass (only the same 6 pre-existing failures
+      remain, none newly introduced, one previously-failing test fixed)
+- [ ] **Full end-to-end live verification — NOT done for any module in this initiative.** No
+      browser-automation tool was available in any session across `dialog-core`,
+      `backend-address`, `dialog-sports`, `dialog-address`, or `dialog-consolidation`. Recommend a
+      manual pass through the dev server before considering this initiative fully shipped.
+- [x] All 5 capability-map modules (`backend-address`, `dialog-core`, `dialog-sports`,
+      `dialog-address`, `dialog-consolidation`) are implemented and committed. Payment
+      recording / `paidUntil` editing remains explicitly out of scope, deferred to a future
+      initiative.
