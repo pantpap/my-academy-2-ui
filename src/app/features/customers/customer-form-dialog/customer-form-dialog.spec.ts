@@ -31,6 +31,10 @@ const en = {
     birthDateLabel: 'Date of Birth',
     genderLabel: 'Gender',
     phoneLabel: 'Phone',
+    streetLabel: 'Street',
+    cityLabel: 'City',
+    postalCodeLabel: 'Postal Code',
+    countryLabel: 'Country',
     paidUntilLabel: 'Paid Until',
     notPaid: 'Not paid',
     saveError: 'Something went wrong while saving. Please try again.',
@@ -44,6 +48,10 @@ const existingCustomer: Customer = {
   birthDate: '2000-01-01',
   gender: 'female',
   phone: '+30 6912345678',
+  street: 'Main St 1',
+  city: 'Athens',
+  postalCode: '11111',
+  country: 'Greece',
   sportNames: [],
   sports: [],
   paidUntil: '2026-12-31',
@@ -96,7 +104,17 @@ async function createFixture(
 // Angular disallows a plain `name` attribute on elements bound via [formField] (NG8022), so
 // fields are located by their fixed rendered order instead: firstName, lastName, birthDate,
 // gender, phone (matches the "renders exactly five form fields" ordering below).
-const FIELD_ORDER = ['firstName', 'lastName', 'birthDate', 'gender', 'phone'] as const;
+const FIELD_ORDER = [
+  'firstName',
+  'lastName',
+  'birthDate',
+  'gender',
+  'phone',
+  'street',
+  'city',
+  'postalCode',
+  'country',
+] as const;
 
 function inputByName(
   fixture: ComponentFixture<CustomerFormDialog>,
@@ -130,10 +148,10 @@ describe('CustomerFormDialog', () => {
     expect(title?.textContent?.trim()).toBe('Edit Customer');
   });
 
-  it('should render exactly six form fields (five profile fields + sports)', async () => {
+  it('should render exactly ten form fields (five profile + four address + sports)', async () => {
     const fixture = await createFixture({});
     const fields = fixture.nativeElement.querySelectorAll('mat-form-field');
-    expect(fields.length).toBe(6);
+    expect(fields.length).toBe(10);
   });
 
   it('should render cancel and save actions', async () => {
@@ -160,6 +178,29 @@ describe('CustomerFormDialog', () => {
       const birthDate = fixture.componentInstance['model']().birthDate;
       expect(birthDate).toBeInstanceOf(Date);
       expect(birthDate?.toISOString().slice(0, 10)).toBe('2000-01-01');
+    });
+
+    it('populates street, city, postalCode, and country from the passed-in customer', async () => {
+      const fixture = await createFixture({ customer: existingCustomer });
+      expect(inputByName(fixture, 'street').value).toBe('Main St 1');
+      expect(inputByName(fixture, 'city').value).toBe('Athens');
+      expect(inputByName(fixture, 'postalCode').value).toBe('11111');
+      expect(inputByName(fixture, 'country').value).toBe('Greece');
+    });
+
+    it('shows address fields empty when the customer has no address data', async () => {
+      const customerWithoutAddress: Customer = {
+        ...existingCustomer,
+        street: undefined,
+        city: undefined,
+        postalCode: undefined,
+        country: undefined,
+      };
+      const fixture = await createFixture({ customer: customerWithoutAddress });
+      expect(inputByName(fixture, 'street').value).toBe('');
+      expect(inputByName(fixture, 'city').value).toBe('');
+      expect(inputByName(fixture, 'postalCode').value).toBe('');
+      expect(inputByName(fixture, 'country').value).toBe('');
     });
 
     it('shows paidUntil as read-only text, not an input', async () => {
@@ -236,6 +277,25 @@ describe('CustomerFormDialog', () => {
       expect(close).toHaveBeenCalledWith(expect.objectContaining({ phone: '+30 6999999999' }));
     });
 
+    it('includes the address fields in the payload when saving', async () => {
+      const updateCustomer = vi.fn(() => of(existingCustomer));
+      const fixture = await createFixture({ customer: existingCustomer }, { updateCustomer });
+
+      fixture.componentInstance['model'].update((m) => ({ ...m, city: 'Thessaloniki' }));
+
+      await submit(fixture.componentInstance['customerForm']);
+
+      expect(updateCustomer).toHaveBeenCalledWith(
+        1,
+        expect.objectContaining({
+          street: 'Main St 1',
+          city: 'Thessaloniki',
+          postalCode: '11111',
+          country: 'Greece',
+        }),
+      );
+    });
+
     it('does not call updateCustomer or close when a required field is empty', async () => {
       const updateCustomer = vi.fn(() => of(existingCustomer));
       const close = vi.fn();
@@ -297,6 +357,10 @@ describe('CustomerFormDialog', () => {
       expect(inputByName(fixture, 'lastName').value).toBe('');
       expect(inputByName(fixture, 'gender').value).toBe('');
       expect(inputByName(fixture, 'phone').value).toBe('');
+      expect(inputByName(fixture, 'street').value).toBe('');
+      expect(inputByName(fixture, 'city').value).toBe('');
+      expect(inputByName(fixture, 'postalCode').value).toBe('');
+      expect(inputByName(fixture, 'country').value).toBe('');
       expect(fixture.componentInstance['model']().birthDate).toBeNull();
       expect(fixture.nativeElement.textContent).not.toContain('Paid Until');
     });
@@ -313,6 +377,10 @@ describe('CustomerFormDialog', () => {
         birthDate: new Date('1990-05-05'),
         gender: 'male',
         phone: '+30 6911111111',
+        street: 'Second Ave 2',
+        city: 'Patras',
+        postalCode: '22222',
+        country: 'Greece',
         sportIds: [],
       });
 
@@ -326,6 +394,10 @@ describe('CustomerFormDialog', () => {
           gender: 'male',
           phone: '+30 6911111111',
           birthDate: '1990-05-05',
+          street: 'Second Ave 2',
+          city: 'Patras',
+          postalCode: '22222',
+          country: 'Greece',
         }),
       );
       expect(updateCustomer).not.toHaveBeenCalled();
@@ -355,6 +427,10 @@ describe('CustomerFormDialog', () => {
         birthDate: new Date('1990-05-05'),
         gender: 'male',
         phone: '+30 6911111111',
+        street: '',
+        city: '',
+        postalCode: '',
+        country: '',
         sportIds: [],
       });
 
