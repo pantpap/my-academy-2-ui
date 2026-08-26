@@ -35,6 +35,10 @@ export class CustomerContainer {
   });
 
   addNewCustomer(){
-    this.dialog.open(CustomerFormDialog);
+    const options = {
+      width: '800px',
+      height: '500px',
+    };
+    this.dialog.open(CustomerFormDialog, options);
   }
 }

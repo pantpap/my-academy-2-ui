@@ -4,30 +4,30 @@
   </h2>
 
   <mat-dialog-content>
-    <form class="flex flex-col gap-4 pt-2">
-      <mat-form-field appearance="outline">
+    <form class="grid grid-cols-2 gap-4 pt-2">
+      <mat-form-field>
         <mat-label>{{ translate('customerDetails.firstNameLabel') }}</mat-label>
         <input matInput name="firstName" />
       </mat-form-field>
 
-      <mat-form-field appearance="outline">
+      <mat-form-field>
         <mat-label>{{ translate('customerDetails.lastNameLabel') }}</mat-label>
         <input matInput name="lastName" />
       </mat-form-field>
 
-      <mat-form-field appearance="outline">
+      <mat-form-field>
         <mat-label>{{ translate('customerDetails.birthDateLabel') }}</mat-label>
         <input matInput name="birthDate" [matDatepicker]="birthDatePicker" />
         <mat-datepicker-toggle matSuffix [for]="birthDatePicker"></mat-datepicker-toggle>
         <mat-datepicker #birthDatePicker></mat-datepicker>
       </mat-form-field>
 
-      <mat-form-field appearance="outline">
+      <mat-form-field>
         <mat-label>{{ translate('customerDetails.genderLabel') }}</mat-label>
         <input matInput name="gender" />
       </mat-form-field>
 
-      <mat-form-field appearance="outline">
+      <mat-form-field>
         <mat-label>{{ translate('customerDetails.phoneLabel') }}</mat-label>
         <input matInput name="phone" />
       </mat-form-field>
