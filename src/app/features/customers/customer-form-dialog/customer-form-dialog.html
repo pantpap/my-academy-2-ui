@@ -4,38 +4,76 @@
   </h2>
 
   <mat-dialog-content>
-    <form class="grid grid-cols-2 gap-4 pt-2">
+    <form id="customer-form" [formRoot]="customerForm" class="grid grid-cols-2 gap-4 pt-2">
       <mat-form-field>
         <mat-label>{{ translate('customerDetails.firstNameLabel') }}</mat-label>
-        <input matInput name="firstName" />
+        <input matInput [formField]="customerForm.firstName" />
+        @if (hasError(customerForm.firstName().errors(), 'required')) {
+          <mat-error>{{ translate('customerDetails.firstNameRequired') }}</mat-error>
+        }
       </mat-form-field>
 
       <mat-form-field>
         <mat-label>{{ translate('customerDetails.lastNameLabel') }}</mat-label>
-        <input matInput name="lastName" />
+        <input matInput [formField]="customerForm.lastName" />
+        @if (hasError(customerForm.lastName().errors(), 'required')) {
+          <mat-error>{{ translate('customerDetails.lastNameRequired') }}</mat-error>
+        }
       </mat-form-field>
 
       <mat-form-field>
         <mat-label>{{ translate('customerDetails.birthDateLabel') }}</mat-label>
-        <input matInput name="birthDate" [matDatepicker]="birthDatePicker" />
+        <input
+          matInput
+          name="birthDate"
+          [matDatepicker]="birthDatePicker"
+          [value]="model().birthDate"
+          (dateChange)="onBirthDateChange($event.value)"
+        />
         <mat-datepicker-toggle matSuffix [for]="birthDatePicker"></mat-datepicker-toggle>
         <mat-datepicker #birthDatePicker></mat-datepicker>
+        @if (hasError(customerForm.birthDate().errors(), 'required')) {
+          <mat-error>{{ translate('customerDetails.birthDateRequired') }}</mat-error>
+        }
       </mat-form-field>
 
       <mat-form-field>
         <mat-label>{{ translate('customerDetails.genderLabel') }}</mat-label>
-        <input matInput name="gender" />
+        <input matInput [formField]="customerForm.gender" />
+        @if (hasError(customerForm.gender().errors(), 'required')) {
+          <mat-error>{{ translate('customerDetails.genderRequired') }}</mat-error>
+        }
       </mat-form-field>
 
       <mat-form-field>
         <mat-label>{{ translate('customerDetails.phoneLabel') }}</mat-label>
-        <input matInput name="phone" />
+        <input matInput [formField]="customerForm.phone" />
+        @if (hasError(customerForm.phone().errors(), 'required')) {
+          <mat-error>{{ translate('customerDetails.phoneRequired') }}</mat-error>
+        } @else if (hasError(customerForm.phone().errors(), 'pattern')) {
+          <mat-error>{{ translate('customerDetails.phoneInvalid') }}</mat-error>
+        }
       </mat-form-field>
+
+      @if (isEditMode) {
+        <div class="flex flex-col justify-center">
+          <p class="mat-body-small text-(--mat-sys-on-surface-variant)">
+            {{ translate('customerDetails.paidUntilLabel') }}
+          </p>
+          <p class="font-medium">{{ paidUntil ?? translate('customerDetails.notPaid') }}</p>
+        </div>
+      }
+
+      @if (saveError()) {
+        <p class="col-span-2 text-(--mat-sys-error)">{{ translate('customerDetails.saveError') }}</p>
+      }
     </form>
   </mat-dialog-content>
 
   <mat-dialog-actions align="end">
     <button mat-button type="button" mat-dialog-close>{{ translate('common.cancel') }}</button>
-    <button mat-flat-button type="button">{{ translate('common.save') }}</button>
+    <button mat-flat-button type="submit" form="customer-form" [disabled]="customerForm().invalid()">
+      {{ translate('common.save') }}
+    </button>
   </mat-dialog-actions>
 </ng-container>

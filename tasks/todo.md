@@ -138,42 +138,60 @@ read-only `paidUntil` display, ported from the dead `form()` already sitting unu
 task verifies. Create mode (`data.customer` undefined) is Task 5.
 
 **Acceptance criteria:**
-- [ ] `customer-form-dialog.ts` defines `CustomerFormModel` (`firstName`, `lastName`,
+- [x] `customer-form-dialog.ts` defines `CustomerFormModel` (`firstName`, `lastName`,
       `birthDate: Date | null`, `gender`, `phone`), `toFormModel`, `formatDateForApi`, and
       `toCustomerPayload` — same shape and rules as `customer-details.ts`'s dead versions, not
       new ones.
-- [ ] `protected readonly model = signal<CustomerFormModel>(toFormModel(this.data?.customer));`
+- [x] `protected readonly model = signal<CustomerFormModel>(toFormModel(this.data?.customer));`
       and `protected readonly customerForm = form(this.model, (customer) => { ... }, { submission: { action: ... } })`
       with the same validators as `customer-details.ts`: `required`/`minLength(2)`/`maxLength(50)`
       on `firstName`/`lastName`, `required` on `birthDate`, `required`/`maxLength(30)` on
       `gender`, `required`/`pattern(PHONE_PATTERN)` on `phone`.
-- [ ] `customer-form-dialog.html`'s `<form>` gets `[formRoot]="customerForm"`; each of the 5
-      inputs gets `[field]="customerForm.<name>"` (matching `login.html`'s `[formField]="loginForm.email"`
-      pattern exactly — confirm the exact directive/input name against the installed
-      `@angular/forms/signals` version, since `login.html` uses `[formField]`, singular, not
-      `[field]`); each `mat-form-field` gets a `mat-error` block per validation kind, following
-      `login.html`'s `hasError(...)` pattern (the dialog needs its own `hasError` method, copied
-      from `login.ts`/`customer-details.ts`).
-- [ ] Opening the dialog with `data: { customer }` populates all 5 inputs with that customer's
+- [x] `customer-form-dialog.html`'s `<form>` gets `[formRoot]="customerForm"`. `firstName`,
+      `lastName`, `gender`, `phone` bind via `[formField]="customerForm.<name>"` (confirmed
+      correct directive name — `login.html` uses this, singular). **`birthDate` is the
+      exception:** `MatDatepickerInput` implements only the old `ControlValueAccessor`, not the
+      new `FormValueControl` interface `[formField]` requires (confirmed against the installed
+      `@angular/material` types — no datepicker+signal-forms example exists anywhere, including
+      in Angular's own docs, which document `Date` support only for native `<input type="date">`).
+      Bind `birthDate` manually instead, using `MatDatepickerInput`'s own plain `[value]`/
+      `(dateChange)` API (confirmed present on `MatDatepickerInputBase`) directly against the
+      `model` signal: `[value]="model().birthDate"` and
+      `(dateChange)="model.update(m => ({ ...m, birthDate: $event.value }))"`. This still
+      participates in `customerForm`'s validation (`required(customer.birthDate)`,
+      `customerForm.birthDate().errors()`) because `form()` treats `model` as its single source
+      of truth regardless of which code path writes to it — confirmed via the signals-forms docs
+      ("form uses the given model as the source of truth ... updating the value on a FieldState
+      updates the originally passed-in model as well", i.e. the reverse is equally true and is
+      the mechanism `[formField]` itself relies on). Each `mat-form-field` gets a `mat-error`
+      block per validation kind, following `login.html`'s `hasError(...)` pattern (the dialog
+      needs its own `hasError` method, copied from `login.ts`/`customer-details.ts`). **One more
+      discovery while implementing:** the Angular compiler rejects a plain `name` attribute on
+      any element carrying `[formField]` (`NG8022`) — the 4 `[formField]`-bound inputs lost their
+      `name` attrs; `customer-form-dialog.spec.ts` locates them by rendered order instead
+      (`birthDate` keeps its `name` attr, since it isn't `[formField]`-bound).
+- [x] Opening the dialog with `data: { customer }` populates all 5 inputs with that customer's
       current values (including `birthDate` as a real `Date`, not the raw ISO string).
-- [ ] A read-only `paidUntil` line renders near the fields (plain text, not a form control),
+- [x] A read-only `paidUntil` line renders near the fields (plain text, not a form control),
       reading `data.customer.paidUntil` — per Plan Architecture Decision 11, not part of
       `CustomerFormModel`/`toCustomerPayload`.
-- [ ] The Save button becomes `type="submit"` (inside the `[formRoot]` form), replacing its
+- [x] The Save button becomes `type="submit"` (inside the `[formRoot]` form), replacing its
       current no-op `type="button"`; it is `[disabled]="customerForm().invalid()"`.
-- [ ] Submitting a valid edit calls `this.customerService.updateCustomer(this.data.customer.id, payload)`
+- [x] Submitting a valid edit calls `this.customerService.updateCustomer(this.data.customer.id, payload)`
       via `firstValueFrom`, then `this.dialogRef.close(saved)` — inject
       `MatDialogRef<CustomerFormDialog, Customer>` for this.
-- [ ] A failed `updateCustomer` call (e.g. mocked HTTP error) sets a `saveError` signal, rendered
+- [x] A failed `updateCustomer` call (e.g. mocked HTTP error) sets a `saveError` signal, rendered
       as inline text in `mat-dialog-content`; the dialog does **not** close, so the user can
       retry.
-- [ ] Required-field and phone-pattern validation errors block submission and render inline
-      (`mat-error`, matching `login.html`'s conditional-error pattern).
+- [x] Required-field validation errors block submission and render inline (`mat-error`, matching
+      `login.html`'s conditional-error pattern) — tested directly. The phone-pattern validator
+      and its `mat-error` branch are implemented identically (same `hasError(...)` mechanism) but
+      have no dedicated test of their own; only the required-field path is test-covered.
 
 **Verification:**
-- [ ] Build succeeds: `npm run build`
-- [ ] Lint clean: `npm run lint`
-- [ ] `customer-form-dialog.spec.ts` updated: the `MatDialogRef` test stub becomes a spy
+- [x] Build succeeds: `npm run build`
+- [x] Lint clean: `npm run lint`
+- [x] `customer-form-dialog.spec.ts` updated: the `MatDialogRef` test stub becomes a spy
       (`{ provide: MatDialogRef, useValue: { close: vi.fn() } }`) so tests can assert what it was
       called with; the existing "should render exactly five form fields" assertion still passes
       (field count is unchanged, only bindings are added); new specs cover — edit mode populates
@@ -181,10 +199,14 @@ task verifies. Create mode (`data.customer` undefined) is Task 5.
       `updateCustomer` with the customer's `id` and the mapped payload, then `dialogRef.close`
       with the resolved value; a required-field error blocks submission and shows a `mat-error`;
       a mocked `updateCustomer` failure sets the inline error text and does not call `close`.
-- [ ] `npm test` — no new failures beyond the pre-existing, documented ones.
-- [ ] Manual check: run `npm start`, navigate to a customer's details page, click Edit, change
-      the phone number, click Save, confirm via the Network tab that `PUT /athletes/:id` fired
-      with the new phone number and the dialog closed.
+- [x] `npm test` — 55 passed (up from 47 on the pre-Task-4 baseline, confirmed by stashing and
+      re-running), same 7 pre-existing failing files on both baseline and after, none newly
+      introduced.
+- [ ] **Manual check: NOT performed.** No browser-automation tool (Chrome DevTools MCP,
+      claude-in-chrome) was available in this session to drive the running dev server
+      (`localhost:4200`, already up) and inspect the Network tab. Someone should verify live:
+      edit a real customer's phone number via the dialog, save, confirm `PUT /athletes/:id`
+      fires with the new value and the dialog closes.
 
 **Dependencies:** Task 1 (dialog shell), Task 3 (edit entry point to exercise this against)
 

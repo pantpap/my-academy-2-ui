@@ -1,10 +1,13 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { submit } from '@angular/forms/signals';
 import { TranslocoTestingModule } from '@jsverse/transloco';
+import { of, throwError } from 'rxjs';
 
 import { CustomerFormDialog, CustomerFormDialogData } from './customer-form-dialog';
 import { Customer } from '../../../common/interfaces/customer';
+import { Customer as CustomerService } from '../../../shared/services/customer/customer';
 
 const en = {
   common: {
@@ -15,10 +18,15 @@ const en = {
     createTitle: 'New Customer',
     editTitle: 'Edit Customer',
     firstNameLabel: 'First Name',
+    firstNameRequired: 'First name is required',
     lastNameLabel: 'Last Name',
+    lastNameRequired: 'Last name is required',
     birthDateLabel: 'Date of Birth',
     genderLabel: 'Gender',
     phoneLabel: 'Phone',
+    paidUntilLabel: 'Paid Until',
+    notPaid: 'Not paid',
+    saveError: 'Something went wrong while saving. Please try again.',
   },
 };
 
@@ -31,10 +39,17 @@ const existingCustomer: Customer = {
   phone: '+30 6912345678',
   sportNames: [],
   sports: [],
-  paidUntil: null,
+  paidUntil: '2026-12-31',
 };
 
-async function createFixture(data: CustomerFormDialogData): Promise<ComponentFixture<CustomerFormDialog>> {
+async function createFixture(
+  data: CustomerFormDialogData,
+  options?: {
+    updateCustomer?: ReturnType<typeof vi.fn>;
+    createCustomer?: ReturnType<typeof vi.fn>;
+    close?: ReturnType<typeof vi.fn>;
+  },
+): Promise<ComponentFixture<CustomerFormDialog>> {
   await TestBed.configureTestingModule({
     imports: [
       CustomerFormDialog,
@@ -49,13 +64,33 @@ async function createFixture(data: CustomerFormDialogData): Promise<ComponentFix
     providers: [
       provideNativeDateAdapter(),
       { provide: MAT_DIALOG_DATA, useValue: data },
-      { provide: MatDialogRef, useValue: { close: (): void => undefined } },
+      { provide: MatDialogRef, useValue: { close: options?.close ?? vi.fn() } },
+      {
+        provide: CustomerService,
+        useValue: {
+          updateCustomer: options?.updateCustomer ?? vi.fn(() => of(existingCustomer)),
+          createCustomer: options?.createCustomer ?? vi.fn(() => of(existingCustomer)),
+        },
+      },
     ],
   }).compileComponents();
 
   const fixture = TestBed.createComponent(CustomerFormDialog);
   fixture.detectChanges();
   return fixture;
+}
+
+// Angular disallows a plain `name` attribute on elements bound via [formField] (NG8022), so
+// fields are located by their fixed rendered order instead: firstName, lastName, birthDate,
+// gender, phone (matches the "renders exactly five form fields" ordering below).
+const FIELD_ORDER = ['firstName', 'lastName', 'birthDate', 'gender', 'phone'] as const;
+
+function inputByName(
+  fixture: ComponentFixture<CustomerFormDialog>,
+  name: (typeof FIELD_ORDER)[number],
+): HTMLInputElement {
+  const inputs = fixture.nativeElement.querySelectorAll('mat-form-field input') as NodeListOf<HTMLInputElement>;
+  return inputs[FIELD_ORDER.indexOf(name)];
 }
 
 describe('CustomerFormDialog', () => {
@@ -96,5 +131,98 @@ describe('CustomerFormDialog', () => {
     const labels = buttons.map((b) => b.textContent?.trim());
     expect(labels).toContain('Cancel');
     expect(labels).toContain('Save');
+  });
+
+  describe('edit mode population', () => {
+    it('populates firstName, lastName, gender, and phone from the passed-in customer', async () => {
+      const fixture = await createFixture({ customer: existingCustomer });
+      expect(inputByName(fixture, 'firstName').value).toBe('Jane');
+      expect(inputByName(fixture, 'lastName').value).toBe('Doe');
+      expect(inputByName(fixture, 'gender').value).toBe('female');
+      expect(inputByName(fixture, 'phone').value).toBe('+30 6912345678');
+    });
+
+    it('populates birthDate as a real Date from the passed-in customer', async () => {
+      const fixture = await createFixture({ customer: existingCustomer });
+      const birthDate = fixture.componentInstance['model']().birthDate;
+      expect(birthDate).toBeInstanceOf(Date);
+      expect(birthDate?.toISOString().slice(0, 10)).toBe('2000-01-01');
+    });
+
+    it('shows paidUntil as read-only text, not an input', async () => {
+      const fixture = await createFixture({ customer: existingCustomer });
+      expect(fixture.nativeElement.textContent).toContain('2026-12-31');
+      expect(fixture.nativeElement.querySelector('input[name="paidUntil"]')).toBeNull();
+    });
+
+    it('shows the "not paid" fallback when paidUntil is null', async () => {
+      const fixture = await createFixture({ customer: { ...existingCustomer, paidUntil: null } });
+      expect(fixture.nativeElement.textContent).toContain('Not paid');
+    });
+  });
+
+  describe('saving an edit', () => {
+    it('calls updateCustomer with the customer id and the mapped payload, then closes with the result', async () => {
+      const updateCustomer = vi.fn(() => of({ ...existingCustomer, phone: '+30 6999999999' }));
+      const close = vi.fn();
+      const fixture = await createFixture({ customer: existingCustomer }, { updateCustomer, close });
+
+      fixture.componentInstance['model'].update((m) => ({ ...m, phone: '+30 6999999999' }));
+
+      const result = await submit(fixture.componentInstance['customerForm']);
+
+      expect(result).toBe(true);
+      expect(updateCustomer).toHaveBeenCalledWith(
+        1,
+        expect.objectContaining({
+          firstName: 'Jane',
+          lastName: 'Doe',
+          gender: 'female',
+          phone: '+30 6999999999',
+          birthDate: '2000-01-01',
+        }),
+      );
+      expect(close).toHaveBeenCalledWith(expect.objectContaining({ phone: '+30 6999999999' }));
+    });
+
+    it('does not call updateCustomer or close when a required field is empty', async () => {
+      const updateCustomer = vi.fn(() => of(existingCustomer));
+      const close = vi.fn();
+      const fixture = await createFixture({ customer: existingCustomer }, { updateCustomer, close });
+
+      fixture.componentInstance['model'].update((m) => ({ ...m, firstName: '' }));
+
+      const result = await submit(fixture.componentInstance['customerForm']);
+
+      expect(result).toBe(false);
+      expect(updateCustomer).not.toHaveBeenCalled();
+      expect(close).not.toHaveBeenCalled();
+      expect(
+        fixture.componentInstance['customerForm'].firstName().errors().some((e) => e.kind === 'required'),
+      ).toBe(true);
+    });
+
+    it('renders an inline required-field error after a failed submission', async () => {
+      const fixture = await createFixture({ customer: existingCustomer });
+      fixture.componentInstance['model'].update((m) => ({ ...m, firstName: '' }));
+
+      await submit(fixture.componentInstance['customerForm']);
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.textContent).toContain('First name is required');
+    });
+
+    it('shows an inline error and does not close when updateCustomer fails', async () => {
+      const updateCustomer = vi.fn(() => throwError(() => new Error('network error')));
+      const close = vi.fn();
+      const fixture = await createFixture({ customer: existingCustomer }, { updateCustomer, close });
+
+      await submit(fixture.componentInstance['customerForm']);
+      fixture.detectChanges();
+
+      expect(close).not.toHaveBeenCalled();
+      expect(fixture.componentInstance['saveError']()).toBe(true);
+      expect(fixture.nativeElement.textContent).toContain('Something went wrong while saving. Please try again.');
+    });
   });
 });

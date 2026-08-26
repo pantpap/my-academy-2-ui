@@ -80,7 +80,16 @@ handling, and refreshing the customer list after a save. This plan delivers the 
     show a `saveError` signal as inline text in `mat-dialog-content` (mirroring how
     `customer-details.ts`'s dead code tracked `saveError` as a signal, just rendered this time),
     not a new bespoke component. The dialog stays open so the user can retry.
-11. **`paidUntil` renders as plain read-only text, not a form field.** It has no `[field]`
+11.5. **`birthDate` binds manually, not via `[formField]`.** Verified against the installed
+    `@angular/material` types before implementing: `MatDatepickerInput` implements only
+    `ControlValueAccessor`, not the `FormValueControl` interface `[formField]` requires (no
+    example anywhere — including Angular's own signal-forms docs — pairs `matDatepicker` with
+    `[formField]`; the docs cover `Date` support only for native `<input type="date">`). Task 4
+    binds `birthDate` via `MatDatepickerInput`'s own `[value]`/`(dateChange)` API directly
+    against the `model` signal instead. This still fully participates in `customerForm`'s
+    validation, since `form()`'s model is its single source of truth regardless of which code
+    path writes to it.
+12. **`paidUntil` renders as plain read-only text, not a form field.** It has no `[field]`
     binding and is excluded from `CustomerFormModel`/`toCustomerPayload` entirely — it is
     display-only per `SPEC-dialog-core.md`, and editing it is out of scope for the whole
     capability map (payment recording is a separate, future module).
