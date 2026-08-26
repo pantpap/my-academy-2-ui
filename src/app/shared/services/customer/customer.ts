@@ -36,6 +36,12 @@ export class Customer {
   }
 
   updateCustomer(id: number, payload: CustomerPayload) {
-    return this.httpService.put<CustomerPayload>(`${ATHLETES_API}/${id}`, payload);
+    return this.httpService.put<CustomerPayload & { organizationId: number }>(
+      `${ATHLETES_API}/${id}`,
+      {
+        ...payload,
+        organizationId: this.organizationId(),
+      },
+    );
   }
 }

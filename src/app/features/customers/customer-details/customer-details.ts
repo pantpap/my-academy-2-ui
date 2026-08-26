@@ -41,7 +41,13 @@ export class CustomerDetails {
   });
 
   protected openEditDialog() {
+    const options = {
+      width: '1200px',
+      maxWidth: '1200px',
+      height: '500px',
+    };
     const dialogRef = this.dialog.open(CustomerFormDialog, {
+      ...options,
       data: { customer: this.customerDetailsResource.value() },
     });
 
