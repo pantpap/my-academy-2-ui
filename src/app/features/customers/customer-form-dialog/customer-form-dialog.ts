@@ -31,6 +31,10 @@ interface CustomerFormModel {
   birthDate: Date | null;
   gender: string;
   phone: string;
+  street: string;
+  city: string;
+  postalCode: string;
+  country: string;
   sportIds: number[];
 }
 
@@ -41,6 +45,10 @@ function toFormModel(customer?: CustomerModel): CustomerFormModel {
     birthDate: customer?.birthDate ? new Date(customer.birthDate) : null,
     gender: customer?.gender ?? '',
     phone: customer?.phone ?? '',
+    street: customer?.street ?? '',
+    city: customer?.city ?? '',
+    postalCode: customer?.postalCode ?? '',
+    country: customer?.country ?? '',
     sportIds: customer?.sports.map((s) => s.id) ?? [],
   };
 }
@@ -60,6 +68,10 @@ function toCustomerPayload(value: CustomerFormModel): CustomerPayload {
     birthDate: formatDateForApi(value.birthDate),
     gender: value.gender,
     phone: value.phone,
+    street: value.street,
+    city: value.city,
+    postalCode: value.postalCode,
+    country: value.country,
     paidUntil: null,
     sportNames: [],
     sports: [],

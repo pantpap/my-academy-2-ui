@@ -56,6 +56,26 @@
       </mat-form-field>
 
       <mat-form-field>
+        <mat-label>{{ translate('customerDetails.streetLabel') }}</mat-label>
+        <input matInput [formField]="customerForm.street" />
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>{{ translate('customerDetails.cityLabel') }}</mat-label>
+        <input matInput [formField]="customerForm.city" />
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>{{ translate('customerDetails.postalCodeLabel') }}</mat-label>
+        <input matInput [formField]="customerForm.postalCode" />
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>{{ translate('customerDetails.countryLabel') }}</mat-label>
+        <input matInput [formField]="customerForm.country" />
+      </mat-form-field>
+
+      <mat-form-field>
         <mat-label>{{ translate('customerDetails.sportsLabel') }}</mat-label>
         <mat-select
           multiple
