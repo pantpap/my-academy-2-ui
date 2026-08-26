@@ -1,7 +1,11 @@
 # Implementation Plan: Customer Form Dialog
 
 **Repo:** `FE/my-academy-2-UI` (Angular 21 + Material 21 + Transloco)
-**Status:** awaiting human review — do not implement until approved.
+**Status:** Phases 1–2 (below) shipped and are marked done. Phase 3 is new — awaiting human
+review, do not implement until approved. It covers the `dialog-core` module from
+[`CAPABILITY-MAP.md`](../CAPABILITY-MAP.md) / [`SPEC-dialog-core.md`](../SPEC-dialog-core.md):
+the form logic that Phases 1–2 explicitly deferred to a human (see "Explicitly out of scope"
+below) is now in scope.
 
 ## Overview
 
@@ -53,6 +57,34 @@ handling, and refreshing the customer list after a save. This plan delivers the 
    route simply stops being reachable from the plus button. Deleting it is a follow-up once
    the dialog's form logic actually works — see Open Questions.
 
+### Phase 3 (`dialog-core`) additions
+
+7. **Port, don't reinvent.** `customer-details.ts` already contains a working `form()` —
+   validators, `toFormModel`/`toCustomerPayload`/`formatDateForApi`/`PHONE_PATTERN`, a
+   `submission.action` calling `createCustomer`/`updateCustomer` — that is built but **never
+   rendered** in its template (dead code from before the dialog approach was adopted). Phase 3
+   ports this logic into `CustomerFormDialog` verbatim (same validators, same limits, same
+   payload shape) rather than re-deriving new rules. `dialog-consolidation` (a later module,
+   not this plan) deletes the original.
+8. **Model is a plain `signal`, not `linkedSignal`.** Unlike `customer-details.ts`, the dialog's
+   customer is fixed for the dialog's lifetime (`MAT_DIALOG_DATA` is read once, at construction)
+   — there is no resource to stay linked to. `protected readonly model =
+   signal<CustomerFormModel>(toFormModel(this.data?.customer));` is sufficient.
+9. **Close with the saved `Customer` via a typed `MatDialogRef`.** Inject
+   `MatDialogRef<CustomerFormDialog, Customer>` and call `dialogRef.close(saved)` at the end of
+   `submission.action`, after `firstValueFrom(...)` resolves. Cancel already closes with no data
+   via `mat-dialog-close` — unchanged. This is what lets a later module (`dialog-consolidation`)
+   read `afterClosed()` and refresh the page; Phase 3 does not add that caller-side code itself.
+10. **A minimal inline error banner, since the app has no toast/snackbar service.** A repo-wide
+    grep confirms there is no `MatSnackBar`/notification service anywhere. On a failed save,
+    show a `saveError` signal as inline text in `mat-dialog-content` (mirroring how
+    `customer-details.ts`'s dead code tracked `saveError` as a signal, just rendered this time),
+    not a new bespoke component. The dialog stays open so the user can retry.
+11. **`paidUntil` renders as plain read-only text, not a form field.** It has no `[field]`
+    binding and is excluded from `CustomerFormModel`/`toCustomerPayload` entirely — it is
+    display-only per `SPEC-dialog-core.md`, and editing it is out of scope for the whole
+    capability map (payment recording is a separate, future module).
+
 ## Dependency Graph
 
 ```
@@ -64,23 +96,41 @@ CustomerFormDialog  ── Task 1 ── (component + template + spec)
         ├──────────────► CustomerContainer.addNewCustomer()   ── Task 2 (create mode)
         │
         └──────────────► CustomerDetails edit button          ── Task 3 (edit mode)
+                                    │
+                                    ▼
+                    customer-details.ts's dead form() (source to port from)
+                                    │
+                                    ▼
+                    Task 4: bind, validate, populate, save — EDIT mode
+                                    │
+                                    ▼
+                    Task 5: extend to CREATE mode
 ```
 
-Task 1 is the only blocking dependency. Tasks 2 and 3 are independent of each other and
-**can be done in either order or in parallel** once Task 1 lands.
+Task 1 is the only blocking dependency for Tasks 2–3. Tasks 2 and 3 are independent of each
+other and can be done in either order or in parallel once Task 1 lands. Task 4 depends on
+Task 1 (needs the rendered fields to bind to) and Task 3 (needs the edit entry point to exercise
+it against). Task 5 depends on Task 4 (reuses its `form()`/model/save infrastructure) and Task 2
+(needs the create entry point).
 
 ## Task List
 
 ### Phase 1: Foundation
-- [ ] Task 1: Create the `CustomerFormDialog` component with the form markup
+- [x] Task 1: Create the `CustomerFormDialog` component with the form markup
 
 ### Checkpoint: Foundation
 
 ### Phase 2: Entry Points (independent vertical slices)
-- [ ] Task 2: Plus button opens the dialog in create mode
-- [ ] Task 3: Details-page edit button opens the dialog in edit mode
+- [x] Task 2: Plus button opens the dialog in create mode
+- [x] Task 3: Details-page edit button opens the dialog in edit mode
 
-### Checkpoint: Complete
+### Checkpoint: Complete (Phases 1–2)
+
+### Phase 3: Bind, Validate, Save (`dialog-core` — new, awaiting review)
+- [ ] Task 4: Edit mode — bind, populate, validate, and save via `updateCustomer`
+- [ ] Task 5: Create mode — extend the same form to `createCustomer`
+
+### Checkpoint: dialog-core Complete
 
 Full task detail — acceptance criteria, verification, files touched — lives in
 [`tasks/todo.md`](./todo.md).
@@ -94,6 +144,10 @@ Full task detail — acceptance criteria, verification, files touched — lives 
 | Unbound inputs look "broken" during review | Low | Intentional and documented here. The human owns the binding layer. |
 | Dialog and `CustomerDetails` drift into two divergent copies of the same form | Medium | Accepted for now — routes are untouched, so both exist. Resolve via the follow-up in Open Questions once the dialog's form logic is done. |
 | a11y lint (`templateAccessibility`) on dialog markup | Low | Use `mat-dialog-title` (provides the labelled title), real `<label>` via `<mat-label>`, and a `type="button"` on Cancel. Verified by `npm run lint`. |
+| The existing `customer-form-dialog.spec.ts` stubs `MatDialogRef` as `{ close: (): void => undefined }` | Low | Task 4 must replace this with a spy (`vi.fn()`) so tests can assert what `close` was called with — a mechanical update, not a design risk. |
+| `field().value()` inside an async `submission.action`, then `dialogRef.close()` after `firstValueFrom(...)` resolves | Low | Same pattern already proven working in `customer-details.ts`'s dead code and in `login.ts`'s live `submission.action` — porting it, not inventing it. |
+| Save-error UX has no existing pattern to match (no snackbar/toast service in the app) | Medium | Architecture Decision 10 above: minimal inline `saveError` text in `mat-dialog-content`. Flag to the human in review — if a toast/snackbar service gets added to the app later, this becomes a follow-up to migrate. |
+| `paidUntil` display styling has no dialog precedent (only exists read-only in `customer-details.html`'s Membership card, a full `<mat-card>` section) | Low | Task 4 renders it as a single labeled line near the other fields, not a full card section — the dialog is a compact form, not a details page. Confirm the rendering reads acceptably at runtime during the checkpoint. |
 
 ## Open Questions
 
@@ -107,6 +161,15 @@ Full task detail — acceptance criteria, verification, files touched — lives 
    Tasks 2 and 3 deliberately leave the `afterClosed()` seam empty.
 3. **Table row pencil icon** (`customer-list.html:39`) is unchanged and still navigates to
    `/app/customers/:id`. Confirm that is intended — see the note in the Overview.
+4. **`/app/customers/new` still exists and still renders `CustomerDetails` with no `id`** —
+   unchanged by Phase 3. Today that shows an empty read-only card whose Edit button opens the
+   dialog in create mode (a redundant path, not a broken one). Left as-is, per Open Question 1 —
+   resolving it is `dialog-consolidation`'s job (a later module), not this phase's.
+5. **`afterClosed()` is still not read anywhere** after Phase 3 — Task 4/5 make the dialog close
+   *with* the saved `Customer`, but no caller (`CustomerContainer`, `CustomerDetails`) subscribes
+   to `afterClosed()` yet. That wiring is `dialog-consolidation`'s job (see
+   `SPEC-dialog-consolidation.md`), deliberately out of scope here so Phase 3 stays testable in
+   isolation.
 
 ## Verification Commands
 

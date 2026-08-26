@@ -2,6 +2,10 @@
 
 Plan: [`tasks/plan.md`](./plan.md). Do not start until the plan is approved.
 
+Phases 1–2 below are done. Phase 3 (Tasks 4–5) is new — the `dialog-core` module from
+[`../CAPABILITY-MAP.md`](../CAPABILITY-MAP.md) / [`../SPEC-dialog-core.md`](../SPEC-dialog-core.md).
+It is awaiting human review; do not start until approved.
+
 ---
 
 ## Phase 1: Foundation
@@ -120,3 +124,132 @@ as dialog data so the dialog renders its edit title.
 - [x] `customer-routes.ts` and `customer-list.ts` are untouched
 - [x] Open Questions 1–3 in `tasks/plan.md`: #3 (row pencil icon) confirmed unchanged, matches the interview answer; #1 (`/new` route) and #2 (`afterClosed()` refresh) remain explicitly deferred to the human, as planned
 - [x] Handed to the human to implement the form logic
+
+---
+
+## Phase 3: Bind, Validate, Save
+
+## Task 4: Edit mode — bind, populate, validate, and save via `updateCustomer`
+
+**Description:** Make `CustomerFormDialog` a real signal-form for its 5 existing fields plus a
+read-only `paidUntil` display, ported from the dead `form()` already sitting unused in
+`customer-details.ts` (see Plan §Phase 3 Architecture Decisions 7–11). This task's scope is
+**edit mode only** — the dialog is always opened with `data.customer` set in every case this
+task verifies. Create mode (`data.customer` undefined) is Task 5.
+
+**Acceptance criteria:**
+- [ ] `customer-form-dialog.ts` defines `CustomerFormModel` (`firstName`, `lastName`,
+      `birthDate: Date | null`, `gender`, `phone`), `toFormModel`, `formatDateForApi`, and
+      `toCustomerPayload` — same shape and rules as `customer-details.ts`'s dead versions, not
+      new ones.
+- [ ] `protected readonly model = signal<CustomerFormModel>(toFormModel(this.data?.customer));`
+      and `protected readonly customerForm = form(this.model, (customer) => { ... }, { submission: { action: ... } })`
+      with the same validators as `customer-details.ts`: `required`/`minLength(2)`/`maxLength(50)`
+      on `firstName`/`lastName`, `required` on `birthDate`, `required`/`maxLength(30)` on
+      `gender`, `required`/`pattern(PHONE_PATTERN)` on `phone`.
+- [ ] `customer-form-dialog.html`'s `<form>` gets `[formRoot]="customerForm"`; each of the 5
+      inputs gets `[field]="customerForm.<name>"` (matching `login.html`'s `[formField]="loginForm.email"`
+      pattern exactly — confirm the exact directive/input name against the installed
+      `@angular/forms/signals` version, since `login.html` uses `[formField]`, singular, not
+      `[field]`); each `mat-form-field` gets a `mat-error` block per validation kind, following
+      `login.html`'s `hasError(...)` pattern (the dialog needs its own `hasError` method, copied
+      from `login.ts`/`customer-details.ts`).
+- [ ] Opening the dialog with `data: { customer }` populates all 5 inputs with that customer's
+      current values (including `birthDate` as a real `Date`, not the raw ISO string).
+- [ ] A read-only `paidUntil` line renders near the fields (plain text, not a form control),
+      reading `data.customer.paidUntil` — per Plan Architecture Decision 11, not part of
+      `CustomerFormModel`/`toCustomerPayload`.
+- [ ] The Save button becomes `type="submit"` (inside the `[formRoot]` form), replacing its
+      current no-op `type="button"`; it is `[disabled]="customerForm().invalid()"`.
+- [ ] Submitting a valid edit calls `this.customerService.updateCustomer(this.data.customer.id, payload)`
+      via `firstValueFrom`, then `this.dialogRef.close(saved)` — inject
+      `MatDialogRef<CustomerFormDialog, Customer>` for this.
+- [ ] A failed `updateCustomer` call (e.g. mocked HTTP error) sets a `saveError` signal, rendered
+      as inline text in `mat-dialog-content`; the dialog does **not** close, so the user can
+      retry.
+- [ ] Required-field and phone-pattern validation errors block submission and render inline
+      (`mat-error`, matching `login.html`'s conditional-error pattern).
+
+**Verification:**
+- [ ] Build succeeds: `npm run build`
+- [ ] Lint clean: `npm run lint`
+- [ ] `customer-form-dialog.spec.ts` updated: the `MatDialogRef` test stub becomes a spy
+      (`{ provide: MatDialogRef, useValue: { close: vi.fn() } }`) so tests can assert what it was
+      called with; the existing "should render exactly five form fields" assertion still passes
+      (field count is unchanged, only bindings are added); new specs cover — edit mode populates
+      all 5 inputs + `paidUntil` from `data.customer`; submitting a valid edit calls
+      `updateCustomer` with the customer's `id` and the mapped payload, then `dialogRef.close`
+      with the resolved value; a required-field error blocks submission and shows a `mat-error`;
+      a mocked `updateCustomer` failure sets the inline error text and does not call `close`.
+- [ ] `npm test` — no new failures beyond the pre-existing, documented ones.
+- [ ] Manual check: run `npm start`, navigate to a customer's details page, click Edit, change
+      the phone number, click Save, confirm via the Network tab that `PUT /athletes/:id` fired
+      with the new phone number and the dialog closed.
+
+**Dependencies:** Task 1 (dialog shell), Task 3 (edit entry point to exercise this against)
+
+**Files likely touched:**
+- `src/app/features/customers/customer-form-dialog/customer-form-dialog.ts`
+- `src/app/features/customers/customer-form-dialog/customer-form-dialog.html`
+- `src/app/features/customers/customer-form-dialog/customer-form-dialog.spec.ts`
+
+**Estimated scope:** Medium (3 files, porting existing logic — not new design)
+
+---
+
+## Task 5: Create mode — extend the same form to `createCustomer`
+
+**Description:** Extend Task 4's form to also work when the dialog is opened with no
+`data.customer` (create mode) — `toFormModel(undefined)` already returns an empty model per its
+Task-4 signature, so this task is mostly about verifying and locking in behavior that likely
+already falls out of Task 4's code, not writing new binding logic.
+
+**Acceptance criteria:**
+- [ ] Opening the dialog with no `data` (or `data: {}`) shows all 5 inputs empty and shows no
+      `paidUntil` line (or shows it blank/omitted — pick whichever reads cleaner and confirm
+      with the human in review; `data.customer` is `undefined` so there is no value to show).
+- [ ] Submitting a valid create calls `this.customerService.createCustomer(payload)` (not
+      `updateCustomer`) via `firstValueFrom`, then `this.dialogRef.close(saved)` with the created
+      `Customer` (including its server-assigned `id`).
+- [ ] The same validation rules from Task 4 apply unchanged in create mode.
+- [ ] A failed `createCustomer` call sets the same inline `saveError` text as Task 4's failure
+      path; the dialog does not close.
+
+**Verification:**
+- [ ] Build succeeds: `npm run build`
+- [ ] Lint clean: `npm run lint`
+- [ ] `customer-form-dialog.spec.ts`: new specs cover — create mode starts with all 5 inputs
+      empty; submitting valid input calls `createCustomer` (and asserts `updateCustomer` was
+      **not** called) then closes with the created customer; a mocked `createCustomer` failure
+      sets the inline error and does not close.
+- [ ] `npm test` — no new failures beyond the pre-existing, documented ones.
+- [ ] Manual check: run `npm start`, navigate to `/app/customers`, click the "+ New" button, fill
+      in all 5 fields, click Save, confirm via the Network tab that `POST /athletes` fired with
+      the entered values and the dialog closed.
+
+**Dependencies:** Task 4 (reuses its `form()`/model/save infrastructure), Task 2 (create entry
+point to exercise this against)
+
+**Files likely touched:**
+- `src/app/features/customers/customer-form-dialog/customer-form-dialog.ts`
+- `src/app/features/customers/customer-form-dialog/customer-form-dialog.spec.ts`
+
+**Estimated scope:** Small (mostly test coverage + the `isEditMode` branch in the submission
+action; the binding/validation layer is already in place from Task 4)
+
+---
+
+## Checkpoint: dialog-core Complete
+
+- [ ] `npm run build`, `npm run lint`, `npm test` all pass (only the pre-existing, documented
+      failures remain; none newly introduced)
+- [ ] Both edit and create flows verified live against the running dev server and a real backend
+      save (Network tab confirms the correct HTTP method/body in each case)
+- [ ] `customer-form-dialog.spec.ts` has no remaining assertions describing the old unbound-input
+      behavior (e.g. the five-fields count assertion still holds, but nothing asserts fields lack
+      bindings)
+- [ ] Neither `customer-details.ts`'s dead `form()` nor `customer-container.ts`'s
+      `addNewCustomer()` was touched — both callers still don't read `afterClosed()`; that is
+      explicitly `dialog-consolidation`'s job, not this checkpoint's
+- [ ] Review with the human before starting `dialog-address` / `dialog-sports` (both extend this
+      same `form()`/`toFormModel`/`toCustomerPayload`) or `dialog-consolidation`
