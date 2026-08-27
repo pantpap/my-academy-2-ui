@@ -3,6 +3,7 @@ import { Http } from '../../../core/services/http/http';
 import { PAYMENTS_API } from '../../../common/constants/endpoints';
 import { Payment, PaymentStatus, RosterStatusEntry } from '../../../common/interfaces/payment';
 import { ORGANIZATION } from '../../../common/constants/local-storage-constants';
+import { Organization } from '../../../common/interfaces/organization';
 import { LocalStorage } from '../../../core/services/localStorage/local-storage';
 
 export type CreatePaymentPayload = Omit<Payment, 'id' | 'organizationId' | 'createdAt' | 'notes'> & {
@@ -16,7 +17,7 @@ export class Payments {
   private readonly httpService = inject(Http);
   private readonly localStorageService = inject(LocalStorage);
 
-  readonly organizationId = signal(this.localStorageService.getItem(ORGANIZATION).id);
+  readonly organizationId = signal(this.localStorageService.getItem<Organization>(ORGANIZATION).id);
 
   createPayment(payload: CreatePaymentPayload) {
     return this.httpService.post<CreatePaymentPayload & { organizationId: number }>(PAYMENTS_API, {

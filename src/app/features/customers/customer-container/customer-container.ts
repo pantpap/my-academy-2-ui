@@ -6,6 +6,7 @@ import { Customer } from '../../../shared/services/customer/customer';
 import { Customer as CustomerModel } from '../../../common/interfaces/customer';
 import { Payments } from '../../../shared/services/payment/payment';
 import { ORGANIZATION } from '../../../common/constants/local-storage-constants';
+import { Organization } from '../../../common/interfaces/organization';
 import { EMPTY } from 'rxjs';
 import { MatButton } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
@@ -26,7 +27,7 @@ export class CustomerContainer {
   private readonly paymentsService = inject(Payments);
   private readonly dialog = inject(MatDialog);
 
-  readonly organizationId = signal(this.localStorageService.getItem(ORGANIZATION).id);
+  readonly organizationId = signal(this.localStorageService.getItem<Organization>(ORGANIZATION).id);
 
   dataSourceResource = rxResource({
     params: () => this.organizationId(),

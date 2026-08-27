@@ -1,4 +1,6 @@
+import { Organization } from './organization';
+
 export interface SignInResponse {
   accessToken: string;
-  organization: any;
+  organization: Organization;
 }

@@ -4,6 +4,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 import { NavigationSection } from '../../../common/interfaces/navigation';
 import { LocalStorage } from '../../../core/services/localStorage/local-storage';
 import { ORGANIZATION } from '../../../common/constants/local-storage-constants';
+import { Organization } from '../../../common/interfaces/organization';
 
 
 @Component({
@@ -61,6 +62,6 @@ export class Sidebar {
 
   private readonly localStorageService = inject(LocalStorage);
 
-  readonly userData = signal(this.localStorageService.getItem(ORGANIZATION));
+  readonly userData = signal(this.localStorageService.getItem<Organization>(ORGANIZATION));
   readonly initials = signal(this.userData().name[0]);
 }
