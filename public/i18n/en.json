@@ -31,7 +31,10 @@
     "birthDate": "Birth date",
     "contact": "Contact",
     "gender": "Gender",
-    "sport": "Sport"
+    "sport": "Sport",
+    "paymentStatus": "This month",
+    "paid": "Paid",
+    "unpaid": "Unpaid"
   },
   "customerDetails": {
     "createTitle": "New Customer",

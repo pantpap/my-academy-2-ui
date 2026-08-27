@@ -4,6 +4,7 @@ import { LocalStorage } from '../../../core/services/localStorage/local-storage'
 import { rxResource } from '@angular/core/rxjs-interop';
 import { Customer } from '../../../shared/services/customer/customer';
 import { Customer as CustomerModel } from '../../../common/interfaces/customer';
+import { Payments } from '../../../shared/services/payment/payment';
 import { ORGANIZATION } from '../../../common/constants/local-storage-constants';
 import { EMPTY } from 'rxjs';
 import { MatButton } from '@angular/material/button';
@@ -22,6 +23,7 @@ import { CustomerFormDialog } from '../customer-form-dialog/customer-form-dialog
 export class CustomerContainer {
   private readonly localStorageService = inject(LocalStorage);
   private readonly customerService = inject(Customer);
+  private readonly paymentsService = inject(Payments);
   private readonly dialog = inject(MatDialog);
 
   readonly organizationId = signal(this.localStorageService.getItem(ORGANIZATION).id);
@@ -32,6 +34,16 @@ export class CustomerContainer {
       if (!orgId) return EMPTY;
 
       return this.customerService.getCustomers(1, 10);
+    },
+  });
+
+  rosterStatusResource = rxResource({
+    params: () => this.organizationId(),
+    stream: ({ params: orgId }) => {
+      if (!orgId) return EMPTY;
+
+      const now = new Date();
+      return this.paymentsService.getRosterStatus(now.getFullYear(), now.getMonth() + 1);
     },
   });
 

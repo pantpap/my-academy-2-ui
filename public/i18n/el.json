@@ -31,7 +31,10 @@
     "birthDate": "Ημ. γέννησης",
     "contact": "Επικοινωνία",
     "gender": "Φύλο",
-    "sport": "Άθλημα"
+    "sport": "Άθλημα",
+    "paymentStatus": "Αυτόν τον μήνα",
+    "paid": "Πληρωμένο",
+    "unpaid": "Απλήρωτο"
   },
   "customerDetails": {
     "createTitle": "Νέος Πελάτης",

@@ -33,6 +33,21 @@
     </td>
   </ng-container>
 
+  <ng-container matColumnDef="paymentStatus">
+    <th mat-header-cell *matHeaderCellDef> {{translate('table.paymentStatus')}} </th>
+    <td mat-cell *matCellDef="let element">
+      @if (paidStatusByAthleteId().get(element.id)) {
+        <span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+          {{ translate('table.paid') }}
+        </span>
+      } @else {
+        <span class="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+          {{ translate('table.unpaid') }}
+        </span>
+      }
+    </td>
+  </ng-container>
+
   <ng-container matColumnDef="actions">
     <th mat-header-cell *matHeaderCellDef>  </th>
     <td mat-cell *matCellDef="let customer">
