@@ -3,7 +3,12 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 
 import { Payments } from './payment';
-import { Payment, PaymentStatus, RosterStatusEntry } from '../../../common/interfaces/payment';
+import {
+  Payment,
+  PaymentStatus,
+  RosterStatusEntry,
+  RosterYearEntry,
+} from '../../../common/interfaces/payment';
 
 describe('Payments', () => {
   let service: Payments;
@@ -100,6 +105,31 @@ describe('Payments', () => {
     expect(req.request.params.get('organizationId')).toBe('7');
     expect(req.request.params.get('year')).toBe('2026');
     expect(req.request.params.get('month')).toBe('8');
+
+    req.flush(roster);
+    expect(result).toEqual(roster);
+  });
+
+  it('getRosterYear() gets /payments/roster-year scoped to organizationId and year', () => {
+    const roster: RosterYearEntry[] = [
+      {
+        athleteId: 3,
+        firstName: 'Paid',
+        lastName: 'Athlete',
+        months: [
+          { month: 1, paid: true, paymentId: 12, amount: 40, paymentDate: '2026-01-05' },
+          { month: 2, paid: false, paymentId: null, amount: null, paymentDate: null },
+        ],
+      },
+    ];
+
+    let result: RosterYearEntry[] | undefined;
+    service.getRosterYear(2026).subscribe((res) => (result = res));
+
+    const req = httpMock.expectOne((r) => r.url.endsWith('/payments/roster-year'));
+    expect(req.request.method).toBe('GET');
+    expect(req.request.params.get('organizationId')).toBe('7');
+    expect(req.request.params.get('year')).toBe('2026');
 
     req.flush(roster);
     expect(result).toEqual(roster);

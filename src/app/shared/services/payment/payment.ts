@@ -1,7 +1,12 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { Http } from '../../../core/services/http/http';
 import { PAYMENTS_API } from '../../../common/constants/endpoints';
-import { Payment, PaymentStatus, RosterStatusEntry } from '../../../common/interfaces/payment';
+import {
+  Payment,
+  PaymentStatus,
+  RosterStatusEntry,
+  RosterYearEntry,
+} from '../../../common/interfaces/payment';
 import { ORGANIZATION } from '../../../common/constants/local-storage-constants';
 import { Organization } from '../../../common/interfaces/organization';
 import { LocalStorage } from '../../../core/services/localStorage/local-storage';
@@ -39,6 +44,13 @@ export class Payments {
       organizationId: this.organizationId(),
       year,
       month,
+    });
+  }
+
+  getRosterYear(year: number) {
+    return this.httpService.get<RosterYearEntry[]>(`${PAYMENTS_API}/roster-year`, {
+      organizationId: this.organizationId(),
+      year,
     });
   }
 }

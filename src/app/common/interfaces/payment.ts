@@ -35,3 +35,18 @@ export interface PaymentStatus {
   paidUntil: string | null;
   months: PaymentStatusMonth[];
 }
+
+export interface RosterYearMonth {
+  month: number;
+  paid: boolean;
+  paymentId: number | null;
+  amount: number | null;
+  paymentDate: string | null;
+}
+
+export interface RosterYearEntry {
+  athleteId: number;
+  firstName: string;
+  lastName: string;
+  months: RosterYearMonth[];
+}
