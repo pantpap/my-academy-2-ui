@@ -143,7 +143,7 @@ twice, but an unhandled `QueryFailedError` currently surfaces as a 500. Catch th
 
 ---
 
-### Task 5: Route `/app/payments` + container shell + year selector
+### Task 5: Route `/app/payments` + container shell + year selector — ✅ DONE (browser click-through not verified — see note)
 
 **Description:** Create the `payments` feature and wire up the sidebar link that has been dead since
 it was added. Container owns the selected-year signal and an `rxResource` keyed on it, mirroring
@@ -158,8 +158,14 @@ it was added. Container owns the selected-year signal and an `rxResource` keyed 
 - [ ] Route is behind the existing `authGuard` (inherited from the `app` parent route)
 
 **Verification:**
-- [ ] `npm test`, `npm run build`, `npm run lint` clean
-- [ ] Manual: sidebar link works; changing the year issues a new request (Network tab)
+- [x] `npm test`, `npm run build`, `npm run lint` clean — new component tests pass (5), same
+      pre-existing 8-failed/11-failed baseline elsewhere, `payments-container` builds as its own
+      lazy chunk
+- [ ] **Manual browser check not done.** Browser automation (claude-in-chrome) was offered and
+      declined for this session. Verified what's checkable without one: dev server serves
+      `/app/payments` (200), route compiles into its own lazy chunk. The actual click-through —
+      sidebar → grid renders, year selector issues a new request in the Network tab — needs a
+      human pass or a future session with browser tooling enabled. Carried forward to Checkpoint B.
 
 **Dependencies:** Task 4
 **Files likely touched:** `FE/src/app/core/layout/layout-routes.ts`,
