@@ -63,6 +63,11 @@
     "noSports": "No sports enrolled",
     "paidUntilLabel": "Paid Until",
     "notPaid": "Not paid"
+  },
+  "payments": {
+    "title": "Payments",
+    "yearLabel": "Year",
+    "athleteCount": "Athletes loaded"
   }
 }
 

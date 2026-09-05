@@ -19,6 +19,11 @@ export const layoutRoutes: Routes = [
         loadChildren: () =>
           import('../../features/customers/customer-routes').then((m) => m.customerRoutes),
       },
+      {
+        path: 'payments',
+        loadChildren: () =>
+          import('../../features/payments/payment-routes').then((m) => m.paymentRoutes),
+      },
       // {
       //   path: 'profile',
       //   loadComponent: () => import('../user-profile/user-profile').then((c) => c.UserProfile),

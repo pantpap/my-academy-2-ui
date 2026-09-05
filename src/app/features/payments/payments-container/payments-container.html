@@ -1,0 +1,23 @@
+<div *transloco="let translate" class="flex flex-col gap-4 p-4">
+  <div class="flex items-center justify-between">
+    <h1 class="mat-headline-medium">{{ translate('payments.title') }}</h1>
+
+    <mat-form-field subscriptSizing="dynamic">
+      <mat-label>{{ translate('payments.yearLabel') }}</mat-label>
+      <mat-select [value]="selectedYear()" (selectionChange)="onYearSelectionChange($event)">
+        @for (year of years; track year) {
+          <mat-option [value]="year">{{ year }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <!-- Placeholder until the grid (Task 6) replaces this. -->
+  @if (rosterYearResource.isLoading()) {
+    <p>{{ translate('common.loading') }}</p>
+  } @else if (rosterYearResource.error()) {
+    <p class="text-(--mat-sys-error)">{{ translate('common.error') }}</p>
+  } @else {
+    <p>{{ translate('payments.athleteCount') }}: {{ rosterYearResource.value()?.length ?? 0 }}</p>
+  }
+</div>
