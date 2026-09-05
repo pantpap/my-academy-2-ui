@@ -1,6 +1,7 @@
 # Capability Map: Payments Screen
 
-Proposed 2026-09-05. **Status: awaiting approval — no module spec written yet.**
+Proposed 2026-09-05. **Status: all four modules built and automated-verified; live browser
+end-to-end still outstanding (Checkpoint C in `tasks/todo.md`) — not yet marked shipped.**
 
 Placed alongside the existing [CAPABILITY-MAP.md](./CAPABILITY-MAP.md) (Customer Edit Dialog Fix,
 approved 2026-08-26), following its precedent of living in the FE repo and linking out to the BE
