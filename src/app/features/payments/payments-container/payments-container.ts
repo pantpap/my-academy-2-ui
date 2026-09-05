@@ -1,12 +1,16 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
+import { MatDialog } from '@angular/material/dialog';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatSelect, MatSelectChange } from '@angular/material/select';
 import { MatOption } from '@angular/material/core';
 import { MatButton } from '@angular/material/button';
 import { TranslocoDirective } from '@jsverse/transloco';
+import { RosterYearEntry, RosterYearMonth } from '../../../common/interfaces/payment';
 import { Payments as PaymentsService } from '../../../shared/services/payment/payment';
-import { PaymentsGrid } from '../payments-grid/payments-grid';
+import { PaymentsGrid, PaymentsGridCellActivated } from '../payments-grid/payments-grid';
+import { PaymentFormDialog, PaymentFormDialogData } from '../payment-form-dialog/payment-form-dialog';
+import { PaymentDetailDialog, PaymentDetailDialogData } from '../payment-detail-dialog/payment-detail-dialog';
 
 const YEAR_RANGE = 2;
 
@@ -19,6 +23,7 @@ const YEAR_RANGE = 2;
 })
 export class PaymentsContainer {
   private readonly paymentsService = inject(PaymentsService);
+  private readonly dialog = inject(MatDialog);
 
   private readonly currentYear = new Date().getFullYear();
 
@@ -40,5 +45,46 @@ export class PaymentsContainer {
 
   protected onYearSelectionChange(event: MatSelectChange): void {
     this.onYearChange(event.value as number);
+  }
+
+  protected onCellActivated(event: PaymentsGridCellActivated): void {
+    if (event.month.paid) {
+      this.openDetailDialog(event.athlete, event.month);
+    } else {
+      this.openRecordDialog(event.athlete, event.month);
+    }
+  }
+
+  private openRecordDialog(athlete: RosterYearEntry, month: RosterYearMonth): void {
+    const ref = this.dialog.open<PaymentFormDialog, PaymentFormDialogData>(PaymentFormDialog, {
+      width: '480px',
+      data: {
+        athleteId: athlete.athleteId,
+        athleteName: `${athlete.firstName} ${athlete.lastName}`,
+        year: this.selectedYear(),
+        initialMonth: month.month,
+        months: athlete.months,
+        onSaved: () => this.rosterYearResource.reload(),
+      },
+    });
+
+    ref.afterClosed().subscribe((result) => {
+      if (result?.success) this.rosterYearResource.reload();
+    });
+  }
+
+  private openDetailDialog(athlete: RosterYearEntry, month: RosterYearMonth): void {
+    const ref = this.dialog.open<PaymentDetailDialog, PaymentDetailDialogData>(PaymentDetailDialog, {
+      width: '400px',
+      data: {
+        athleteId: athlete.athleteId,
+        athleteName: `${athlete.firstName} ${athlete.lastName}`,
+        payment: month,
+      },
+    });
+
+    ref.afterClosed().subscribe((result) => {
+      if (result?.deleted) this.rosterYearResource.reload();
+    });
   }
 }

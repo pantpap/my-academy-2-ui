@@ -29,6 +29,10 @@
   } @else if (!rosterYearResource.value()?.length) {
     <p class="text-(--mat-sys-on-surface-variant)">{{ translate('payments.emptyRoster') }}</p>
   } @else {
-    <app-payments-grid [roster]="rosterYearResource.value() ?? []" [year]="selectedYear()" />
+    <app-payments-grid
+      [roster]="rosterYearResource.value() ?? []"
+      [year]="selectedYear()"
+      (cellActivated)="onCellActivated($event)"
+    />
   }
 </div>

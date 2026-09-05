@@ -1,0 +1,78 @@
+<ng-container *transloco="let translate">
+  <h2 mat-dialog-title>{{ translate('payments.recordTitle', { name: athleteName }) }}</h2>
+
+  <mat-dialog-content class="flex flex-col gap-4 pt-2">
+    <mat-form-field>
+      <mat-label>{{ translate('payments.monthsLabel') }}</mat-label>
+      <mat-select
+        multiple
+        [value]="selectedMonths()"
+        [disabled]="submitting()"
+        (selectionChange)="onMonthsSelectionChange($event.value)"
+      >
+        @for (monthToggle of monthToggles(); track monthToggle.month) {
+          <mat-option [value]="monthToggle.month" [disabled]="monthToggle.paid">
+            {{ monthToggle.label }}
+            @if (monthToggle.paid) {
+              <mat-icon aria-hidden="true" class="!text-base align-middle">check_circle</mat-icon>
+            }
+          </mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>{{ translate('payments.amountLabel') }}</mat-label>
+      <input
+        matInput
+        type="number"
+        step="0.01"
+        min="0"
+        [value]="model().amount ?? ''"
+        (input)="onAmountInput($any($event.target).value)"
+        [disabled]="submitting()"
+      />
+      @if (hasError(paymentForm.amount().errors(), 'required')) {
+        <mat-error>{{ translate('payments.amountRequired') }}</mat-error>
+      } @else if (hasError(paymentForm.amount().errors(), 'min')) {
+        <mat-error>{{ translate('payments.amountInvalid') }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>{{ translate('payments.dateLabel') }}</mat-label>
+      <input
+        matInput
+        [matDatepicker]="paymentDatePicker"
+        [value]="model().paymentDate"
+        (dateChange)="onDateChange($event.value)"
+        [disabled]="submitting()"
+      />
+      <mat-datepicker-toggle matSuffix [for]="paymentDatePicker"></mat-datepicker-toggle>
+      <mat-datepicker #paymentDatePicker></mat-datepicker>
+      @if (hasError(paymentForm.paymentDate().errors(), 'required')) {
+        <mat-error>{{ translate('payments.dateRequired') }}</mat-error>
+      }
+    </mat-form-field>
+
+    <p class="mat-body-medium">{{ translate('payments.runningTotal') }}: {{ runningTotal().toFixed(2) }}</p>
+
+    @if (failureMessage()) {
+      <div class="flex flex-col gap-1">
+        <p class="text-(--mat-sys-error)">{{ failureMessage() }}</p>
+        @if (savedMonths().length > 0) {
+          <p class="mat-body-small">{{ translate('payments.savedMonths', { months: savedMonthLabels() }) }}</p>
+        }
+      </div>
+    }
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" mat-dialog-close [disabled]="submitting()">
+      {{ translate('common.cancel') }}
+    </button>
+    <button mat-flat-button type="button" [disabled]="saveDisabled()" (click)="save()">
+      {{ translate('common.save') }}
+    </button>
+  </mat-dialog-actions>
+</ng-container>

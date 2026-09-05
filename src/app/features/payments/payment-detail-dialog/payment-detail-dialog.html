@@ -1,0 +1,44 @@
+<ng-container *transloco="let translate">
+  <h2 mat-dialog-title>{{ translate('payments.detailTitle', { name: athleteName }) }}</h2>
+
+  <mat-dialog-content class="flex flex-col gap-2">
+    <p>
+      <strong>{{ translate('payments.amountLabel') }}:</strong>
+      {{ amount }}
+    </p>
+    <p>
+      <strong>{{ translate('payments.dateLabel') }}:</strong>
+      {{ paymentDate }}
+    </p>
+    @if (notes()) {
+      <p>
+        <strong>{{ translate('payments.notesLabel') }}:</strong>
+        {{ notes() }}
+      </p>
+    }
+
+    @if (deleteError()) {
+      <p class="text-(--mat-sys-error)">{{ translate('payments.deleteError') }}</p>
+    }
+
+    @if (confirmingDelete()) {
+      <p class="text-(--mat-sys-error)">{{ translate('payments.deleteConfirm') }}</p>
+    }
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    @if (confirmingDelete()) {
+      <button mat-button type="button" [disabled]="deleting()" (click)="cancelDelete()">
+        {{ translate('common.cancel') }}
+      </button>
+      <button mat-flat-button type="button" [disabled]="deleting()" (click)="confirmDelete()">
+        {{ translate('common.delete') }}
+      </button>
+    } @else {
+      <button mat-button type="button" mat-dialog-close>{{ translate('common.close') }}</button>
+      <button mat-stroked-button type="button" (click)="requestDelete()">
+        {{ translate('common.delete') }}
+      </button>
+    }
+  </mat-dialog-actions>
+</ng-container>
