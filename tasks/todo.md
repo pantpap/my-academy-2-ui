@@ -15,7 +15,7 @@ never against zero.
 
 ## Phase 1: `payments-api` (BE)
 
-### Task 1: `GET /payments/roster-year?year=` — whole-year grid in one query
+### Task 1: `GET /payments/roster-year?year=` — whole-year grid in one query — ✅ DONE
 
 **Description:** Add a roster-wide, twelve-month read endpoint so the grid loads in one request
 instead of one per athlete. Model the SQL on the existing `getRosterStatus()` (same joins, same
