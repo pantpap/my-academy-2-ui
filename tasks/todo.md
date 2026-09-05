@@ -78,7 +78,7 @@ existing idiom in `create()`. No payments left → `paidUntil = null`.
 
 ---
 
-### Task 3: Duplicate payment → `409 Conflict`
+### Task 3: Duplicate payment → `409 Conflict` — ✅ DONE
 
 **Description:** The composite unique constraint on
 `(athleteId, organizationId, coveredMonth, coveredYear)` is the real guard against paying a month
@@ -103,11 +103,15 @@ twice, but an unhandled `QueryFailedError` currently surfaces as a 500. Catch th
 
 ---
 
-## Checkpoint A: backend contract firm
+## Checkpoint A: backend contract firm — ✅ DONE
 
-- [ ] BE `npm test` — new specs pass; failure count matches the recorded baseline (no new failures)
-- [ ] BE `npm run build` clean
-- [ ] All three behaviours exercised against the dev DB with a real JWT
+- [x] BE `npm test` — new specs pass (17 new tests across Tasks 1–3); failure count matches the
+      recorded baseline exactly (8 pre-existing, unrelated DI failures — unchanged)
+- [x] BE `npm run build` clean
+- [x] All three behaviours exercised against the dev DB with a real JWT (minted locally with the
+      app's own secret — no real credentials touched): `roster-year` shape + validation,
+      create → delete → `paidUntil` walks back to null, cross-org delete → 404, duplicate POST →
+      409 with a clear message. All test data cleaned up afterward.
 - [ ] **Review with human.** The contract in plan.md §1 is frozen from here — the three FE modules
       consume it as given.
 
