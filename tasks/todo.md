@@ -175,7 +175,7 @@ it was added. Container owns the selected-year signal and an `rxResource` keyed 
 
 ---
 
-### Task 6: The grid — cell states, sticky axes, a11y, summary
+### Task 6: The grid — cell states, sticky axes, a11y, summary — ✅ DONE (browser check not done — see note)
 
 **Description:** The screen itself. Rows = athletes, columns = the 12 months, cells in one of three
 states. Extract the state derivation as a **pure function in its own file** (same spirit as the
@@ -194,9 +194,12 @@ Tailwind only, per plan.md §7.
 - [ ] Light and dark both correct via existing `--mat-sys-*` tokens — no new Sass mixins
 
 **Verification:**
-- [ ] `npm test` — `cellState` unit tests plus a component spec asserting rendered states
-- [ ] `npm run lint` clean (a11y rules are the point here)
-- [ ] Manual: 360px and desktop widths; toggle dark mode; tab through and confirm focus is visible
+- [x] `npm test` — 8 `cellState` unit tests + 9 component tests, all pass; same pre-existing
+      8-failed/11-failed baseline elsewhere (94 passing, up from 77)
+- [x] `npm run lint` clean — a11y template rules pass on the new grid markup; same 4 pre-existing
+      errors elsewhere, none in these files
+- [ ] **Manual browser check not done** (360px width, dark mode, focus visibility) — same
+      limitation as Task 5, browser automation declined this session. Carried to Checkpoint B.
 
 **Dependencies:** Task 5
 **Files likely touched:** `FE/src/app/features/payments/payments-grid/payments-grid.{ts,html,scss}` (new),
