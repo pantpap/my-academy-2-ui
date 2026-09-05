@@ -119,7 +119,7 @@ twice, but an unhandled `QueryFailedError` currently surfaces as a 500. Catch th
 
 ## Phase 2: `payments-grid` (FE) — read-only screen
 
-### Task 4: FE contract layer
+### Task 4: FE contract layer — ✅ DONE
 
 **Description:** Add the `roster-year` types and service method. Types go in the existing
 `common/interfaces/payment.ts` next to `RosterStatusEntry`; the method goes on the existing
