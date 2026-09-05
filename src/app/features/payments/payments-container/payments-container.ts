@@ -3,6 +3,7 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatSelect, MatSelectChange } from '@angular/material/select';
 import { MatOption } from '@angular/material/core';
+import { MatButton } from '@angular/material/button';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { Payments as PaymentsService } from '../../../shared/services/payment/payment';
 import { PaymentsGrid } from '../payments-grid/payments-grid';
@@ -11,7 +12,7 @@ const YEAR_RANGE = 2;
 
 @Component({
   selector: 'app-payments-container',
-  imports: [MatFormField, MatLabel, MatSelect, MatOption, TranslocoDirective, PaymentsGrid],
+  imports: [MatFormField, MatLabel, MatSelect, MatOption, MatButton, TranslocoDirective, PaymentsGrid],
   templateUrl: './payments-container.html',
   styleUrl: './payments-container.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -12,7 +12,8 @@
     "add": "Add",
     "delete": "Delete",
     "save": "Save",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "retry": "Try again"
   },
   "login": {
     "title": "Sign in",
@@ -70,6 +71,7 @@
     "athleteCount": "Athletes loaded",
     "athleteHeader": "Athlete",
     "summary": "Paid",
+    "emptyRoster": "No athletes are registered yet.",
     "stateLabels": {
       "paid": "Paid",
       "due": "Due",
