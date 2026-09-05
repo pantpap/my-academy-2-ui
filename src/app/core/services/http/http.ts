@@ -30,4 +30,9 @@ export class Http {
     const endpoint = `${this.apiUrl}/${url}`;
     return this.httpClient.put<T>(endpoint, body);
   }
+
+  delete<T>(url: string): Observable<T> {
+    const endpoint = `${this.apiUrl}/${url}`;
+    return this.httpClient.delete<T>(endpoint);
+  }
 }

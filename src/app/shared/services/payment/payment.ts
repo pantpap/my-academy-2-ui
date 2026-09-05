@@ -53,4 +53,15 @@ export class Payments {
       year,
     });
   }
+
+  getPayments(athleteId: number) {
+    return this.httpService.get<Payment[]>(PAYMENTS_API, {
+      organizationId: this.organizationId(),
+      athleteId,
+    });
+  }
+
+  deletePayment(id: number) {
+    return this.httpService.delete<void>(`${PAYMENTS_API}/${id}`);
+  }
 }
