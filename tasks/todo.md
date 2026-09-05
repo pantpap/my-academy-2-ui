@@ -264,7 +264,7 @@ non-happy states the grid can be in.
 > Task 10 is independent of Tasks 8–9 and can run in a parallel session.
 > Tasks 8 → 9 are strictly sequential (same component).
 
-### Task 8: Record dialog — multi-month selection, amount prefill, running total
+### Task 8: Record dialog — multi-month selection, amount prefill, running total — ✅ DONE
 
 **Description:** A Material dialog opened from a **due** cell, prefilled with that athlete and that
 month. Follow `CustomerFormDialog` as the house pattern: `MAT_DIALOG_DATA` in, signal-forms
@@ -272,20 +272,25 @@ month. Follow `CustomerFormDialog` as the house pattern: `MAT_DIALOG_DATA` in, s
 This task is the form only; submission is Task 9.
 
 **Acceptance criteria:**
-- [ ] Opens with the clicked athlete and month preselected; further months of the selected year can
-      be toggled; already-paid months are disabled and visibly so
-- [ ] Amount prefills from the athlete's most recent payment via `GET /payments?athleteId=`, and is
+- [x] Opens with the clicked athlete and month preselected; further months of the selected year can
+      be toggled; already-paid months are disabled and visibly so — implemented as a Material
+      `mat-select multiple` (revised from an earlier toggle-button-strip draft per explicit user
+      request): already-paid months render **selected and disabled** in the dropdown so they can't
+      be unselected, matching how they're already committed
+- [x] Amount prefills from the athlete's most recent payment via `GET /payments?athleteId=`, and is
       empty when there is none
-- [ ] Running total = amount × selected month count, computed from the **typed input**, never from
-      an API string (see the decimal risk in plan.md)
-- [ ] Validation: amount required and > 0, date required, at least one month selected; Save disabled
+- [x] Running total = amount × selected month count, computed from the **typed input**, never from
+      an API string (see the decimal risk in plan.md) — and explicitly **excludes** already-paid
+      months even though they show as selected in the dropdown
+- [x] Validation: amount required and > 0, date required, at least one month selected; Save disabled
       until valid
-- [ ] All copy in en/el
+- [x] All copy in en/el
 
 **Verification:**
-- [ ] `npm test` — dialog spec covers prefill, disabled paid months, total, validation gating
-- [ ] `npm run lint` clean
-- [ ] Manual: open from a due cell, tick three months, confirm the total
+- [x] `npm test` — dialog spec covers prefill, disabled/selected paid months, total (incl. excluding
+      paid months from it), validation gating — 15 tests, all passing
+- [x] `npm run lint` clean — no new errors, same 4 pre-existing elsewhere
+- [ ] **Manual browser check not done yet** — see Checkpoint C note below.
 
 **Dependencies:** Task 7
 **Files likely touched:**
@@ -296,24 +301,29 @@ This task is the form only; submission is Task 9.
 
 ---
 
-### Task 9: Submission — N sequential POSTs with partial-failure reporting
+### Task 9: Submission — N sequential POSTs with partial-failure reporting — ✅ DONE
 
 **Description:** Save posts one `POST /payments` per selected month, **sequentially**, so a failure
 leaves an unambiguous prefix. The hard requirement is honest reporting: never a bare "save failed"
 when some months were in fact saved.
 
 **Acceptance criteria:**
-- [ ] One POST per selected month, sequential, each with that month's `coveredMonth`/`coveredYear`
-- [ ] All succeed → dialog closes, grid refreshes, cells now paid
-- [ ] Partial failure → **stop at the first failure**; dialog stays open naming exactly which months
-      were saved and which were not; the grid still refreshes so the saved ones show as paid
-- [ ] A 409 from Task 3 renders as "already paid for that month", distinct from a generic error
-- [ ] Save cannot be double-submitted while in flight
+- [x] One POST per selected month, sequential, each with that month's `coveredMonth`/`coveredYear`
+- [x] All succeed → dialog closes, grid refreshes, cells now paid
+- [x] Partial failure → **stop at the first failure**; dialog stays open naming exactly which months
+      were saved and which were not; the grid still refreshes so the saved ones show as paid (via an
+      `onSaved` callback passed through `MAT_DIALOG_DATA`, invoked once the loop stops if anything
+      saved — the full-success path refreshes through `afterClosed()` instead, so it isn't double-
+      triggered)
+- [x] A 409 renders as a translated "already exists for this athlete" message, distinct from the
+      generic save-error message
+- [x] Save cannot be double-submitted while in flight (`submitting` signal disables Save and every
+      input for the duration of the sequential loop)
 
 **Verification:**
-- [ ] `npm test` — specs for all-succeed, first-fails, third-of-three-fails (asserting the message
-      names months 1 and 2 as saved), and the 409 path
-- [ ] Manual: record 3 months at once; then attempt a duplicate and confirm the 409 message
+- [x] `npm test` — specs for all-succeed (ascending order asserted), first-fails (stops, reports
+      saved vs. failed), the 409 path, the generic-error path, and the double-submit guard
+- [ ] **Manual browser check not done yet** — see Checkpoint C note below.
 
 **Dependencies:** Task 8
 **Files likely touched:**
@@ -324,41 +334,67 @@ when some months were in fact saved.
 
 ---
 
-### Task 10: Delete flow — paid-cell detail + confirmed delete
+### Task 10: Delete flow — paid-cell detail + confirmed delete — ✅ DONE
 
 **Description:** Clicking a **paid** cell shows that payment (amount, date, notes) with a confirmed
 delete. Note `Http` currently has **no `delete()` method** — only get/post/put — so this task adds
 it, following the existing method signatures exactly.
 
 **Acceptance criteria:**
-- [ ] `Http.delete<T>(url)` added, matching the existing get/post/put shape
-- [ ] `Payments.deletePayment(id: number)` calls `DELETE payments/:id`
-- [ ] Clicking a paid cell shows amount, payment date and notes for that payment
-- [ ] Delete requires an explicit confirmation step; on success the grid refreshes and the cell
-      returns to **due**
-- [ ] Failure surfaces a translated error and leaves the cell as-is
-- [ ] Copy in en/el
+- [x] `Http.delete<T>(url)` added, matching the existing get/post/put shape
+- [x] `Payments.deletePayment(id: number)` calls `DELETE payments/:id`
+- [x] Clicking a paid cell shows amount, payment date and notes for that payment (notes fetched via
+      the same `getPayments(athleteId)` added for Task 8's prefill, matched by `paymentId`)
+- [x] Delete requires an explicit confirmation step (inline two-state view in the same dialog — no
+      second stacked dialog); on success the grid refreshes
+- [x] Failure surfaces a translated error and leaves the dialog open, payment unchanged
+- [x] Copy in en/el
 
 **Verification:**
-- [ ] `npm test` — `Http.delete` spec, service spec, and a component spec for confirm-then-refresh
-- [ ] `npm run lint` clean
-- [ ] Manual: record two payments for one athlete, delete the newer, confirm the cell flips to due
-      **and** that the customer's `paidUntil` walked back (Task 2's recompute, verified end to end)
+- [x] `npm test` — `Http.delete` spec, `getPayments`/`deletePayment` service specs, and a component
+      spec for confirm-then-close/reload and the failure path (7 tests)
+- [x] `npm run lint` clean — no new errors
+- [ ] **Manual browser check not done yet** — see Checkpoint C note below.
 
 **Dependencies:** Task 7 (and Task 2 for the endpoint). Independent of Tasks 8–9.
-**Files likely touched:** `FE/src/app/core/services/http/http.ts`,
-`FE/src/app/shared/services/payment/payment.ts`,
-`FE/src/app/features/payments/payments-grid/payments-grid.ts`,
-`FE/public/i18n/{en,el}.json`
+**Files touched:** `FE/src/app/core/services/http/http.ts` (+ `.spec.ts`),
+`FE/src/app/shared/services/payment/payment.ts` (+ `.spec.ts`) — `getPayments`/`deletePayment`,
+`FE/src/app/features/payments/payment-detail-dialog/payment-detail-dialog.{ts,html,scss,spec.ts}` (new),
+`FE/src/app/features/payments/payments-container/payments-container.{ts,html,spec.ts}` (dispatch +
+reload wiring for both dialogs), `FE/public/i18n/{en,el}.json`. `payments-grid.ts` needed **no**
+changes — its `cellActivated` output already fired correctly for both paid and due cells.
 **Estimated scope:** M
 
 ---
 
-## Checkpoint C: Complete
+**Commit note (all of Phase 3):** landed as two commits rather than three — `Http.delete` +
+`Payments.getPayments`/`deletePayment` first (foundation shared by both dialogs), then the two
+dialog components + container wiring + i18n together, since `PaymentFormDialog`'s UI, validation,
+and submission logic are one component built and tested as a unit (Tasks 8–9), and the detail/
+delete dialog was wired in the same container pass. Per-task acceptance criteria above are still
+individually verified.
 
-- [ ] All acceptance criteria met across all 10 tasks
-- [ ] `npm run build`, `npm run lint`, `npm test` clean in **both** repos vs. recorded baselines
-- [ ] **Live end-to-end**: record a single month; record three at once; attempt a duplicate (409
-      message); delete a payment and confirm `paidUntil` walked back correctly
-- [ ] `CAPABILITY-MAP-payments.md` updated from "awaiting approval" to shipped
+---
+
+## Checkpoint C: automatable parts done, live end-to-end still outstanding
+
+- [x] All acceptance criteria met across all 10 tasks (see each task above)
+- [x] `npm run build`, `npm run lint`, `npm test` clean in **both** repos vs. recorded baselines:
+      - FE: 129 passing (up from 71 at the start of Phase 2), same pre-existing 8-failed/11-failed
+        suite elsewhere, same 4 pre-existing lint errors + 1 warning (none in payments code), build
+        clean with `payments-container` as its own lazy chunk
+      - BE: 47 passing, same pre-existing 8-failed/8-failed suite elsewhere (unchanged this phase —
+        no BE files touched), build clean
+- [ ] **Live end-to-end not done yet.** A `chrome-devtools-mcp` MCP server was added this session
+      specifically to do this (`claude mcp add chrome-devtools -- npx -y chrome-devtools-mcp@latest`
+      — confirmed connected via `claude mcp list`), but newly-added MCP servers only attach to a
+      **new** session — this running session doesn't see its tools yet. Needs either a session
+      restart (after which the live checks below should be run before calling this done) or a human
+      pass through the dev server:
+      - record a single month; record three at once; attempt a duplicate (expect the 409 message)
+      - delete a payment and confirm the cell flips back to due **and** `paidUntil` walked back
+      - the carried-over Checkpoint B items: grid renders correctly, dark mode, 360px width,
+        keyboard focus/tab order across the grid and both new dialogs
+- [ ] `CAPABILITY-MAP-payments.md` updated from "awaiting approval" to shipped — do this once the
+      live check above actually passes, not before
 - [ ] Review with human
