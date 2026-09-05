@@ -209,7 +209,7 @@ Tailwind only, per plan.md §7.
 
 ---
 
-### Task 7: Copy (en/el) + loading, empty and error states
+### Task 7: Copy (en/el) + loading, empty and error states — ✅ DONE (browser check not done — see note)
 
 **Description:** Every string through Transloco in both languages — no hardcoded copy. Add the three
 non-happy states the grid can be in.
@@ -223,9 +223,14 @@ non-happy states the grid can be in.
 - [ ] No literal user-facing text left in the payments templates
 
 **Verification:**
-- [ ] `npm test`, `npm run build`, `npm run lint` clean
-- [ ] Manual: switch language via the header, confirm the whole screen translates; stop the backend
-      and confirm the error state (not a blank screen)
+- [x] `npm test`, `npm run build`, `npm run lint` clean — 3 new container tests (error+retry,
+      empty-roster present, empty-roster absent when athletes exist); same pre-existing
+      8-failed/11-failed baseline elsewhere (98 passing, up from 94); en/el key-set parity
+      verified programmatically (66 keys each, no diff)
+- [ ] **Manual browser check not done** — same limitation as Tasks 5–6, browser automation
+      declined this session. Also did not stop the pre-existing BE dev server myself (it's the
+      user's own long-running process, not mine to restart) — the error path is instead covered
+      by an automated test that forces `getRosterYear()` to throw. Carried to Checkpoint B.
 
 **Dependencies:** Task 6
 **Files likely touched:** `FE/public/i18n/en.json`, `FE/public/i18n/el.json`,
@@ -235,13 +240,22 @@ non-happy states the grid can be in.
 
 ---
 
-## Checkpoint B: the screen answers the question
+## Checkpoint B: the screen answers the question — automatable parts done, live check outstanding
 
-- [ ] FE `npm run build`, `npm run lint`, `npm test` clean vs. the recorded baseline
-- [ ] **Live browser check** — log in, click "Πληρωμές", grid renders real data, year selector
-      refetches, dark mode and 360px hold. If no browser automation is available, hand this to the
-      human and record it as **not done** rather than skipping it silently.
-- [ ] Review with human before building the write paths
+- [x] FE `npm run build`, `npm run lint`, `npm test` clean vs. the recorded baseline — 98 tests
+      passing (up from the 71 baseline before this phase started), same pre-existing
+      8-failed/11-failed suite elsewhere, same 4 pre-existing lint errors (none in payments code),
+      builds clean with `payments-container` as its own lazy chunk
+- [ ] **Live browser check not done.** Browser automation (claude-in-chrome) was offered and
+      declined for every task in this phase (5, 6, 7). What's verified instead: the route serves
+      and compiles correctly (HTTP + build-output checks), and the loading/error/empty states are
+      covered by tests that force the resource into each state directly — but nobody has actually
+      looked at the rendered page in a browser. Needs one of: a human pass through the dev server
+      (sidebar → grid renders, year selector Network-tab check, dark mode, 360px width, tab-through
+      focus), or a future session with browser tooling enabled.
+- [ ] Review with human before building the write paths — **flagging the live check above
+      specifically**, since Tasks 8-10 build UI (dialogs) on top of a grid that has never been
+      visually confirmed to render correctly.
 
 ---
 
