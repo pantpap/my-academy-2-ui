@@ -67,7 +67,15 @@
   "payments": {
     "title": "Πληρωμές",
     "yearLabel": "Έτος",
-    "athleteCount": "Αθλητές φορτώθηκαν"
+    "athleteCount": "Αθλητές φορτώθηκαν",
+    "athleteHeader": "Αθλητής",
+    "summary": "Πληρωμένα",
+    "stateLabels": {
+      "paid": "Πληρωμένο",
+      "due": "Εκκρεμεί",
+      "future": "Δεν έχει λήξει ακόμα"
+    },
+    "cellAriaLabel": "{{name}}, {{month}} {{year}}: {{state}}"
   }
 }
 

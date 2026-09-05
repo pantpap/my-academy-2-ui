@@ -12,12 +12,11 @@
     </mat-form-field>
   </div>
 
-  <!-- Placeholder until the grid (Task 6) replaces this. -->
   @if (rosterYearResource.isLoading()) {
     <p>{{ translate('common.loading') }}</p>
   } @else if (rosterYearResource.error()) {
     <p class="text-(--mat-sys-error)">{{ translate('common.error') }}</p>
   } @else {
-    <p>{{ translate('payments.athleteCount') }}: {{ rosterYearResource.value()?.length ?? 0 }}</p>
+    <app-payments-grid [roster]="rosterYearResource.value() ?? []" [year]="selectedYear()" />
   }
 </div>

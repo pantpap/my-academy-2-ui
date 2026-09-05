@@ -1,0 +1,73 @@
+<div *transloco="let translate" class="flex flex-col gap-3">
+  <div class="overflow-x-auto rounded-lg border border-(--mat-sys-outline-variant)">
+    <table class="min-w-full border-collapse text-sm">
+      <thead>
+        <tr class="border-b border-(--mat-sys-outline-variant)">
+          <th
+            scope="col"
+            class="sticky left-0 z-10 min-w-40 bg-(--mat-sys-surface) px-3 py-2 text-left font-medium"
+          >
+            {{ translate('payments.athleteHeader') }}
+          </th>
+          @for (month of monthLabels(); track month.number) {
+            <th scope="col" class="min-w-11 px-1 py-2 text-center font-medium">
+              {{ month.label }}
+            </th>
+          }
+        </tr>
+      </thead>
+      <tbody>
+        @for (entry of roster(); track entry.athleteId) {
+          <tr class="border-b border-(--mat-sys-outline-variant) last:border-b-0">
+            <td
+              class="sticky left-0 z-10 whitespace-nowrap bg-(--mat-sys-surface) px-3 py-1.5 font-medium"
+            >
+              {{ entry.lastName }} {{ entry.firstName }}
+            </td>
+            @for (month of entry.months; track month.month) {
+              <td class="p-1 text-center">
+                @switch (stateFor(month)) {
+                  @case ('paid') {
+                    <button
+                      type="button"
+                      [attr.data-cell-state]="'paid'"
+                      [attr.aria-label]="cellAriaLabel(entry, month)"
+                      class="flex size-8 items-center justify-center rounded-full bg-(--mat-sys-primary-container) text-(--mat-sys-on-primary-container) mx-auto hover:opacity-80"
+                      (click)="onCellActivate(entry, month)"
+                    >
+                      <mat-icon class="!text-lg">check_circle</mat-icon>
+                    </button>
+                  }
+                  @case ('due') {
+                    <button
+                      type="button"
+                      [attr.data-cell-state]="'due'"
+                      [attr.aria-label]="cellAriaLabel(entry, month)"
+                      class="flex size-8 items-center justify-center rounded-full border border-(--mat-sys-outline) text-(--mat-sys-on-surface-variant) mx-auto hover:bg-(--mat-sys-surface-variant)"
+                      (click)="onCellActivate(entry, month)"
+                    >
+                      <mat-icon class="!text-lg">schedule</mat-icon>
+                    </button>
+                  }
+                  @default {
+                    <span
+                      [attr.data-cell-state]="'future'"
+                      [attr.aria-label]="cellAriaLabel(entry, month)"
+                      class="flex size-8 items-center justify-center text-(--mat-sys-outline-variant) mx-auto"
+                    >
+                      <mat-icon class="!text-lg">remove</mat-icon>
+                    </span>
+                  }
+                }
+              </td>
+            }
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <p class="mat-body-medium text-(--mat-sys-on-surface-variant)">
+    {{ translate('payments.summary') }}: {{ paidCount() }}/{{ totalCount() }}
+  </p>
+</div>

@@ -5,12 +5,13 @@ import { MatSelect, MatSelectChange } from '@angular/material/select';
 import { MatOption } from '@angular/material/core';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { Payments as PaymentsService } from '../../../shared/services/payment/payment';
+import { PaymentsGrid } from '../payments-grid/payments-grid';
 
 const YEAR_RANGE = 2;
 
 @Component({
   selector: 'app-payments-container',
-  imports: [MatFormField, MatLabel, MatSelect, MatOption, TranslocoDirective],
+  imports: [MatFormField, MatLabel, MatSelect, MatOption, TranslocoDirective, PaymentsGrid],
   templateUrl: './payments-container.html',
   styleUrl: './payments-container.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

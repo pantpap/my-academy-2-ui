@@ -67,7 +67,15 @@
   "payments": {
     "title": "Payments",
     "yearLabel": "Year",
-    "athleteCount": "Athletes loaded"
+    "athleteCount": "Athletes loaded",
+    "athleteHeader": "Athlete",
+    "summary": "Paid",
+    "stateLabels": {
+      "paid": "Paid",
+      "due": "Due",
+      "future": "Not yet due"
+    },
+    "cellAriaLabel": "{{name}}, {{month}} {{year}}: {{state}}"
   }
 }
 
