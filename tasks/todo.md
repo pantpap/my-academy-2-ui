@@ -46,7 +46,7 @@ the flat rows into exactly 12 month slots per athlete in the service.
 
 ---
 
-### Task 2: `DELETE /payments/:id` — org-scoped, transactional, recomputes `paidUntil`
+### Task 2: `DELETE /payments/:id` — org-scoped, transactional, recomputes `paidUntil` — ✅ DONE
 
 **Description:** Deleting a payment must walk `paidUntil` **backwards**, which no existing code path
 does (`create` only ever advances it). In one transaction: verify ownership, delete the row, then
