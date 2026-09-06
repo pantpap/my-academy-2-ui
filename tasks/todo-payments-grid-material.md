@@ -122,20 +122,23 @@ resets on either search or year change) before final verification.
 
 ---
 
-## Task 4: Full verification checkpoint — ☐ TODO
+## Task 4: Full verification checkpoint — ⚠️ DONE (automated only — manual browser pass outstanding)
 
 **Description:** No new code. Final go/no-go pass.
 
 **Verification steps:**
-1. Run the **full** `ng test` suite — confirm no regressions outside `payments-grid`/
-   `payments-container` (baseline recorded at the top of this file).
-2. Manual browser pass on `/app/payments`:
+1. ✅ Full `ng test` suite: 143 passed, same 11 pre-existing failures in 8 files untouched by
+   this work (customer-details, customer-list, sidebar, customer service, etc.) — confirmed
+   identical baseline across all three implementation commits, no regressions introduced.
+2. ⚠️ Manual browser pass on `/app/payments`: **not performed** — no browser-automation tool was
+   available in any session of this build. Still needs a human (or a future session with browser
+   tooling) to confirm:
    - Material table + paginator render correctly.
    - Search narrows rows correctly and resets pagination.
    - Cell clicks still open the record/detail dialogs; grid still reloads after save/delete.
    - Switching year resets page/search state as expected.
    - Greek locale shows translated search label and empty-state copy.
-3. Confirm no backend file, dialog file, or shared interface (`common/interfaces/payment.ts`,
+3. ✅ Confirmed no backend file, dialog file, or shared interface (`common/interfaces/payment.ts`,
    `shared/services/payment/payment.ts`) was touched.
 
 **Checkpoint:** Mark this todo file's tasks done only after this full pass — mirrors this repo's
