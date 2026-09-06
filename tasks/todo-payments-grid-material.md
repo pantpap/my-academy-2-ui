@@ -44,7 +44,7 @@ pagination on top of an unverified table swap.
 
 ---
 
-## Task 2: Client-side pagination (`MatPaginator`) — ☐ TODO
+## Task 2: Client-side pagination (`MatPaginator`) — ✅ DONE
 
 **Description:** Add `pageIndex`/`pageSize` signals to `PaymentsGrid`, a `pagedRoster` computed
 slicing the (still unfiltered) `roster()`, and a `<mat-paginator>` under the table wired to
@@ -53,20 +53,25 @@ slicing the (still unfiltered) `roster()`, and a `<mat-paginator>` under the tab
 (i.e., on year change).
 
 **Acceptance criteria:**
-- [ ] Only `pageSize` (default 10) rows render per page.
-- [ ] `MatPaginator`'s `length` equals the full (unfiltered) roster count.
-- [ ] Navigating to another page renders the correct slice of athletes.
-- [ ] Changing the selected year resets pagination to page 0.
-- [ ] Paid/total summary still reflects the full roster, not just the current page.
+- [x] Only `pageSize` (default 10) rows render per page.
+- [x] `MatPaginator`'s `length` equals the full (unfiltered) roster count.
+- [x] Navigating to another page renders the correct slice of athletes.
+- [x] Changing the selected year resets pagination to page 0 (verified via a roster-input change,
+      which is what a year change produces in `payments-container`).
+- [x] Paid/total summary still reflects the full roster, not just the current page.
 
 **Verification steps:**
-1. New tests in `payments-grid.spec.ts`:
+1. New tests in `payments-grid.spec.ts` (5 added, all passing):
    - Roster of 12 athletes → exactly 10 rows render on page 0.
-   - Navigating to page 2 → remaining 2 rows render.
-   - `paidCount()`/`totalCount()` stay correct regardless of current page.
-   - Roster input change (simulating year change) resets to page 0.
-2. `ng test` green.
-3. Dev server manual check: paginator controls work; page resets on year change.
+   - Clicking the paginator's next-page button → remaining 2 rows render.
+   - Paginator's `length` reflects the full roster count (12), not the current page.
+   - `paidCount()`/`totalCount()` stay correct regardless of current page (144 = 12×12).
+   - Navigating to page 2 then changing the `roster` input resets rendering to page 0.
+2. `ng test` full suite: 134 passed (+5 from before), same 11 pre-existing unrelated failures —
+   no regressions.
+3. `ng build` — compiles cleanly.
+4. Dev server manual check: **not performed this session** (no browser-automation tool
+   available) — user can verify at `/app/payments` with a roster >10 athletes.
 
 **Checkpoint:** Pagination correct over the full roster before search narrows what's paginated.
 

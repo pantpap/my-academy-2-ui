@@ -1,6 +1,6 @@
 <div *transloco="let translate" class="flex flex-col gap-3">
   <div class="overflow-x-auto rounded-lg border border-(--mat-sys-outline-variant)">
-    <table mat-table [dataSource]="roster()" class="min-w-full border-collapse text-sm">
+    <table mat-table [dataSource]="pagedRoster()" class="min-w-full border-collapse text-sm">
       <ng-container matColumnDef="name" sticky>
         <th
           mat-header-cell
@@ -74,6 +74,14 @@
       ></tr>
     </table>
   </div>
+
+  <mat-paginator
+    [length]="roster().length"
+    [pageSize]="pageSize()"
+    [pageSizeOptions]="pageSizeOptions"
+    [pageIndex]="pageIndex()"
+    (page)="onPage($event)"
+  />
 
   <p class="mat-body-medium text-(--mat-sys-on-surface-variant)">
     {{ translate('payments.summary') }}: {{ paidCount() }}/{{ totalCount() }}

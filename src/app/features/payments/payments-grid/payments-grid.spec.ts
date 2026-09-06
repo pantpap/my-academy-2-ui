@@ -151,4 +151,70 @@ describe('PaymentsGrid', () => {
     const nameCell = fixture.debugElement.query(By.css('tbody td'));
     expect(nameCell.nativeElement.className).toContain('mat-mdc-table-sticky');
   });
+
+  describe('pagination', () => {
+    function buildRosterOf(count: number): RosterYearEntry[] {
+      return Array.from({ length: count }, (_, index) => buildRoster({ athleteId: index + 1 }));
+    }
+
+    it('renders only the first page (10 rows) when the roster exceeds the default page size', async () => {
+      await setup(buildRosterOf(12));
+
+      const rows = fixture.debugElement.queryAll(By.css('tbody tr'));
+      expect(rows.length).toBe(10);
+    });
+
+    it('renders the remaining rows after navigating to the next page', async () => {
+      await setup(buildRosterOf(12));
+
+      const nextButton = fixture.debugElement.query(
+        By.css('.mat-mdc-paginator-navigation-next'),
+      );
+      nextButton.nativeElement.click();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      const rows = fixture.debugElement.queryAll(By.css('tbody tr'));
+      expect(rows.length).toBe(2);
+    });
+
+    it('reports the full roster count as the paginator length', async () => {
+      await setup(buildRosterOf(12));
+
+      const paginatorLength = fixture.debugElement.query(By.css('mat-paginator'))
+        .componentInstance.length;
+      expect(paginatorLength).toBe(12);
+    });
+
+    it('keeps the paid/total summary based on the full roster, not just the current page', async () => {
+      const roster = buildRosterOf(12);
+      roster[0].months[0] = { month: 1, paid: true, paymentId: 1, amount: 40, paymentDate: '2026-01-05' };
+      roster[11].months[0] = { month: 1, paid: true, paymentId: 2, amount: 40, paymentDate: '2026-01-05' };
+      await setup(roster);
+
+      expect(component.paidCount()).toBe(2);
+      expect(component.totalCount()).toBe(144);
+    });
+
+    it('resets to the first page when the roster input changes', async () => {
+      await setup(buildRosterOf(12));
+
+      const nextButton = fixture.debugElement.query(
+        By.css('.mat-mdc-paginator-navigation-next'),
+      );
+      nextButton.nativeElement.click();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      expect(fixture.debugElement.queryAll(By.css('tbody tr')).length).toBe(2);
+
+      fixture.componentRef.setInput('roster', buildRosterOf(3));
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(fixture.debugElement.queryAll(By.css('tbody tr')).length).toBe(3);
+    });
+  });
 });

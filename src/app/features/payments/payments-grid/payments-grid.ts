@@ -1,5 +1,16 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  input,
+  output,
+  signal,
+  untracked,
+} from '@angular/core';
 import { MatIcon } from '@angular/material/icon';
+import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import {
   MatCell,
   MatCellDef,
@@ -41,6 +52,7 @@ interface MonthLabel {
     MatRow,
     MatHeaderRowDef,
     MatRowDef,
+    MatPaginator,
     TranslocoDirective,
   ],
   templateUrl: './payments-grid.html',
@@ -56,6 +68,20 @@ export class PaymentsGrid {
   readonly today = input<Date>(new Date());
 
   readonly cellActivated = output<PaymentsGridCellActivated>();
+
+  readonly pageSizeOptions = [10, 25, 50] as const;
+  protected readonly pageIndex = signal(0);
+  protected readonly pageSize = signal<number>(this.pageSizeOptions[0]);
+
+  private readonly resetPageOnRosterChange = effect(() => {
+    this.roster();
+    untracked(() => this.pageIndex.set(0));
+  });
+
+  readonly pagedRoster = computed(() => {
+    const start = this.pageIndex() * this.pageSize();
+    return this.roster().slice(start, start + this.pageSize());
+  });
 
   readonly monthLabels = computed<MonthLabel[]>(() => {
     const locale = this.languageService.language() === 'el' ? 'el-GR' : 'en-US';
@@ -102,5 +128,10 @@ export class PaymentsGrid {
 
   protected onCellActivate(entry: RosterYearEntry, month: RosterYearMonth): void {
     this.cellActivated.emit({ athlete: entry, month });
+  }
+
+  protected onPage(event: PageEvent): void {
+    this.pageIndex.set(event.pageIndex);
+    this.pageSize.set(event.pageSize);
   }
 }
