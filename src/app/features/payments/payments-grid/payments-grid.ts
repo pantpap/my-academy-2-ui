@@ -66,6 +66,7 @@ export class PaymentsGrid {
   readonly roster = input.required<RosterYearEntry[]>();
   readonly year = input.required<number>();
   readonly today = input<Date>(new Date());
+  readonly searchTerm = input<string>('');
 
   readonly cellActivated = output<PaymentsGridCellActivated>();
 
@@ -73,14 +74,21 @@ export class PaymentsGrid {
   protected readonly pageIndex = signal(0);
   protected readonly pageSize = signal<number>(this.pageSizeOptions[0]);
 
-  private readonly resetPageOnRosterChange = effect(() => {
+  private readonly resetPageOnRosterOrSearchChange = effect(() => {
     this.roster();
+    this.searchTerm();
     untracked(() => this.pageIndex.set(0));
+  });
+
+  readonly filteredRoster = computed(() => {
+    const term = this.searchTerm().trim().toLowerCase();
+    if (!term) return this.roster();
+    return this.roster().filter((entry) => this.matchesSearch(entry, term));
   });
 
   readonly pagedRoster = computed(() => {
     const start = this.pageIndex() * this.pageSize();
-    return this.roster().slice(start, start + this.pageSize());
+    return this.filteredRoster().slice(start, start + this.pageSize());
   });
 
   readonly monthLabels = computed<MonthLabel[]>(() => {
@@ -111,6 +119,12 @@ export class PaymentsGrid {
 
   protected monthFor(entry: RosterYearEntry, monthNumber: number): RosterYearMonth {
     return entry.months.find((month) => month.month === monthNumber)!;
+  }
+
+  private matchesSearch(entry: RosterYearEntry, term: string): boolean {
+    const firstLast = `${entry.firstName} ${entry.lastName}`.toLowerCase();
+    const lastFirst = `${entry.lastName} ${entry.firstName}`.toLowerCase();
+    return firstLast.includes(term) || lastFirst.includes(term);
   }
 
   protected cellAriaLabel(entry: RosterYearEntry, month: RosterYearMonth): string {

@@ -9,6 +9,7 @@ const en = {
   payments: {
     athleteHeader: 'Athlete',
     summary: 'Paid',
+    noSearchResults: 'No athletes match your search.',
     stateLabels: {
       paid: 'Paid',
       due: 'Due',
@@ -39,7 +40,7 @@ describe('PaymentsGrid', () => {
   let component: PaymentsGrid;
   const today = new Date(2026, 5, 15); // June 15, 2026 — months 1-6 due, 7-12 future
 
-  async function setup(roster: RosterYearEntry[], year = 2026) {
+  async function setup(roster: RosterYearEntry[], year = 2026, searchTerm = '') {
     await TestBed.configureTestingModule({
       imports: [
         PaymentsGrid,
@@ -55,6 +56,7 @@ describe('PaymentsGrid', () => {
     fixture.componentRef.setInput('roster', roster);
     fixture.componentRef.setInput('year', year);
     fixture.componentRef.setInput('today', today);
+    fixture.componentRef.setInput('searchTerm', searchTerm);
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
@@ -215,6 +217,94 @@ describe('PaymentsGrid', () => {
       fixture.detectChanges();
 
       expect(fixture.debugElement.queryAll(By.css('tbody tr')).length).toBe(3);
+    });
+  });
+
+  describe('search', () => {
+    it('narrows to the athlete matching "first last" order', async () => {
+      await setup(
+        [buildRoster({ athleteId: 1, firstName: 'Kostas', lastName: 'Georgiou' }),
+         buildRoster({ athleteId: 2, firstName: 'Maria', lastName: 'Papadaki' })],
+        2026,
+        'kostas geo',
+      );
+
+      const rows = fixture.debugElement.queryAll(By.css('tbody tr'));
+      expect(rows.length).toBe(1);
+      expect(rows[0].nativeElement.textContent).toContain('Georgiou Kostas');
+    });
+
+    it('narrows to the athlete matching "last first" order', async () => {
+      await setup(
+        [buildRoster({ athleteId: 1, firstName: 'Kostas', lastName: 'Georgiou' }),
+         buildRoster({ athleteId: 2, firstName: 'Maria', lastName: 'Papadaki' })],
+        2026,
+        'georgiou kos',
+      );
+
+      const rows = fixture.debugElement.queryAll(By.css('tbody tr'));
+      expect(rows.length).toBe(1);
+      expect(rows[0].nativeElement.textContent).toContain('Georgiou Kostas');
+    });
+
+    it('is case-insensitive', async () => {
+      await setup([buildRoster({ firstName: 'Kostas', lastName: 'Georgiou' })], 2026, 'KOSTAS');
+
+      expect(fixture.debugElement.queryAll(By.css('tbody tr')).length).toBe(1);
+    });
+
+    it('shows the full roster when the search term is empty or whitespace', async () => {
+      await setup(
+        [buildRoster({ athleteId: 1 }), buildRoster({ athleteId: 2 })],
+        2026,
+        '   ',
+      );
+
+      expect(fixture.debugElement.queryAll(By.css('tbody tr')).length).toBe(2);
+    });
+
+    it('shows a no-results message and no table when nothing matches', async () => {
+      await setup([buildRoster({ firstName: 'Kostas', lastName: 'Georgiou' })], 2026, 'zzz');
+
+      expect(fixture.debugElement.query(By.css('table'))).toBeFalsy();
+      expect(fixture.nativeElement.textContent).toContain('No athletes match your search.');
+    });
+
+    it('resets to the first page when the search term narrows a later page back down', async () => {
+      const roster = Array.from({ length: 12 }, (_, index) =>
+        buildRoster({ athleteId: index + 1, firstName: `Athlete${index + 1}` }),
+      );
+      await setup(roster);
+
+      const nextButton = fixture.debugElement.query(
+        By.css('.mat-mdc-paginator-navigation-next'),
+      );
+      nextButton.nativeElement.click();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      expect(fixture.debugElement.queryAll(By.css('tbody tr')).length).toBe(2);
+
+      fixture.componentRef.setInput('searchTerm', 'Athlete1');
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      // "Athlete1", "Athlete10", "Athlete11", "Athlete12" all match — 4 rows, single page.
+      const rows = fixture.debugElement.queryAll(By.css('tbody tr'));
+      expect(rows.length).toBe(4);
+    });
+
+    it('keeps the paid/total summary based on the full roster regardless of an active search term', async () => {
+      const roster = [
+        buildRoster({ athleteId: 1, firstName: 'Kostas', lastName: 'Georgiou' }),
+        buildRoster({ athleteId: 2, firstName: 'Maria', lastName: 'Papadaki' }),
+      ];
+      roster[0].months[0] = { month: 1, paid: true, paymentId: 1, amount: 40, paymentDate: '2026-01-05' };
+      await setup(roster, 2026, 'maria');
+
+      expect(component.paidCount()).toBe(1);
+      expect(component.totalCount()).toBe(24);
     });
   });
 });

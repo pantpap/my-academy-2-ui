@@ -1,4 +1,7 @@
 <div *transloco="let translate" class="flex flex-col gap-3">
+  @if (filteredRoster().length === 0) {
+    <p class="text-(--mat-sys-on-surface-variant)">{{ translate('payments.noSearchResults') }}</p>
+  } @else {
   <div class="overflow-x-auto rounded-lg border border-(--mat-sys-outline-variant)">
     <table mat-table [dataSource]="pagedRoster()" class="min-w-full border-collapse text-sm">
       <ng-container matColumnDef="name" sticky>
@@ -76,12 +79,13 @@
   </div>
 
   <mat-paginator
-    [length]="roster().length"
+    [length]="filteredRoster().length"
     [pageSize]="pageSize()"
     [pageSizeOptions]="pageSizeOptions"
     [pageIndex]="pageIndex()"
     (page)="onPage($event)"
   />
+  }
 
   <p class="mat-body-medium text-(--mat-sys-on-surface-variant)">
     {{ translate('payments.summary') }}: {{ paidCount() }}/{{ totalCount() }}

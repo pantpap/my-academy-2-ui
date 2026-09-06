@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { rxResource } from '@angular/core/rxjs-interop';
 import { MatDialog } from '@angular/material/dialog';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
 import { MatSelect, MatSelectChange } from '@angular/material/select';
 import { MatOption } from '@angular/material/core';
 import { MatButton } from '@angular/material/button';
@@ -16,7 +17,16 @@ const YEAR_RANGE = 2;
 
 @Component({
   selector: 'app-payments-container',
-  imports: [MatFormField, MatLabel, MatSelect, MatOption, MatButton, TranslocoDirective, PaymentsGrid],
+  imports: [
+    MatFormField,
+    MatLabel,
+    MatInput,
+    MatSelect,
+    MatOption,
+    MatButton,
+    TranslocoDirective,
+    PaymentsGrid,
+  ],
   templateUrl: './payments-container.html',
   styleUrl: './payments-container.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -33,6 +43,7 @@ export class PaymentsContainer {
   );
 
   readonly selectedYear = signal(this.currentYear);
+  readonly searchTerm = signal('');
 
   readonly rosterYearResource = rxResource({
     params: () => this.selectedYear(),
@@ -45,6 +56,10 @@ export class PaymentsContainer {
 
   protected onYearSelectionChange(event: MatSelectChange): void {
     this.onYearChange(event.value as number);
+  }
+
+  protected onSearchInput(event: Event): void {
+    this.searchTerm.set((event.target as HTMLInputElement).value);
   }
 
   protected onCellActivated(event: PaymentsGridCellActivated): void {

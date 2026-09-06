@@ -73,6 +73,8 @@
     "athleteHeader": "Athlete",
     "summary": "Paid",
     "emptyRoster": "No athletes are registered yet.",
+    "searchLabel": "Search by name",
+    "noSearchResults": "No athletes match your search.",
     "stateLabels": {
       "paid": "Paid",
       "due": "Due",

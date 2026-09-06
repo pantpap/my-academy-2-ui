@@ -23,6 +23,8 @@ const en = {
     athleteHeader: 'Athlete',
     summary: 'Paid',
     emptyRoster: 'No athletes are registered yet.',
+    searchLabel: 'Search by name',
+    noSearchResults: 'No athletes match your search.',
     stateLabels: {
       paid: 'Paid',
       due: 'Due',
@@ -246,6 +248,57 @@ describe('PaymentsContainer', () => {
       await fixture.whenStable();
 
       expect(getRosterYearSpy).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('search', () => {
+    const secondAthlete: RosterYearEntry = {
+      athleteId: 2,
+      firstName: 'Nikos',
+      lastName: 'Papas',
+      months: Array.from({ length: 12 }, (_, i) => ({
+        month: i + 1,
+        paid: false,
+        paymentId: null,
+        amount: null,
+        paymentDate: null,
+      })),
+    };
+
+    it('narrows the rendered roster to the athlete matching the typed search term', async () => {
+      getRosterYearSpy.mockReturnValue(of([...roster, secondAthlete]));
+      await createFixture();
+
+      const input = fixture.debugElement.query(By.css('input[data-testid="payments-search"]'));
+      input.nativeElement.value = 'nikos';
+      input.nativeElement.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.textContent).toContain('Papas Nikos');
+      expect(fixture.nativeElement.textContent).not.toContain('B A');
+    });
+
+    it('shows the full roster again when the search term is cleared', async () => {
+      getRosterYearSpy.mockReturnValue(of([...roster, secondAthlete]));
+      await createFixture();
+
+      const input = fixture.debugElement.query(By.css('input[data-testid="payments-search"]'));
+      input.nativeElement.value = 'nikos';
+      input.nativeElement.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      input.nativeElement.value = '';
+      input.nativeElement.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.textContent).toContain('Papas Nikos');
+      expect(fixture.nativeElement.textContent).toContain('B A');
     });
   });
 });

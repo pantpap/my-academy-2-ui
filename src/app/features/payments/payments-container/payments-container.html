@@ -1,15 +1,28 @@
 <div *transloco="let translate" class="flex flex-col gap-4 p-4">
-  <div class="flex items-center justify-between">
+  <div class="flex items-center justify-between gap-4">
     <h1 class="mat-headline-medium">{{ translate('payments.title') }}</h1>
 
-    <mat-form-field subscriptSizing="dynamic">
-      <mat-label>{{ translate('payments.yearLabel') }}</mat-label>
-      <mat-select [value]="selectedYear()" (selectionChange)="onYearSelectionChange($event)">
-        @for (year of years; track year) {
-          <mat-option [value]="year">{{ year }}</mat-option>
-        }
-      </mat-select>
-    </mat-form-field>
+    <div class="flex items-center gap-3">
+      <mat-form-field subscriptSizing="dynamic">
+        <mat-label>{{ translate('payments.searchLabel') }}</mat-label>
+        <input
+          matInput
+          type="text"
+          data-testid="payments-search"
+          [value]="searchTerm()"
+          (input)="onSearchInput($event)"
+        />
+      </mat-form-field>
+
+      <mat-form-field subscriptSizing="dynamic">
+        <mat-label>{{ translate('payments.yearLabel') }}</mat-label>
+        <mat-select [value]="selectedYear()" (selectionChange)="onYearSelectionChange($event)">
+          @for (year of years; track year) {
+            <mat-option [value]="year">{{ year }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
   </div>
 
   @if (rosterYearResource.isLoading()) {
@@ -32,6 +45,7 @@
     <app-payments-grid
       [roster]="rosterYearResource.value() ?? []"
       [year]="selectedYear()"
+      [searchTerm]="searchTerm()"
       (cellActivated)="onCellActivated($event)"
     />
   }

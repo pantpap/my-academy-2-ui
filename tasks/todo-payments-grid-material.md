@@ -77,7 +77,7 @@ slicing the (still unfiltered) `roster()`, and a `<mat-paginator>` under the tab
 
 ---
 
-## Task 3: Name search — ☐ TODO
+## Task 3: Name search — ✅ DONE
 
 **Description:** Add a `searchTerm` signal to `PaymentsContainer`, a new `<mat-form-field>` text
 input next to the year `<mat-select>` in `payments-container.html`, passed to `PaymentsGrid` as
@@ -90,26 +90,32 @@ message instead of the table (separate from the container's existing `payments.e
 `noSearchResults` keys to both `public/i18n/en.json` and `public/i18n/el.json`.
 
 **Acceptance criteria:**
-- [ ] Search matches case-insensitively, substring, against both name-order permutations.
-- [ ] Empty/whitespace-only search shows the full roster.
-- [ ] A search matching nothing shows the empty-state message, not a blank table.
-- [ ] Changing the search term resets pagination to page 0 (even from page 2+).
-- [ ] Paid/total summary is unaffected by an active search term.
-- [ ] New i18n keys present and correct in both `en.json` and `el.json`.
+- [x] Search matches case-insensitively, substring, against both name-order permutations.
+- [x] Empty/whitespace-only search shows the full roster.
+- [x] A search matching nothing shows the empty-state message, not a blank table.
+- [x] Changing the search term resets pagination to page 0 (even from page 2+).
+- [x] Paid/total summary is unaffected by an active search term.
+- [x] New i18n keys present and correct in both `en.json` and `el.json`.
 
 **Verification steps:**
-1. New tests in `payments-grid.spec.ts`:
+1. New tests in `payments-grid.spec.ts` (7 added, all passing):
    - Search term matching one athlete narrows to just that row, tested in both name-order forms
-     (e.g. `"kostas geo"` and `"geo kostas"`-style substrings).
-   - Search term matching nothing → zero data rows + empty-state message.
-   - From page 2, entering a search term returns to page 0 / first-page results.
-   - Summary count unchanged with an active search term.
-2. New test in `payments-container.spec.ts`: typing into the search input updates the value
-   passed down to `PaymentsGrid` (follow the existing dialog-stub/query pattern already used in
-   that spec file).
-3. `ng test` green.
-4. Dev server manual check: type partial names in both orders, confirm narrowing and the
-   no-results state; switch to Greek and confirm translated label/message.
+     (`"kostas geo"` and `"georgiou kos"`), plus a case-insensitivity check.
+   - Empty/whitespace search shows the full roster.
+   - Search term matching nothing → zero data rows + `payments.noSearchResults` message, table
+     hidden.
+   - From page 2 (of a 12-athlete roster), entering a search term that matches 4 athletes returns
+     to a single first page.
+   - Summary count/total unchanged with an active search term narrowing to one of two athletes.
+2. New tests in `payments-container.spec.ts` (2 added, all passing): typing into the new
+   `data-testid="payments-search"` input narrows the rendered roster to the matching athlete;
+   clearing it restores the full roster.
+3. `ng test` full suite: 143 passed (+9 from before), same 11 pre-existing unrelated failures —
+   no regressions.
+4. `ng build` — compiles cleanly.
+5. Dev server manual check: **not performed this session** (no browser-automation tool
+   available) — user can verify partial-name search in both word orders and the Greek locale
+   copy at `/app/payments`.
 
 **Checkpoint:** Pagination + search work together correctly (search-then-paginate ordering, page
 resets on either search or year change) before final verification.
