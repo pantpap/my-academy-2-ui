@@ -149,6 +149,6 @@ describe('PaymentsGrid', () => {
     await setup([buildRoster()]);
 
     const nameCell = fixture.debugElement.query(By.css('tbody td'));
-    expect(nameCell.nativeElement.className).toContain('sticky');
+    expect(nameCell.nativeElement.className).toContain('mat-mdc-table-sticky');
   });
 });

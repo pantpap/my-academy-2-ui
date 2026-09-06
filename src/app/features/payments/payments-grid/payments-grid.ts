@@ -1,5 +1,17 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
 import { MatIcon } from '@angular/material/icon';
+import {
+  MatCell,
+  MatCellDef,
+  MatColumnDef,
+  MatHeaderCell,
+  MatHeaderCellDef,
+  MatHeaderRow,
+  MatHeaderRowDef,
+  MatRow,
+  MatRowDef,
+  MatTable,
+} from '@angular/material/table';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { RosterYearEntry, RosterYearMonth } from '../../../common/interfaces/payment';
 import { LanguageService } from '../../../core/services/language/language.service';
@@ -17,7 +29,20 @@ interface MonthLabel {
 
 @Component({
   selector: 'app-payments-grid',
-  imports: [MatIcon, TranslocoDirective],
+  imports: [
+    MatIcon,
+    MatTable,
+    MatColumnDef,
+    MatHeaderCell,
+    MatHeaderCellDef,
+    MatCell,
+    MatCellDef,
+    MatHeaderRow,
+    MatRow,
+    MatHeaderRowDef,
+    MatRowDef,
+    TranslocoDirective,
+  ],
   templateUrl: './payments-grid.html',
   styleUrl: './payments-grid.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -41,6 +66,11 @@ export class PaymentsGrid {
     }));
   });
 
+  readonly displayedColumns = computed(() => [
+    'name',
+    ...this.monthLabels().map((label) => `m${label.number}`),
+  ]);
+
   readonly totalCount = computed(() => this.roster().length * 12);
   readonly paidCount = computed(() =>
     this.roster().reduce(
@@ -51,6 +81,10 @@ export class PaymentsGrid {
 
   protected stateFor(month: RosterYearMonth): CellState {
     return cellState(month.month, month.paid, this.year(), this.today());
+  }
+
+  protected monthFor(entry: RosterYearEntry, monthNumber: number): RosterYearMonth {
+    return entry.months.find((month) => month.month === monthNumber)!;
   }
 
   protected cellAriaLabel(entry: RosterYearEntry, month: RosterYearMonth): string {
