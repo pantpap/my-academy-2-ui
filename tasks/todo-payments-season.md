@@ -105,7 +105,7 @@ exactly. Nothing else is wired to it yet.
 
 ---
 
-### Task 3: Season grid + selector
+### Task 3: Season grid + selector — ✅ DONE
 
 **Description:** Makes the screen itself season-shaped and browsable.
 - `cell-state.ts`: collapse to `export type CellState = 'paid' | 'due'` and
@@ -130,30 +130,50 @@ expected) and works for single-month/same-half-of-season saves, but posts the wr
 for a multi-month selection spanning the Dec/Jan boundary. Not a regression to chase in this task.
 
 **Acceptance criteria:**
-- [ ] Grid renders 10 columns in Sep→Jun order for the selected season
-- [ ] Every unpaid cell (including ones dated after today) renders as a clickable `due` button —
+- [x] Grid renders 10 columns in Sep→Jun order for the selected season
+- [x] Every unpaid cell (including ones dated after today) renders as a clickable `due` button —
       no non-clickable cell remains
-- [ ] `cellAriaLabel()` reports each cell's own calendar year correctly across the Dec/Jan
+- [x] `cellAriaLabel()` reports each cell's own calendar year correctly across the Dec/Jan
       boundary
-- [ ] Season selector shows labels like `"2026-27"`
-- [ ] Default season on load is correct for all three today-ranges (Sep–Dec, Jan–Jun, Jul–Aug)
-- [ ] Paid/total summary still reflects the full unfiltered season roster
-- [ ] Existing pagination/search (`SPEC-payments-grid-material.md`) still work over
-      `RosterSeasonEntry[]`/10 columns
-- [ ] `payments.stateLabels.future` removed from both `en.json`/`el.json`, no longer referenced
-      anywhere
+- [x] Season selector shows labels like `"2026-27"` (via a new `season.ts` helper —
+      `seasonLabel`/`defaultSeasonStartYear`/`seasonOptions`, unit-tested directly rather than
+      through component/DOM tests, since `mat-select` options render in a CDK overlay outside the
+      fixture DOM)
+- [x] Default season on load is correct for all three today-ranges (Sep–Dec, Jan–Jun, Jul–Aug) —
+      covered directly in `season.spec.ts` with synthetic dates for full branch coverage; the
+      container's own "defaults to the season in progress" test uses the real `new Date()`
+      against the same `defaultSeasonStartYear()` function (matching this file's existing
+      `currentYear = new Date().getFullYear()` precedent), since only one branch is exercisable at
+      real test-run time
+- [x] Paid/total summary still reflects the full unfiltered season roster
+- [x] Existing pagination/search still work over `RosterSeasonEntry[]`/10 columns
+- [x] `payments.stateLabels.future` removed from both `en.json`/`el.json`, no longer referenced
+      anywhere (confirmed via repo-wide grep)
 
 **Verification steps:**
-1. `payments-grid.spec.ts`: fixtures updated to `RosterSeasonEntry[]`/`startYear`; new cases for
-   season-order columns, no-non-clickable-cell, per-month aria-label year.
-2. `payments-container.spec.ts`: new cases for the three default-season ranges + season-label
-   format.
-3. `ng test` full suite — compare against Task 2 baseline; only the touched spec files should
-   change, nothing else regresses.
-4. `ng build` — compiles cleanly (structural typing keeps not-yet-updated dialogs compiling).
-5. Manual: dev server (Task 1's BE endpoint live), `/app/payments` — selector default/label
-   correct, all 10 columns clickable including future-dated, cell click still opens a dialog
-   (internal year may be stale per the known limitation — don't chase in this task).
+1. ✅ `payments-grid.spec.ts`: fixtures rewritten to `RosterSeasonEntry[]`/`startYear`; new cases
+   for season-order columns (with per-month year), "no non-clickable cell state" (replaces the old
+   "future is non-interactive" test), and per-month aria-label year across the Dec/Jan boundary.
+   `cell-state.spec.ts` collapsed to the new 2-case signature. New `season.spec.ts` (13 tests) for
+   the extracted pure helpers.
+2. ✅ `payments-container.spec.ts`: rewritten for `selectedSeasonStartYear`/`seasons`/
+   `getRosterSeason`; the DOM-based "renders season option labels in the select" test was written
+   then deleted after confirming `mat-select` options don't exist in the fixture DOM until opened
+   (Material CDK overlay) — the component-level `seasons`/`seasonLabel` test already covers this
+   correctly.
+3. ✅ `ng test` full suite: same 8 pre-existing failing files / 11 pre-existing failing tests as
+   the Task 2 baseline (155 total) — no regressions. Net test count moved from 155 to 156 (cell-
+   state's suite shrank from 8→2 tests as it collapsed to a trivial pure function, offset by new
+   coverage in `payments-grid.spec.ts`/`season.spec.ts`).
+4. ✅ `ng build` — compiles cleanly. Confirmed via structural typing (not an accident): the
+   still-old-typed `payment-form-dialog.ts`/`payment-detail-dialog.ts` accept the new
+   `RosterSeasonMonth`/`RosterSeasonEntry` values passed into them because `RosterSeasonMonth` is
+   a strict superset of `RosterYearMonth`'s fields.
+5. ⚠️ Manual dev-server pass: **not performed** — both dev servers are running locally
+   (`:4200` FE, `:3000` BE), but no login credentials were available in this session to
+   authenticate into `/app/payments`. Flagged, not silently skipped — the user can verify visually
+   with a real login: season selector default/label, all 10 columns clickable including
+   future-dated ones, cell click still opens a dialog.
 
 **Checkpoint:** season grid fully browsable, every cell clickable, before touching dialog
 internals in Task 4.

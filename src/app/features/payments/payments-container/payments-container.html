@@ -16,35 +16,38 @@
 
       <mat-form-field subscriptSizing="dynamic">
         <mat-label>{{ translate('payments.yearLabel') }}</mat-label>
-        <mat-select [value]="selectedYear()" (selectionChange)="onYearSelectionChange($event)">
-          @for (year of years; track year) {
-            <mat-option [value]="year">{{ year }}</mat-option>
+        <mat-select
+          [value]="selectedSeasonStartYear()"
+          (selectionChange)="onSeasonSelectionChange($event)"
+        >
+          @for (season of seasons; track season.startYear) {
+            <mat-option [value]="season.startYear">{{ season.label }}</mat-option>
           }
         </mat-select>
       </mat-form-field>
     </div>
   </div>
 
-  @if (rosterYearResource.isLoading()) {
+  @if (rosterSeasonResource.isLoading()) {
     <p>{{ translate('common.loading') }}</p>
-  } @else if (rosterYearResource.error()) {
+  } @else if (rosterSeasonResource.error()) {
     <div class="flex flex-col items-start gap-2">
       <p class="text-(--mat-sys-error)">{{ translate('common.error') }}</p>
       <button
         mat-stroked-button
         type="button"
         data-testid="retry"
-        (click)="rosterYearResource.reload()"
+        (click)="rosterSeasonResource.reload()"
       >
         {{ translate('common.retry') }}
       </button>
     </div>
-  } @else if (!rosterYearResource.value()?.length) {
+  } @else if (!rosterSeasonResource.value()?.length) {
     <p class="text-(--mat-sys-on-surface-variant)">{{ translate('payments.emptyRoster') }}</p>
   } @else {
     <app-payments-grid
-      [roster]="rosterYearResource.value() ?? []"
-      [year]="selectedYear()"
+      [roster]="rosterSeasonResource.value() ?? []"
+      [startYear]="selectedSeasonStartYear()"
       [searchTerm]="searchTerm()"
       (cellActivated)="onCellActivated($event)"
     />

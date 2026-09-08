@@ -68,7 +68,7 @@
   },
   "payments": {
     "title": "Payments",
-    "yearLabel": "Year",
+    "yearLabel": "Season",
     "athleteCount": "Athletes loaded",
     "athleteHeader": "Athlete",
     "summary": "Paid",
@@ -77,8 +77,7 @@
     "noSearchResults": "No athletes match your search.",
     "stateLabels": {
       "paid": "Paid",
-      "due": "Due",
-      "future": "Not yet due"
+      "due": "Due"
     },
     "cellAriaLabel": "{{name}}, {{month}} {{year}}: {{state}}",
     "recordTitle": "Record payment for {{name}}",

@@ -7,13 +7,14 @@ import { MatSelect, MatSelectChange } from '@angular/material/select';
 import { MatOption } from '@angular/material/core';
 import { MatButton } from '@angular/material/button';
 import { TranslocoDirective } from '@jsverse/transloco';
-import { RosterYearEntry, RosterYearMonth } from '../../../common/interfaces/payment';
+import { RosterSeasonEntry, RosterSeasonMonth } from '../../../common/interfaces/payment';
 import { Payments as PaymentsService } from '../../../shared/services/payment/payment';
 import { PaymentsGrid, PaymentsGridCellActivated } from '../payments-grid/payments-grid';
 import { PaymentFormDialog, PaymentFormDialogData } from '../payment-form-dialog/payment-form-dialog';
 import { PaymentDetailDialog, PaymentDetailDialogData } from '../payment-detail-dialog/payment-detail-dialog';
+import { defaultSeasonStartYear, seasonOptions, SeasonOption } from './season';
 
-const YEAR_RANGE = 2;
+const SEASON_RANGE = 2;
 
 @Component({
   selector: 'app-payments-container',
@@ -35,27 +36,27 @@ export class PaymentsContainer {
   private readonly paymentsService = inject(PaymentsService);
   private readonly dialog = inject(MatDialog);
 
-  private readonly currentYear = new Date().getFullYear();
+  private readonly today = new Date();
 
-  readonly years = Array.from(
-    { length: YEAR_RANGE * 2 + 1 },
-    (_, index) => this.currentYear - YEAR_RANGE + index,
+  readonly seasons: SeasonOption[] = seasonOptions(
+    defaultSeasonStartYear(this.today),
+    SEASON_RANGE,
   );
 
-  readonly selectedYear = signal(this.currentYear);
+  readonly selectedSeasonStartYear = signal(defaultSeasonStartYear(this.today));
   readonly searchTerm = signal('');
 
-  readonly rosterYearResource = rxResource({
-    params: () => this.selectedYear(),
-    stream: ({ params: year }) => this.paymentsService.getRosterYear(year),
+  readonly rosterSeasonResource = rxResource({
+    params: () => this.selectedSeasonStartYear(),
+    stream: ({ params: startYear }) => this.paymentsService.getRosterSeason(startYear),
   });
 
-  onYearChange(year: number): void {
-    this.selectedYear.set(year);
+  onSeasonChange(startYear: number): void {
+    this.selectedSeasonStartYear.set(startYear);
   }
 
-  protected onYearSelectionChange(event: MatSelectChange): void {
-    this.onYearChange(event.value as number);
+  protected onSeasonSelectionChange(event: MatSelectChange): void {
+    this.onSeasonChange(event.value as number);
   }
 
   protected onSearchInput(event: Event): void {
@@ -70,25 +71,27 @@ export class PaymentsContainer {
     }
   }
 
-  private openRecordDialog(athlete: RosterYearEntry, month: RosterYearMonth): void {
+  private openRecordDialog(athlete: RosterSeasonEntry, month: RosterSeasonMonth): void {
     const ref = this.dialog.open<PaymentFormDialog, PaymentFormDialogData>(PaymentFormDialog, {
       width: '480px',
       data: {
         athleteId: athlete.athleteId,
         athleteName: `${athlete.firstName} ${athlete.lastName}`,
-        year: this.selectedYear(),
+        // NOTE: still a single season-wide year — Task 4 fixes this to a per-month
+        // year, needed once a multi-month selection can span the Dec/Jan boundary.
+        year: this.selectedSeasonStartYear(),
         initialMonth: month.month,
         months: athlete.months,
-        onSaved: () => this.rosterYearResource.reload(),
+        onSaved: () => this.rosterSeasonResource.reload(),
       },
     });
 
     ref.afterClosed().subscribe((result) => {
-      if (result?.success) this.rosterYearResource.reload();
+      if (result?.success) this.rosterSeasonResource.reload();
     });
   }
 
-  private openDetailDialog(athlete: RosterYearEntry, month: RosterYearMonth): void {
+  private openDetailDialog(athlete: RosterSeasonEntry, month: RosterSeasonMonth): void {
     const ref = this.dialog.open<PaymentDetailDialog, PaymentDetailDialogData>(PaymentDetailDialog, {
       width: '400px',
       data: {
@@ -99,7 +102,7 @@ export class PaymentsContainer {
     });
 
     ref.afterClosed().subscribe((result) => {
-      if (result?.deleted) this.rosterYearResource.reload();
+      if (result?.deleted) this.rosterSeasonResource.reload();
     });
   }
 }

@@ -24,19 +24,23 @@ import {
   MatTable,
 } from '@angular/material/table';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
-import { RosterYearEntry, RosterYearMonth } from '../../../common/interfaces/payment';
+import { RosterSeasonEntry, RosterSeasonMonth } from '../../../common/interfaces/payment';
 import { LanguageService } from '../../../core/services/language/language.service';
 import { CellState, cellState } from './cell-state';
 
 export interface PaymentsGridCellActivated {
-  athlete: RosterYearEntry;
-  month: RosterYearMonth;
+  athlete: RosterSeasonEntry;
+  month: RosterSeasonMonth;
 }
 
 interface MonthLabel {
-  number: number;
+  month: number;
+  year: number;
   label: string;
 }
+
+// Fixed season order: September(startYear) -> June(startYear + 1).
+const SEASON_MONTHS = [9, 10, 11, 12, 1, 2, 3, 4, 5, 6];
 
 @Component({
   selector: 'app-payments-grid',
@@ -63,9 +67,8 @@ export class PaymentsGrid {
   private readonly translocoService = inject(TranslocoService);
   private readonly languageService = inject(LanguageService);
 
-  readonly roster = input.required<RosterYearEntry[]>();
-  readonly year = input.required<number>();
-  readonly today = input<Date>(new Date());
+  readonly roster = input.required<RosterSeasonEntry[]>();
+  readonly startYear = input.required<number>();
   readonly searchTerm = input<string>('');
 
   readonly cellActivated = output<PaymentsGridCellActivated>();
@@ -94,18 +97,20 @@ export class PaymentsGrid {
   readonly monthLabels = computed<MonthLabel[]>(() => {
     const locale = this.languageService.language() === 'el' ? 'el-GR' : 'en-US';
     const formatter = new Intl.DateTimeFormat(locale, { month: 'short' });
-    return Array.from({ length: 12 }, (_, index) => ({
-      number: index + 1,
-      label: formatter.format(new Date(2020, index, 1)),
+    const startYear = this.startYear();
+    return SEASON_MONTHS.map((month) => ({
+      month,
+      year: month >= 9 ? startYear : startYear + 1,
+      label: formatter.format(new Date(2020, month - 1, 1)),
     }));
   });
 
   readonly displayedColumns = computed(() => [
     'name',
-    ...this.monthLabels().map((label) => `m${label.number}`),
+    ...this.monthLabels().map((label) => `m${label.month}`),
   ]);
 
-  readonly totalCount = computed(() => this.roster().length * 12);
+  readonly totalCount = computed(() => this.roster().length * this.monthLabels().length);
   readonly paidCount = computed(() =>
     this.roster().reduce(
       (sum, entry) => sum + entry.months.filter((month) => month.paid).length,
@@ -113,34 +118,34 @@ export class PaymentsGrid {
     ),
   );
 
-  protected stateFor(month: RosterYearMonth): CellState {
-    return cellState(month.month, month.paid, this.year(), this.today());
+  protected stateFor(month: RosterSeasonMonth): CellState {
+    return cellState(month.paid);
   }
 
-  protected monthFor(entry: RosterYearEntry, monthNumber: number): RosterYearMonth {
+  protected monthFor(entry: RosterSeasonEntry, monthNumber: number): RosterSeasonMonth {
     return entry.months.find((month) => month.month === monthNumber)!;
   }
 
-  private matchesSearch(entry: RosterYearEntry, term: string): boolean {
+  private matchesSearch(entry: RosterSeasonEntry, term: string): boolean {
     const firstLast = `${entry.firstName} ${entry.lastName}`.toLowerCase();
     const lastFirst = `${entry.lastName} ${entry.firstName}`.toLowerCase();
     return firstLast.includes(term) || lastFirst.includes(term);
   }
 
-  protected cellAriaLabel(entry: RosterYearEntry, month: RosterYearMonth): string {
+  protected cellAriaLabel(entry: RosterSeasonEntry, month: RosterSeasonMonth): string {
     const state = this.stateFor(month);
     const stateLabel = this.translocoService.translate(`payments.stateLabels.${state}`);
-    const monthLabel = this.monthLabels()[month.month - 1].label;
+    const monthLabel = this.monthLabels().find((label) => label.month === month.month)?.label ?? '';
 
     return this.translocoService.translate('payments.cellAriaLabel', {
       name: `${entry.firstName} ${entry.lastName}`,
       month: monthLabel,
-      year: this.year(),
+      year: month.year,
       state: stateLabel,
     });
   }
 
-  protected onCellActivate(entry: RosterYearEntry, month: RosterYearMonth): void {
+  protected onCellActivate(entry: RosterSeasonEntry, month: RosterSeasonMonth): void {
     this.cellActivated.emit({ athlete: entry, month });
   }
 

@@ -21,45 +21,33 @@
         </td>
       </ng-container>
 
-      @for (label of monthLabels(); track label.number) {
-        <ng-container [matColumnDef]="'m' + label.number">
+      @for (label of monthLabels(); track label.month) {
+        <ng-container [matColumnDef]="'m' + label.month">
           <th mat-header-cell *matHeaderCellDef class="min-w-11 px-1 py-2 text-center font-medium">
             {{ label.label }}
           </th>
           <td mat-cell *matCellDef="let entry" class="p-1 text-center">
-            @let month = monthFor(entry, label.number);
-            @switch (stateFor(month)) {
-              @case ('paid') {
-                <button
-                  type="button"
-                  [attr.data-cell-state]="'paid'"
-                  [attr.aria-label]="cellAriaLabel(entry, month)"
-                  class="flex size-8 items-center justify-center rounded-full bg-(--mat-sys-primary-container) text-(--mat-sys-on-primary-container) mx-auto hover:opacity-80"
-                  (click)="onCellActivate(entry, month)"
-                >
-                  <mat-icon class="!text-lg">check_circle</mat-icon>
-                </button>
-              }
-              @case ('due') {
-                <button
-                  type="button"
-                  [attr.data-cell-state]="'due'"
-                  [attr.aria-label]="cellAriaLabel(entry, month)"
-                  class="flex size-8 items-center justify-center rounded-full border border-(--mat-sys-outline) text-(--mat-sys-on-surface-variant) mx-auto hover:bg-(--mat-sys-surface-variant)"
-                  (click)="onCellActivate(entry, month)"
-                >
-                  <mat-icon class="!text-lg">schedule</mat-icon>
-                </button>
-              }
-              @default {
-                <span
-                  [attr.data-cell-state]="'future'"
-                  [attr.aria-label]="cellAriaLabel(entry, month)"
-                  class="flex size-8 items-center justify-center text-(--mat-sys-outline-variant) mx-auto"
-                >
-                  <mat-icon class="!text-lg">remove</mat-icon>
-                </span>
-              }
+            @let month = monthFor(entry, label.month);
+            @if (stateFor(month) === 'paid') {
+              <button
+                type="button"
+                [attr.data-cell-state]="'paid'"
+                [attr.aria-label]="cellAriaLabel(entry, month)"
+                class="flex size-8 items-center justify-center rounded-full bg-(--mat-sys-primary-container) text-(--mat-sys-on-primary-container) mx-auto hover:opacity-80"
+                (click)="onCellActivate(entry, month)"
+              >
+                <mat-icon class="!text-lg">check_circle</mat-icon>
+              </button>
+            } @else {
+              <button
+                type="button"
+                [attr.data-cell-state]="'due'"
+                [attr.aria-label]="cellAriaLabel(entry, month)"
+                class="flex size-8 items-center justify-center rounded-full border border-(--mat-sys-outline) text-(--mat-sys-on-surface-variant) mx-auto hover:bg-(--mat-sys-surface-variant)"
+                (click)="onCellActivate(entry, month)"
+              >
+                <mat-icon class="!text-lg">schedule</mat-icon>
+              </button>
             }
           </td>
         </ng-container>

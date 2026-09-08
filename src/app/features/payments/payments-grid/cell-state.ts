@@ -1,28 +1,10 @@
-export type CellState = 'paid' | 'due' | 'future';
+export type CellState = 'paid' | 'due';
 
 /**
- * A month is "due" the moment it arrives and stays due until paid — there is
- * no separate overdue state. Every unpaid month in a past year is due;
- * every month in a future year is future, since it hasn't arrived yet.
+ * A season month is either paid or due — there is no "future" lockout. Staff
+ * can record a payment for any month in the shown season regardless of
+ * whether it's chronologically past or future relative to today.
  */
-export function cellState(
-  month: number,
-  paid: boolean,
-  selectedYear: number,
-  today: Date,
-): CellState {
-  if (paid) {
-    return 'paid';
-  }
-
-  const currentYear = today.getFullYear();
-  const currentMonth = today.getMonth() + 1;
-
-  if (selectedYear < currentYear) {
-    return 'due';
-  }
-  if (selectedYear > currentYear) {
-    return 'future';
-  }
-  return month <= currentMonth ? 'due' : 'future';
+export function cellState(paid: boolean): CellState {
+  return paid ? 'paid' : 'due';
 }

@@ -68,7 +68,7 @@
   },
   "payments": {
     "title": "Πληρωμές",
-    "yearLabel": "Έτος",
+    "yearLabel": "Σεζόν",
     "athleteCount": "Αθλητές φορτώθηκαν",
     "athleteHeader": "Αθλητής",
     "summary": "Πληρωμένα",
@@ -77,8 +77,7 @@
     "noSearchResults": "Κανένας αθλητής δεν ταιριάζει με την αναζήτησή σας.",
     "stateLabels": {
       "paid": "Πληρωμένο",
-      "due": "Εκκρεμεί",
-      "future": "Δεν έχει λήξει ακόμα"
+      "due": "Εκκρεμεί"
     },
     "cellAriaLabel": "{{name}}, {{month}} {{year}}: {{state}}",
     "recordTitle": "Καταχώρηση πληρωμής για {{name}}",
