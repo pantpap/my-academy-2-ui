@@ -6,6 +6,7 @@ import {
   PaymentStatus,
   RosterStatusEntry,
   RosterYearEntry,
+  RosterSeasonEntry,
 } from '../../../common/interfaces/payment';
 import { ORGANIZATION } from '../../../common/constants/local-storage-constants';
 import { Organization } from '../../../common/interfaces/organization';
@@ -51,6 +52,13 @@ export class Payments {
     return this.httpService.get<RosterYearEntry[]>(`${PAYMENTS_API}/roster-year`, {
       organizationId: this.organizationId(),
       year,
+    });
+  }
+
+  getRosterSeason(startYear: number) {
+    return this.httpService.get<RosterSeasonEntry[]>(`${PAYMENTS_API}/roster-season`, {
+      organizationId: this.organizationId(),
+      startYear,
     });
   }
 

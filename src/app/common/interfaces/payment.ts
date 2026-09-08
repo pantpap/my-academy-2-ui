@@ -50,3 +50,19 @@ export interface RosterYearEntry {
   lastName: string;
   months: RosterYearMonth[];
 }
+
+export interface RosterSeasonMonth {
+  month: number;
+  year: number;
+  paid: boolean;
+  paymentId: number | null;
+  amount: number | null;
+  paymentDate: string | null;
+}
+
+export interface RosterSeasonEntry {
+  athleteId: number;
+  firstName: string;
+  lastName: string;
+  months: RosterSeasonMonth[];
+}

@@ -74,7 +74,7 @@ auto-committed. Files awaiting review: `src/payments/payments.service.ts`,
 
 ## Phase 2: `payments-season-grid` (FE)
 
-### Task 2: Types + service method
+### Task 2: Types + service method — ✅ DONE
 
 **Description:** Add `RosterSeasonMonth`/`RosterSeasonEntry` to `common/interfaces/payment.ts`
 (additive — `RosterYearEntry`/`RosterYearMonth` untouched) and `getRosterSeason(startYear)` to
@@ -82,17 +82,26 @@ auto-committed. Files awaiting review: `src/payments/payments.service.ts`,
 exactly. Nothing else is wired to it yet.
 
 **Acceptance criteria:**
-- [ ] `RosterSeasonMonth { month, year, paid, paymentId, amount, paymentDate }` and
+- [x] `RosterSeasonMonth { month, year, paid, paymentId, amount, paymentDate }` and
       `RosterSeasonEntry { athleteId, firstName, lastName, months: RosterSeasonMonth[] }` added
-- [ ] `getRosterSeason(startYear)` calls `GET /payments/roster-season` with `organizationId` +
+- [x] `getRosterSeason(startYear)` calls `GET /payments/roster-season` with `organizationId` +
       `startYear`, typed to return `RosterSeasonEntry[]`
-- [ ] No existing component's behavior changes — this task is purely additive
+- [x] No existing component's behavior changes — this task is purely additive
 
 **Verification steps:**
-1. `ng test` full suite — unchanged from the recorded baseline (no regressions possible).
-2. `ng build` — compiles cleanly.
-3. Manual sanity check: call `getRosterSeason` against the now-live BE endpoint (Task 1 /
-   Checkpoint A), confirm deserialization matches the type (e.g. `amount` as a number).
+1. ✅ New test in `payment.spec.ts`: `getRosterSeason()` gets `/payments/roster-season` scoped to
+   `organizationId` + `startYear`, following the existing `getRosterYear()` test's exact pattern.
+   RED confirmed first (compile errors — missing type export, missing method), then GREEN (7/7 in
+   `payment.spec.ts`).
+2. ✅ `ng test` full suite: baseline was 11 failed / 143 passed (154 total, 8 files failing —
+   pre-existing `TRANSLOCO_TRANSPILER`/DI setup breakage, unrelated to payments, confirmed present
+   before this task). After this task: 11 failed / 144 passed (155 total) — same 8 pre-existing
+   failing files, +1 new test, no regressions.
+3. ✅ `ng build` — compiles cleanly.
+4. ⚠️ Manual sanity check against the live BE endpoint: **not performed** — same reason as Task 1's
+   Checkpoint A gap (no authenticated session in this shell). The `HttpTestingController`-based
+   spec test above verifies the request shape (method, URL, `organizationId`/`startYear` params)
+   precisely, but not a real round-trip against the running BE.
 
 ---
 

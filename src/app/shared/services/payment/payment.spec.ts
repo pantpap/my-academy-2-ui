@@ -8,6 +8,7 @@ import {
   PaymentStatus,
   RosterStatusEntry,
   RosterYearEntry,
+  RosterSeasonEntry,
 } from '../../../common/interfaces/payment';
 
 describe('Payments', () => {
@@ -167,6 +168,31 @@ describe('Payments', () => {
     expect(req.request.method).toBe('GET');
     expect(req.request.params.get('organizationId')).toBe('7');
     expect(req.request.params.get('year')).toBe('2026');
+
+    req.flush(roster);
+    expect(result).toEqual(roster);
+  });
+
+  it('getRosterSeason() gets /payments/roster-season scoped to organizationId and startYear', () => {
+    const roster: RosterSeasonEntry[] = [
+      {
+        athleteId: 3,
+        firstName: 'Paid',
+        lastName: 'Athlete',
+        months: [
+          { month: 9, year: 2026, paid: true, paymentId: 12, amount: 40, paymentDate: '2026-09-05' },
+          { month: 1, year: 2027, paid: false, paymentId: null, amount: null, paymentDate: null },
+        ],
+      },
+    ];
+
+    let result: RosterSeasonEntry[] | undefined;
+    service.getRosterSeason(2026).subscribe((res) => (result = res));
+
+    const req = httpMock.expectOne((r) => r.url.endsWith('/payments/roster-season'));
+    expect(req.request.method).toBe('GET');
+    expect(req.request.params.get('organizationId')).toBe('7');
+    expect(req.request.params.get('startYear')).toBe('2026');
 
     req.flush(roster);
     expect(result).toEqual(roster);
