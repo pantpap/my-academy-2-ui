@@ -18,16 +18,16 @@ import { MatDatepicker, MatDatepickerInput, MatDatepickerToggle } from '@angular
 import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
-import { RosterYearMonth } from '../../../common/interfaces/payment';
+import { RosterSeasonMonth } from '../../../common/interfaces/payment';
 import { Payments as PaymentsService } from '../../../shared/services/payment/payment';
 import { LanguageService } from '../../../core/services/language/language.service';
 
 export interface PaymentFormDialogData {
   athleteId: number;
   athleteName: string;
-  year: number;
   initialMonth: number;
-  months: RosterYearMonth[];
+  initialYear: number;
+  months: RosterSeasonMonth[];
   onSaved: () => void;
 }
 
@@ -42,6 +42,7 @@ interface PaymentFormModel {
 
 interface MonthToggle {
   month: number;
+  year: number;
   label: string;
   paid: boolean;
   selected: boolean;
@@ -102,11 +103,14 @@ export class PaymentFormDialog {
       .map((month) => month.month),
   );
 
+  // Chronological order within the season, not raw month-number order — Sep(9)..Dec(12)
+  // come before Jan(1)..Jun(6) of the *next* calendar year, so sorting by year first (then
+  // month) is required once a selection can span the Dec/Jan boundary.
   protected readonly monthsToSubmit = computed(() =>
     this.monthToggles()
       .filter((month) => month.selected && !month.paid)
-      .map((month) => month.month)
-      .sort((a, b) => a - b),
+      .map((month) => ({ month: month.month, year: month.year }))
+      .sort((a, b) => a.year - b.year || a.month - b.month),
   );
 
   protected readonly selectedCount = computed(() => this.monthsToSubmit().length);
@@ -152,9 +156,12 @@ export class PaymentFormDialog {
     const formatter = new Intl.DateTimeFormat(locale, { month: 'long' });
     return this.data.months.map((month) => ({
       month: month.month,
+      year: month.year,
       label: formatter.format(new Date(2020, month.month - 1, 1)),
       paid: month.paid,
-      selected: month.paid || month.month === this.data.initialMonth,
+      selected:
+        month.paid ||
+        (month.month === this.data.initialMonth && month.year === this.data.initialYear),
     }));
   }
 
@@ -200,7 +207,6 @@ export class PaymentFormDialog {
 
     const amount = this.model().amount!;
     const paymentDate = formatDateForApi(this.model().paymentDate);
-    const year = this.data.year;
     const monthsToSave = this.monthsToSubmit();
 
     this.submitting.set(true);
@@ -208,24 +214,28 @@ export class PaymentFormDialog {
     this.failedMonth.set(null);
     this.failureMessage.set(null);
 
-    for (const month of monthsToSave) {
+    for (const entry of monthsToSave) {
       try {
         await firstValueFrom(
           this.paymentsService.createPayment({
             athleteId: this.data.athleteId,
             amount,
             paymentDate,
-            coveredMonth: month,
-            coveredYear: year,
+            coveredMonth: entry.month,
+            coveredYear: entry.year,
           }),
         );
-        this.savedMonths.update((saved) => [...saved, month]);
+        this.savedMonths.update((saved) => [...saved, entry.month]);
       } catch (error) {
-        this.failedMonth.set(month);
-        const monthLabel = this.monthToggles().find((m) => m.month === month)?.label ?? String(month);
+        this.failedMonth.set(entry.month);
+        const monthLabel =
+          this.monthToggles().find((m) => m.month === entry.month)?.label ?? String(entry.month);
         if (error instanceof HttpErrorResponse && error.status === 409) {
           this.failureMessage.set(
-            this.translocoService.translate('payments.duplicateError', { month: monthLabel, year }),
+            this.translocoService.translate('payments.duplicateError', {
+              month: monthLabel,
+              year: entry.year,
+            }),
           );
         } else {
           this.failureMessage.set(this.translocoService.translate('payments.saveError'));

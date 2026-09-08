@@ -77,10 +77,8 @@ export class PaymentsContainer {
       data: {
         athleteId: athlete.athleteId,
         athleteName: `${athlete.firstName} ${athlete.lastName}`,
-        // NOTE: still a single season-wide year — Task 4 fixes this to a per-month
-        // year, needed once a multi-month selection can span the Dec/Jan boundary.
-        year: this.selectedSeasonStartYear(),
         initialMonth: month.month,
+        initialYear: month.year,
         months: athlete.months,
         onSaved: () => this.rosterSeasonResource.reload(),
       },

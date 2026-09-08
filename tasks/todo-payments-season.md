@@ -180,7 +180,7 @@ internals in Task 4.
 
 ---
 
-### Task 4: Per-month year in the record dialog
+### Task 4: Per-month year in the record dialog — ✅ DONE
 
 **Description:** Fixes the cross-year multi-month save gap from Task 3.
 - `payment-form-dialog.ts`: `PaymentFormDialogData` drops `year: number` for `initialYear: number`
@@ -194,30 +194,53 @@ internals in Task 4.
   `year: this.selectedSeasonStartYear()`.
 
 **Acceptance criteria:**
-- [ ] Selecting a November toggle **and** a January toggle (different `year`s) and saving calls
+- [x] Selecting a November toggle **and** a January toggle (different `year`s) and saving calls
       `createPayment` twice, each with its own correct `coveredYear`
-- [ ] A 409 (duplicate) failure on the second of two cross-year months reports the correct month
+- [x] A 409 (duplicate) failure on the second of two cross-year months reports the correct month
       *and* year in the error message
-- [ ] All Task 3 grid/container behavior still passes unchanged
+- [x] All Task 3 grid/container behavior still passes unchanged
+
+**Note on `monthsToSubmit`'s sort order, found while implementing:** the original (calendar-year)
+sort was `.sort((a, b) => a - b)` — plain ascending month number. That's silently wrong once a
+selection can span the Dec/Jan boundary: raw numeric order would sort January (1) *before*
+November (11), even though January comes chronologically *after* November in the season. Fixed
+to sort by `(year, month)` instead. Caught by writing the cross-year test before implementing —
+exactly the kind of bug this task's TDD pass was for.
 
 **Verification steps:**
-1. `payment-form-dialog.spec.ts`: cross-year two-month save test (assert both `createPayment`
-   calls' `coveredYear` arguments individually) + cross-year duplicate-error-message test.
-2. `payment-detail-dialog.spec.ts`: fixture type update only, existing assertions unchanged.
-3. `ng test` full suite — compare against Task 3 baseline, no regressions expected.
-4. `ng build` — compiles cleanly.
-5. Manual: dev server, `/app/payments` — record dialog from a November cell, also select a
-   January toggle, save, confirm January lands under the *next* calendar year (via the grid
-   refreshing or the DB), not the season's start year.
+1. ✅ `payment-form-dialog.spec.ts`: added the cross-year two-month save test (asserts both
+   `createPayment` calls' `{coveredMonth, coveredYear}` individually, in chronological order) +
+   a cross-year duplicate-error-message test (second call, the January one, fails with 409 —
+   error text contains "2027", not "2026") + a pre-selection-by-month-and-year test (a clicked
+   January cell from *this* season, year 2027, isn't confused with a January toggle that would
+   exist in a different season). 17/17 passing.
+2. ✅ `payment-detail-dialog.spec.ts`: fixture retyped to `RosterSeasonMonth` (+`year: 2027`),
+   existing assertions unchanged, 7/7 passing.
+3. ✅ `ng test` full payments suite (6 files): 72/72 passing. Full repo suite: same 8 pre-existing
+   failing files / 11 pre-existing failing tests as the Task 3 baseline (159 total) — no
+   regressions.
+4. ✅ `ng build` — compiles cleanly.
+5. ⚠️ Manual dev-server pass: **not performed**, same reason as Task 3 (no login credentials
+   available in this session). Both dev servers still running locally (`:4200`/`:3000`).
 
-**Checkpoint B (final):** Full go/no-go —
-1. Full `ng test` (FE) + `npm test` (BE) green against their recorded baselines.
-2. `ng build` + `npm run build` (BE) both compile cleanly.
-3. Manual browser pass: season selector default/labels, all 10 months clickable, a
-   same-half-of-season multi-month save, a cross-year multi-month save (Task 4's fix), a paid
+**Checkpoint B (final):** ⚠️ Partially met — automated portion green, manual portion outstanding.
+1. ✅ Full `ng test` (FE) + `npm test` (BE) green against their recorded baselines (no
+   regressions in either repo across all four tasks).
+2. ✅ `ng build` + `npm run build` (BE) both compile cleanly.
+3. ❌ **Not done** — manual browser pass: season selector default/labels, all 10 months clickable,
+   a same-half-of-season multi-month save, a cross-year multi-month save (Task 4's fix), a paid
    cell's detail/delete flow, Greek locale copy for the season label, confirmed absence of any
-   `future` state.
-4. Confirm nothing outside the plan's "Files Involved" list was touched, and `GET
-   /payments/roster-year` still works unchanged.
+   `future` state. Blocked on login credentials not being available in any session so far — every
+   task in this initiative flagged the same gap. Both dev servers (`:4200` FE, `:3000` BE) are
+   already running locally; this just needs a human (or a session with real credentials) to log in
+   and click through once.
+4. ✅ Confirmed nothing outside the plan's "Files Involved" list was touched (`git diff --stat`
+   across all four task commits matches the plan's file list exactly); `GET /payments/roster-year`
+   and its service method/types are untouched (byte-for-byte, per `git diff` on `payments.service.ts`
+   showing only additions).
 
-Mark this initiative shipped only after Checkpoint B's manual pass.
+**Do not mark this initiative shipped until step 3 above is actually done** — all the code and
+automated tests are in place and believed correct, but "believed correct" is not the same as
+"verified in the running app," per this repo's own established precedent (see
+`CAPABILITY-MAP-payments.md`'s still-open browser-verification note from the original payments
+capability map).

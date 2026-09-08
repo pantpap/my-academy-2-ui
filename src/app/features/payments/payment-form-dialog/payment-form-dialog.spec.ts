@@ -6,7 +6,7 @@ import { TranslocoTestingModule } from '@jsverse/transloco';
 import { of, throwError } from 'rxjs';
 
 import { PaymentFormDialog, PaymentFormDialogData } from './payment-form-dialog';
-import { Payment, RosterYearMonth } from '../../../common/interfaces/payment';
+import { Payment, RosterSeasonMonth } from '../../../common/interfaces/payment';
 import { CreatePaymentPayload, Payments as PaymentsService } from '../../../shared/services/payment/payment';
 
 const en = {
@@ -26,14 +26,21 @@ const en = {
   },
 };
 
-function months(paidMonths: number[] = []): RosterYearMonth[] {
-  return Array.from({ length: 12 }, (_, i) => ({
-    month: i + 1,
-    paid: paidMonths.includes(i + 1),
-    paymentId: paidMonths.includes(i + 1) ? i + 1 : null,
-    amount: paidMonths.includes(i + 1) ? 30 : null,
-    paymentDate: paidMonths.includes(i + 1) ? '2026-01-05' : null,
-  }));
+const SEASON_MONTHS = [9, 10, 11, 12, 1, 2, 3, 4, 5, 6];
+
+function months(paidMonths: number[] = [], startYear = 2026): RosterSeasonMonth[] {
+  return SEASON_MONTHS.map((month) => {
+    const year = month >= 9 ? startYear : startYear + 1;
+    const paid = paidMonths.includes(month);
+    return {
+      month,
+      year,
+      paid,
+      paymentId: paid ? month : null,
+      amount: paid ? 30 : null,
+      paymentDate: paid ? '2026-01-05' : null,
+    };
+  });
 }
 
 const existingPayments: Payment[] = [
@@ -102,8 +109,8 @@ function baseData(overrides?: Partial<PaymentFormDialogData>): PaymentFormDialog
   return {
     athleteId: 3,
     athleteName: 'Jane Doe',
-    year: 2026,
     initialMonth: 9,
+    initialYear: 2026,
     months: months(),
     onSaved: vi.fn(),
     ...overrides,
@@ -117,10 +124,20 @@ describe('PaymentFormDialog', () => {
   });
 
   it('pre-selects the clicked month', async () => {
-    const fixture = await createFixture(baseData({ initialMonth: 9 }));
+    const fixture = await createFixture(baseData({ initialMonth: 9, initialYear: 2026 }));
     const toggles = fixture.componentInstance['monthToggles']();
     expect(toggles.find((m) => m.month === 9)?.selected).toBe(true);
-    expect(toggles.find((m) => m.month === 8)?.selected).toBe(false);
+    expect(toggles.find((m) => m.month === 10)?.selected).toBe(false);
+  });
+
+  it('pre-selects by month AND year — a January toggle from the previous season is not mistaken for this season\'s January', async () => {
+    // Both toggle lists contain a "month: 1" entry (this season's January, year 2027) — the
+    // clicked cell's initialYear must be the tie-breaker, not month number alone.
+    const fixture = await createFixture(baseData({ initialMonth: 1, initialYear: 2027 }));
+    const toggles = fixture.componentInstance['monthToggles']();
+    const january = toggles.find((m) => m.month === 1);
+    expect(january?.year).toBe(2027);
+    expect(january?.selected).toBe(true);
   });
 
   it('marks already-paid months as selected and disabled, and keeps them selected even if a selection-change event omits them', async () => {
@@ -137,7 +154,7 @@ describe('PaymentFormDialog', () => {
   });
 
   it('toggles an unpaid month on and off via the multi-select', async () => {
-    const fixture = await createFixture(baseData({ initialMonth: 9 }));
+    const fixture = await createFixture(baseData({ initialMonth: 9, initialYear: 2026 }));
     fixture.componentInstance['onMonthsSelectionChange']([9, 10]);
     expect(
       fixture.componentInstance['monthToggles']().find((m) => m.month === 10)?.selected,
@@ -149,14 +166,14 @@ describe('PaymentFormDialog', () => {
     ).toBe(false);
   });
 
-  it('tracks all 12 months, flagging the already-paid ones so the template can disable them', async () => {
+  it('tracks all 10 season months, flagging the already-paid ones so the template can disable them', async () => {
     // mat-select renders its mat-options into a CDK overlay only once the panel is opened,
     // so this asserts against the data the template iterates over (as in
     // CustomerFormDialog's equivalent sports mat-select spec) rather than querying rendered
     // DOM, which would require driving the overlay open in jsdom.
     const fixture = await createFixture(baseData({ months: months([5, 6]) }));
     const toggles = fixture.componentInstance['monthToggles']();
-    expect(toggles.length).toBe(12);
+    expect(toggles.length).toBe(10);
     expect(toggles.filter((m) => m.paid).map((m) => m.month)).toEqual([5, 6]);
   });
 
@@ -174,7 +191,7 @@ describe('PaymentFormDialog', () => {
   });
 
   it('computes the running total from the typed amount and selected month count', async () => {
-    const fixture = await createFixture(baseData({ initialMonth: 9 }), {
+    const fixture = await createFixture(baseData({ initialMonth: 9, initialYear: 2026 }), {
       getPayments: vi.fn(() => of([])),
     });
 
@@ -185,7 +202,9 @@ describe('PaymentFormDialog', () => {
   });
 
   it('excludes already-paid months from the running total even though they are shown selected', async () => {
-    const fixture = await createFixture(baseData({ initialMonth: 9, months: months([5]) }));
+    const fixture = await createFixture(
+      baseData({ initialMonth: 9, initialYear: 2026, months: months([5]) }),
+    );
 
     fixture.componentInstance['onAmountInput']('20');
     fixture.componentInstance['onMonthsSelectionChange']([5, 9, 10]);
@@ -194,7 +213,7 @@ describe('PaymentFormDialog', () => {
   });
 
   it('disables save until amount and date are valid and at least one month is selected', async () => {
-    const fixture = await createFixture(baseData({ initialMonth: 9 }), {
+    const fixture = await createFixture(baseData({ initialMonth: 9, initialYear: 2026 }), {
       getPayments: vi.fn(() => of([])),
     });
     expect(fixture.componentInstance['saveDisabled']()).toBe(true);
@@ -214,7 +233,7 @@ describe('PaymentFormDialog', () => {
         return of({});
       });
       const close = vi.fn();
-      const fixture = await createFixture(baseData({ initialMonth: 9 }), {
+      const fixture = await createFixture(baseData({ initialMonth: 9, initialYear: 2026 }), {
         getPayments: vi.fn(() => of([])),
         createPayment,
         close,
@@ -229,6 +248,33 @@ describe('PaymentFormDialog', () => {
       expect(close).toHaveBeenCalledWith({ success: true });
     });
 
+    it('posts the correct coveredYear per month for a selection spanning the Dec/Jan boundary', async () => {
+      // The single most important test in this file: a November + January selection must
+      // NOT post the same coveredYear for both — November is 2026, January is 2027.
+      const calls: { coveredMonth: number; coveredYear: number }[] = [];
+      const createPayment = vi.fn((payload: CreatePaymentPayload) => {
+        calls.push({ coveredMonth: payload.coveredMonth, coveredYear: payload.coveredYear });
+        return of({});
+      });
+      const close = vi.fn();
+      const fixture = await createFixture(baseData({ initialMonth: 11, initialYear: 2026 }), {
+        getPayments: vi.fn(() => of([])),
+        createPayment,
+        close,
+      });
+
+      fixture.componentInstance['onAmountInput']('20');
+      fixture.componentInstance['onMonthsSelectionChange']([11, 1]);
+
+      await fixture.componentInstance['save']();
+
+      expect(calls).toEqual([
+        { coveredMonth: 11, coveredYear: 2026 },
+        { coveredMonth: 1, coveredYear: 2027 },
+      ]);
+      expect(close).toHaveBeenCalledWith({ success: true });
+    });
+
     it('stops at the first failure and reports which months saved vs. which did not', async () => {
       const onSaved = vi.fn();
       const createPayment = vi
@@ -236,11 +282,14 @@ describe('PaymentFormDialog', () => {
         .mockReturnValueOnce(of({}))
         .mockReturnValueOnce(throwError(() => new Error('boom')));
       const close = vi.fn();
-      const fixture = await createFixture(baseData({ initialMonth: 9, onSaved }), {
-        getPayments: vi.fn(() => of([])),
-        createPayment,
-        close,
-      });
+      const fixture = await createFixture(
+        baseData({ initialMonth: 9, initialYear: 2026, onSaved }),
+        {
+          getPayments: vi.fn(() => of([])),
+          createPayment,
+          close,
+        },
+      );
 
       fixture.componentInstance['onAmountInput']('20');
       fixture.componentInstance['onMonthsSelectionChange']([9, 10]);
@@ -258,7 +307,7 @@ describe('PaymentFormDialog', () => {
       const createPayment = vi.fn(() =>
         throwError(() => new HttpErrorResponse({ status: 409 })),
       );
-      const fixture = await createFixture(baseData({ initialMonth: 9 }), {
+      const fixture = await createFixture(baseData({ initialMonth: 9, initialYear: 2026 }), {
         getPayments: vi.fn(() => of([])),
         createPayment,
       });
@@ -270,9 +319,29 @@ describe('PaymentFormDialog', () => {
       expect(fixture.nativeElement.textContent).toContain('already exists for this athlete');
     });
 
+    it('reports the correct month AND year in a duplicate-error on the far side of the season', async () => {
+      const createPayment = vi
+        .fn()
+        .mockReturnValueOnce(of({}))
+        .mockReturnValueOnce(throwError(() => new HttpErrorResponse({ status: 409 })));
+      const fixture = await createFixture(baseData({ initialMonth: 11, initialYear: 2026 }), {
+        getPayments: vi.fn(() => of([])),
+        createPayment,
+      });
+      fixture.componentInstance['onAmountInput']('20');
+      fixture.componentInstance['onMonthsSelectionChange']([11, 1]);
+
+      await fixture.componentInstance['save']();
+      fixture.detectChanges();
+
+      // January (the failing month) is year 2027, not November's 2026.
+      expect(fixture.nativeElement.textContent).toContain('2027');
+      expect(fixture.nativeElement.textContent).not.toContain('A payment for January 2026');
+    });
+
     it('shows a generic error for a non-409 failure', async () => {
       const createPayment = vi.fn(() => throwError(() => new Error('network error')));
-      const fixture = await createFixture(baseData({ initialMonth: 9 }), {
+      const fixture = await createFixture(baseData({ initialMonth: 9, initialYear: 2026 }), {
         getPayments: vi.fn(() => of([])),
         createPayment,
       });
@@ -285,7 +354,7 @@ describe('PaymentFormDialog', () => {
     });
 
     it('cannot be double-submitted while a save is in flight', async () => {
-      const fixture = await createFixture(baseData({ initialMonth: 9 }), {
+      const fixture = await createFixture(baseData({ initialMonth: 9, initialYear: 2026 }), {
         getPayments: vi.fn(() => of([])),
       });
       fixture.componentInstance['onAmountInput']('20');

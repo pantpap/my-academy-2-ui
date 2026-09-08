@@ -4,7 +4,7 @@ import { TranslocoTestingModule } from '@jsverse/transloco';
 import { of, throwError } from 'rxjs';
 
 import { PaymentDetailDialog, PaymentDetailDialogData } from './payment-detail-dialog';
-import { Payment, RosterYearMonth } from '../../../common/interfaces/payment';
+import { Payment, RosterSeasonMonth } from '../../../common/interfaces/payment';
 import { Payments as PaymentsService } from '../../../shared/services/payment/payment';
 
 const en = {
@@ -19,8 +19,9 @@ const en = {
   },
 };
 
-const paidMonth: RosterYearMonth = {
+const paidMonth: RosterSeasonMonth = {
   month: 5,
+  year: 2027,
   paid: true,
   paymentId: 12,
   amount: 30,

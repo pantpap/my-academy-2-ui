@@ -199,6 +199,7 @@ describe('PaymentsContainer', () => {
             athleteId: 1,
             athleteName: 'A B',
             initialMonth: 11,
+            initialYear: 2026,
             months: roster[0].months,
           }),
         }),

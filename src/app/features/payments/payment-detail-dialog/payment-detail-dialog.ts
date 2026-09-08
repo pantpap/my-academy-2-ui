@@ -10,13 +10,13 @@ import {
 } from '@angular/material/dialog';
 import { MatButton } from '@angular/material/button';
 import { TranslocoDirective } from '@jsverse/transloco';
-import { RosterYearMonth } from '../../../common/interfaces/payment';
+import { RosterSeasonMonth } from '../../../common/interfaces/payment';
 import { Payments as PaymentsService } from '../../../shared/services/payment/payment';
 
 export interface PaymentDetailDialogData {
   athleteId: number;
   athleteName: string;
-  payment: RosterYearMonth;
+  payment: RosterSeasonMonth;
 }
 
 export interface PaymentDetailDialogResult {
