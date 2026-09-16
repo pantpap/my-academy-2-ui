@@ -17,6 +17,10 @@ const createdCustomer: CustomerModel = {
   sportNames: [],
   sports: [],
   paidUntil: null,
+  registrationDate: '2026-01-01',
+  active: true,
+  inactiveSince: null,
+  enrollments: [],
 };
 
 const en = {

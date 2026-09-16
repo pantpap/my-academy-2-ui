@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
 import { form, required, min, ValidationError } from '@angular/forms/signals';
@@ -18,7 +18,7 @@ import { MatDatepicker, MatDatepickerInput, MatDatepickerToggle } from '@angular
 import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
-import { RosterSeasonMonth } from '../../../common/interfaces/payment';
+import { RosterSeasonMonth, RosterSeasonSport, CellStatus } from '../../../common/interfaces/payment';
 import { Payments as PaymentsService } from '../../../shared/services/payment/payment';
 import { LanguageService } from '../../../core/services/language/language.service';
 
@@ -28,7 +28,6 @@ export interface PaymentFormDialogData {
   initialMonth: number;
   initialYear: number;
   months: RosterSeasonMonth[];
-  onSaved: () => void;
 }
 
 export interface PaymentFormDialogResult {
@@ -44,7 +43,7 @@ interface MonthToggle {
   month: number;
   year: number;
   label: string;
-  paid: boolean;
+  status: CellStatus;
   selected: boolean;
 }
 
@@ -105,15 +104,34 @@ export class PaymentFormDialog {
 
   // Chronological order within the season, not raw month-number order — Sep(9)..Dec(12)
   // come before Jan(1)..Jun(6) of the *next* calendar year, so sorting by year first (then
-  // month) is required once a selection can span the Dec/Jan boundary.
+  // month) is required once a selection can span the Dec/Jan boundary. Already-fully-paid
+  // months are excluded — nothing left to submit for them.
   protected readonly monthsToSubmit = computed(() =>
     this.monthToggles()
-      .filter((month) => month.selected && !month.paid)
+      .filter((month) => month.selected && month.status !== 'paid')
       .map((month) => ({ month: month.month, year: month.year }))
       .sort((a, b) => a.year - b.year || a.month - b.month),
   );
 
   protected readonly selectedCount = computed(() => this.monthsToSubmit().length);
+
+  // Ένωση των owedSports όλων των επιλεγμένων (προς πληρωμή) μηνών — Q-D(α):
+  // περιλαμβάνει και αθλήματα που έχουν λήξει, αν κάποιος επιλεγμένος μήνας τα οφείλει ακόμα.
+  protected readonly availableSports = computed<RosterSeasonSport[]>(() => {
+    const selected = this.monthsToSubmit();
+    const bySport = new Map<number, RosterSeasonSport>();
+    for (const { month, year } of selected) {
+      const original = this.data.months.find((m) => m.month === month && m.year === year);
+      for (const sport of original?.owedSports ?? []) {
+        bySport.set(sport.id, sport);
+      }
+    }
+    return Array.from(bySport.values());
+  });
+
+  protected readonly showSportsSelect = computed(() => this.availableSports().length > 1);
+
+  protected readonly selectedSportIds = signal<number[]>([]);
 
   protected readonly model = signal<PaymentFormModel>({
     amount: null,
@@ -126,29 +144,31 @@ export class PaymentFormDialog {
     required(payment.paymentDate);
   });
 
-  protected readonly runningTotal = computed(() => {
-    const amount = this.model().amount;
-    if (amount === null || amount <= 0) return 0;
-    return Math.round(amount * this.selectedCount() * 100) / 100;
-  });
-
   protected readonly submitting = signal(false);
-  protected readonly savedMonths = signal<number[]>([]);
-  protected readonly failedMonth = signal<number | null>(null);
   protected readonly failureMessage = signal<string | null>(null);
 
-  protected readonly savedMonthLabels = computed(() =>
-    this.savedMonths()
-      .map((month) => this.monthToggles().find((m) => m.month === month)?.label ?? String(month))
-      .join(', '),
-  );
-
   protected readonly saveDisabled = computed(
-    () => this.paymentForm().invalid() || this.selectedCount() === 0 || this.submitting(),
+    () =>
+      this.paymentForm().invalid() ||
+      this.selectedCount() === 0 ||
+      this.selectedSportIds().length === 0 ||
+      this.submitting(),
   );
 
   constructor() {
-    this.prefillAmount();
+    // Αυτόματη επιλογή όταν μένει ένα μόνο άθλημα (και αφαίρεση αθλημάτων που
+    // έπαψαν να είναι διαθέσιμα μετά από αλλαγή στην επιλογή μηνών).
+    effect(() => {
+      const sports = this.availableSports();
+      untracked(() => {
+        if (sports.length === 1) {
+          this.selectedSportIds.set([sports[0].id]);
+        } else {
+          const availableIds = new Set(sports.map((s) => s.id));
+          this.selectedSportIds.update((ids) => ids.filter((id) => availableIds.has(id)));
+        }
+      });
+    });
   }
 
   private buildMonthToggles(): MonthToggle[] {
@@ -158,26 +178,11 @@ export class PaymentFormDialog {
       month: month.month,
       year: month.year,
       label: formatter.format(new Date(2020, month.month - 1, 1)),
-      paid: month.paid,
+      status: month.status,
       selected:
-        month.paid ||
+        month.status === 'paid' ||
         (month.month === this.data.initialMonth && month.year === this.data.initialYear),
     }));
-  }
-
-  private async prefillAmount(): Promise<void> {
-    try {
-      const payments = await firstValueFrom(this.paymentsService.getPayments(this.data.athleteId));
-      const latest = payments.reduce<(typeof payments)[number] | null>(
-        (acc, payment) => (acc === null || payment.id > acc.id ? payment : acc),
-        null,
-      );
-      if (latest) {
-        this.model.update((m) => ({ ...m, amount: Number(latest.amount) }));
-      }
-    } catch {
-      // Prefill is a convenience, not a requirement — leave the amount empty on failure.
-    }
   }
 
   protected hasError(errors: readonly ValidationError.WithFieldTree[], kind: string): boolean {
@@ -198,8 +203,15 @@ export class PaymentFormDialog {
 
   protected onMonthsSelectionChange(months: number[]): void {
     this.monthToggles.update((toggles) =>
-      toggles.map((m) => ({ ...m, selected: m.paid ? true : months.includes(m.month) })),
+      toggles.map((m) => ({
+        ...m,
+        selected: m.status === 'paid' ? true : months.includes(m.month),
+      })),
     );
+  }
+
+  protected onSportIdsChange(sportIds: number[]): void {
+    this.selectedSportIds.set(sportIds);
   }
 
   protected async save(): Promise<void> {
@@ -207,51 +219,31 @@ export class PaymentFormDialog {
 
     const amount = this.model().amount!;
     const paymentDate = formatDateForApi(this.model().paymentDate);
-    const monthsToSave = this.monthsToSubmit();
+    const months = this.monthsToSubmit();
+    const sportIds = this.selectedSportIds();
 
     this.submitting.set(true);
-    this.savedMonths.set([]);
-    this.failedMonth.set(null);
     this.failureMessage.set(null);
 
-    for (const entry of monthsToSave) {
-      try {
-        await firstValueFrom(
-          this.paymentsService.createPayment({
-            athleteId: this.data.athleteId,
-            amount,
-            paymentDate,
-            coveredMonth: entry.month,
-            coveredYear: entry.year,
-          }),
-        );
-        this.savedMonths.update((saved) => [...saved, entry.month]);
-      } catch (error) {
-        this.failedMonth.set(entry.month);
-        const monthLabel =
-          this.monthToggles().find((m) => m.month === entry.month)?.label ?? String(entry.month);
-        if (error instanceof HttpErrorResponse && error.status === 409) {
-          this.failureMessage.set(
-            this.translocoService.translate('payments.duplicateError', {
-              month: monthLabel,
-              year: entry.year,
-            }),
-          );
-        } else {
-          this.failureMessage.set(this.translocoService.translate('payments.saveError'));
-        }
-        break;
-      }
-    }
-
-    this.submitting.set(false);
-
-    if (this.failedMonth() !== null) {
-      if (this.savedMonths().length > 0) {
-        this.data.onSaved();
-      }
-    } else {
+    try {
+      await firstValueFrom(
+        this.paymentsService.createPayment({
+          athleteId: this.data.athleteId,
+          amount,
+          paymentDate,
+          months,
+          sportIds,
+        }),
+      );
+      this.submitting.set(false);
       this.dialogRef.close({ success: true });
+    } catch (error) {
+      this.submitting.set(false);
+      if (error instanceof HttpErrorResponse && error.status === 409) {
+        this.failureMessage.set(this.translocoService.translate('payments.nothingToPay'));
+      } else {
+        this.failureMessage.set(this.translocoService.translate('payments.saveError'));
+      }
     }
   }
 }

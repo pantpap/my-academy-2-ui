@@ -11,15 +11,37 @@
         (selectionChange)="onMonthsSelectionChange($event.value)"
       >
         @for (monthToggle of monthToggles(); track monthToggle.month) {
-          <mat-option [value]="monthToggle.month" [disabled]="monthToggle.paid">
+          <mat-option
+            [value]="monthToggle.month"
+            [disabled]="monthToggle.status === 'paid' || monthToggle.status === 'unavailable'"
+          >
             {{ monthToggle.label }}
-            @if (monthToggle.paid) {
+            @if (monthToggle.status === 'paid') {
               <mat-icon aria-hidden="true" class="!text-base align-middle">check_circle</mat-icon>
             }
           </mat-option>
         }
       </mat-select>
     </mat-form-field>
+
+    @if (showSportsSelect()) {
+      <mat-form-field>
+        <mat-label>{{ translate('payments.sportsLabel') }}</mat-label>
+        <mat-select
+          multiple
+          [value]="selectedSportIds()"
+          [disabled]="submitting()"
+          (selectionChange)="onSportIdsChange($event.value)"
+        >
+          @for (sport of availableSports(); track sport.id) {
+            <mat-option [value]="sport.id">{{ sport.name }}</mat-option>
+          }
+        </mat-select>
+        @if (selectedSportIds().length === 0) {
+          <mat-error>{{ translate('payments.sportsRequired') }}</mat-error>
+        }
+      </mat-form-field>
+    }
 
     <mat-form-field>
       <mat-label>{{ translate('payments.amountLabel') }}</mat-label>
@@ -55,15 +77,8 @@
       }
     </mat-form-field>
 
-    <p class="mat-body-medium">{{ translate('payments.runningTotal') }}: {{ runningTotal().toFixed(2) }}</p>
-
     @if (failureMessage()) {
-      <div class="flex flex-col gap-1">
-        <p class="text-(--mat-sys-error)">{{ failureMessage() }}</p>
-        @if (savedMonths().length > 0) {
-          <p class="mat-body-small">{{ translate('payments.savedMonths', { months: savedMonthLabels() }) }}</p>
-        }
-      </div>
+      <p class="text-(--mat-sys-error)">{{ failureMessage() }}</p>
     }
   </mat-dialog-content>
 

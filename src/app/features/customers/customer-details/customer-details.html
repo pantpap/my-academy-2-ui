@@ -13,9 +13,24 @@
                 <mat-icon class="hero-icon text-(--mat-sys-on-primary-container)">badge</mat-icon>
               </div>
               <div>
-                <h1 class="mat-headline-medium">
-                  {{ customerDetailsResource.value()?.firstName }} {{ customerDetailsResource.value()?.lastName }}
-                </h1>
+                <div class="flex items-center gap-2">
+                  <h1 class="mat-headline-medium">
+                    {{ customerDetailsResource.value()?.firstName }} {{ customerDetailsResource.value()?.lastName }}
+                  </h1>
+                  @if (customerDetailsResource.value()?.active) {
+                    <span
+                      class="rounded-full bg-(--mat-sys-primary-container) px-3 py-1 text-(--mat-sys-on-primary-container) mat-body-small"
+                    >
+                      {{ translate('customerDetails.activeLabel') }}
+                    </span>
+                  } @else {
+                    <span
+                      class="rounded-full bg-(--mat-sys-error-container) px-3 py-1 text-(--mat-sys-on-error-container) mat-body-small"
+                    >
+                      {{ translate('customerDetails.inactiveSince', { date: customerDetailsResource.value()?.inactiveSince }) }}
+                    </span>
+                  }
+                </div>
                 <p class="mat-body-medium text-(--mat-sys-on-surface-variant)">
                   {{ customerDetailsResource.value()?.gender }}
                 </p>

@@ -1,5 +1,13 @@
 import { BaseResponse } from './base-response';
 
+export interface EnrollmentPeriod {
+  id: number;
+  sportId: number;
+  sportName: string;
+  startDate: string;
+  endDate: string | null;
+}
+
 export interface Customer {
   id: number;
   firstName: string;
@@ -14,6 +22,10 @@ export interface Customer {
   sportNames: string[];
   sports: { id: number; name: string }[];
   paidUntil: string | null;
+  registrationDate: string;
+  active: boolean;
+  inactiveSince: string | null;
+  enrollments: EnrollmentPeriod[];
 }
 
 export type CustomersPagedResponse = BaseResponse<Customer>;

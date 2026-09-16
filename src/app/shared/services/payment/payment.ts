@@ -1,8 +1,8 @@
 import { inject, Injectable, signal } from '@angular/core';
+import { Observable } from 'rxjs';
 import { Http } from '../../../core/services/http/http';
 import { PAYMENTS_API } from '../../../common/constants/endpoints';
 import {
-  Payment,
   PaymentStatus,
   RosterStatusEntry,
   RosterYearEntry,
@@ -12,9 +12,30 @@ import { ORGANIZATION } from '../../../common/constants/local-storage-constants'
 import { Organization } from '../../../common/interfaces/organization';
 import { LocalStorage } from '../../../core/services/localStorage/local-storage';
 
-export type CreatePaymentPayload = Omit<Payment, 'id' | 'organizationId' | 'createdAt' | 'notes'> & {
+export interface CreatePaymentPayload {
+  athleteId: number;
+  amount: number;
+  paymentDate: string;
   notes?: string;
-};
+  months: { month: number; year: number }[];
+  sportIds: number[];
+}
+
+export interface CreatePaymentSkipped {
+  month: number;
+  year: number;
+  sportId: number;
+  reason: 'already_paid' | 'not_owed';
+}
+
+export interface CreatePaymentResult {
+  id: number;
+  amount: number;
+  paymentDate: string;
+  notes: string | null;
+  items: { id: number; month: number; year: number; sportId: number }[];
+  skipped: CreatePaymentSkipped[];
+}
 
 @Injectable({
   providedIn: 'root',
@@ -25,7 +46,7 @@ export class Payments {
 
   readonly organizationId = signal(this.localStorageService.getItem<Organization>(ORGANIZATION).id);
 
-  createPayment(payload: CreatePaymentPayload) {
+  createPayment(payload: CreatePaymentPayload): Observable<CreatePaymentResult> {
     return this.httpService.post<CreatePaymentPayload & { organizationId: number }>(PAYMENTS_API, {
       ...payload,
       organizationId: this.organizationId(),
@@ -62,14 +83,14 @@ export class Payments {
     });
   }
 
-  getPayments(athleteId: number) {
-    return this.httpService.get<Payment[]>(PAYMENTS_API, {
+  // Διαγράφει (soft delete) όλες τις καταχωρήσεις ενός μήνα για έναν αθλητή —
+  // βλ. DELETE /payments/months στο SPEC-payments-sports-api.md.
+  deleteMonth(athleteId: number, month: number, year: number) {
+    return this.httpService.delete<void>(`${PAYMENTS_API}/months`, {
       organizationId: this.organizationId(),
       athleteId,
+      month,
+      year,
     });
-  }
-
-  deletePayment(id: number) {
-    return this.httpService.delete<void>(`${PAYMENTS_API}/${id}`);
   }
 }

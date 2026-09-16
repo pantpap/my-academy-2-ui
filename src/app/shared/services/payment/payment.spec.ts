@@ -2,9 +2,8 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 
-import { Payments } from './payment';
+import { Payments, CreatePaymentResult } from './payment';
 import {
-  Payment,
   PaymentStatus,
   RosterStatusEntry,
   RosterYearEntry,
@@ -31,34 +30,32 @@ describe('Payments', () => {
     localStorage.removeItem('CS_ACADEMY_ORGANIZATION');
   });
 
-  it('createPayment() posts to /payments with the current organizationId', () => {
-    const created: Payment = {
+  it('createPayment() posts months[] and sportIds[] to /payments with the current organizationId', () => {
+    const created: CreatePaymentResult = {
       id: 1,
-      athleteId: 3,
-      organizationId: 7,
       amount: 20,
-      paymentDate: '2026-08-05',
-      coveredMonth: 8,
-      coveredYear: 2026,
+      paymentDate: '2026-09-05',
       notes: null,
-      createdAt: '2026-08-05T00:00:00.000Z',
+      items: [{ id: 1, month: 9, year: 2026, sportId: 11 }],
+      skipped: [],
     };
 
-    let result: Payment | undefined;
+    let result: CreatePaymentResult | undefined;
     service
       .createPayment({
         athleteId: 3,
         amount: 20,
-        paymentDate: '2026-08-05',
-        coveredMonth: 8,
-        coveredYear: 2026,
+        paymentDate: '2026-09-05',
+        months: [{ month: 9, year: 2026 }],
+        sportIds: [11],
       })
       .subscribe((res) => (result = res));
 
-    const req = httpMock.expectOne((r) => r.url.endsWith('/payments'));
-    expect(req.request.method).toBe('POST');
+    const req = httpMock.expectOne((r) => r.url.endsWith('/payments') && r.method === 'POST');
     expect(req.request.body.organizationId).toBe(7);
     expect(req.request.body.athleteId).toBe(3);
+    expect(req.request.body.months).toEqual([{ month: 9, year: 2026 }]);
+    expect(req.request.body.sportIds).toEqual([11]);
 
     req.flush(created);
     expect(result).toEqual(created);
@@ -111,43 +108,6 @@ describe('Payments', () => {
     expect(result).toEqual(roster);
   });
 
-  it('getPayments() gets /payments scoped to organizationId and athleteId', () => {
-    const payments: Payment[] = [
-      {
-        id: 1,
-        athleteId: 3,
-        organizationId: 7,
-        amount: 20,
-        paymentDate: '2026-08-05',
-        coveredMonth: 8,
-        coveredYear: 2026,
-        notes: null,
-        createdAt: '2026-08-05T00:00:00.000Z',
-      },
-    ];
-
-    let result: Payment[] | undefined;
-    service.getPayments(3).subscribe((res) => (result = res));
-
-    const req = httpMock.expectOne((r) => r.url.endsWith('/payments') && r.method === 'GET');
-    expect(req.request.params.get('organizationId')).toBe('7');
-    expect(req.request.params.get('athleteId')).toBe('3');
-
-    req.flush(payments);
-    expect(result).toEqual(payments);
-  });
-
-  it('deletePayment() deletes /payments/:id', () => {
-    let completed = false;
-    service.deletePayment(9).subscribe(() => (completed = true));
-
-    const req = httpMock.expectOne((r) => r.url.endsWith('/payments/9'));
-    expect(req.request.method).toBe('DELETE');
-
-    req.flush(null);
-    expect(completed).toBe(true);
-  });
-
   it('getRosterYear() gets /payments/roster-year scoped to organizationId and year', () => {
     const roster: RosterYearEntry[] = [
       {
@@ -179,9 +139,24 @@ describe('Payments', () => {
         athleteId: 3,
         firstName: 'Paid',
         lastName: 'Athlete',
+        active: true,
         months: [
-          { month: 9, year: 2026, paid: true, paymentId: 12, amount: 40, paymentDate: '2026-09-05' },
-          { month: 1, year: 2027, paid: false, paymentId: null, amount: null, paymentDate: null },
+          {
+            month: 9,
+            year: 2026,
+            status: 'paid',
+            owedSports: [{ id: 11, name: 'Football' }],
+            unpaidSports: [],
+            entries: [],
+          },
+          {
+            month: 1,
+            year: 2027,
+            status: 'unpaid',
+            owedSports: [{ id: 11, name: 'Football' }],
+            unpaidSports: [{ id: 11, name: 'Football' }],
+            entries: [],
+          },
         ],
       },
     ];
@@ -196,5 +171,20 @@ describe('Payments', () => {
 
     req.flush(roster);
     expect(result).toEqual(roster);
+  });
+
+  it('deleteMonth() issues DELETE /payments/months with athleteId, month, year and organizationId', () => {
+    let completed = false;
+    service.deleteMonth(3, 9, 2026).subscribe(() => (completed = true));
+
+    const req = httpMock.expectOne((r) => r.url.endsWith('/payments/months'));
+    expect(req.request.method).toBe('DELETE');
+    expect(req.request.params.get('organizationId')).toBe('7');
+    expect(req.request.params.get('athleteId')).toBe('3');
+    expect(req.request.params.get('month')).toBe('9');
+    expect(req.request.params.get('year')).toBe('2026');
+
+    req.flush(null);
+    expect(completed).toBe(true);
   });
 });

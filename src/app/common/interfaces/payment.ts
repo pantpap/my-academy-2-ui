@@ -1,13 +1,19 @@
+export interface PaymentItem {
+  month: number;
+  year: number;
+  sportId: number;
+  sportName: string;
+}
+
 export interface Payment {
   id: number;
   athleteId: number;
   organizationId: number;
   amount: number;
   paymentDate: string;
-  coveredMonth: number;
-  coveredYear: number;
   notes: string | null;
   createdAt: string;
+  items: PaymentItem[];
 }
 
 export interface RosterStatusEntry {
@@ -51,18 +57,35 @@ export interface RosterYearEntry {
   months: RosterYearMonth[];
 }
 
+export type CellStatus = 'paid' | 'partial' | 'unpaid' | 'unavailable';
+
+export interface RosterSeasonSport {
+  id: number;
+  name: string;
+}
+
+export interface RosterSeasonPaymentEntry {
+  paymentId: number;
+  amount: number;
+  coveredMonthsCount: number;
+  paymentDate: string;
+  notes: string | null;
+  sports: RosterSeasonSport[];
+}
+
 export interface RosterSeasonMonth {
   month: number;
   year: number;
-  paid: boolean;
-  paymentId: number | null;
-  amount: number | null;
-  paymentDate: string | null;
+  status: CellStatus;
+  owedSports: RosterSeasonSport[];
+  unpaidSports: RosterSeasonSport[];
+  entries: RosterSeasonPaymentEntry[];
 }
 
 export interface RosterSeasonEntry {
   athleteId: number;
   firstName: string;
   lastName: string;
+  active: boolean;
   months: RosterSeasonMonth[];
 }

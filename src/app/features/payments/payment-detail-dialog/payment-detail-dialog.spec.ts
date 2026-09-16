@@ -1,52 +1,76 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideNativeDateAdapter } from '@angular/material/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { TranslocoTestingModule } from '@jsverse/transloco';
 import { of, throwError } from 'rxjs';
 
 import { PaymentDetailDialog, PaymentDetailDialogData } from './payment-detail-dialog';
-import { Payment, RosterSeasonMonth } from '../../../common/interfaces/payment';
 import { Payments as PaymentsService } from '../../../shared/services/payment/payment';
+import { RosterSeasonMonth } from '../../../common/interfaces/payment';
 
 const en = {
-  common: { close: 'Close', cancel: 'Cancel', delete: 'Delete' },
+  common: { cancel: 'Cancel', close: 'Close', delete: 'Delete' },
   payments: {
-    detailTitle: 'Payment details for {{name}}',
-    amountLabel: 'Amount',
+    detailTitle: 'Payment details for {{name}} — {{month}} {{year}}',
+    entriesTitle: 'Payments recorded',
     dateLabel: 'Payment date',
+    sportsLabel: 'Sports',
     notesLabel: 'Notes',
-    deleteConfirm: 'Are you sure you want to delete this payment? This cannot be undone.',
+    amountLabel: 'Amount',
+    addSportsTitle: 'Add the missing sports',
+    addSportsAction: 'Add',
+    deleteMonthAction: 'Delete this month',
+    deleteMonthConfirm: 'This will delete every payment recorded for {{month}} {{year}}. This cannot be undone.',
     deleteError: 'Something went wrong while deleting. Please try again.',
+    saveError: 'Something went wrong while saving. Please try again.',
   },
 };
 
 const paidMonth: RosterSeasonMonth = {
-  month: 5,
+  month: 3,
   year: 2027,
-  paid: true,
-  paymentId: 12,
-  amount: 30,
-  paymentDate: '2026-05-05',
+  status: 'paid',
+  owedSports: [{ id: 1, name: 'Football' }],
+  unpaidSports: [],
+  entries: [
+    {
+      paymentId: 12,
+      amount: 40,
+      coveredMonthsCount: 1,
+      paymentDate: '2027-03-05',
+      notes: 'On time',
+      sports: [{ id: 1, name: 'Football' }],
+    },
+  ],
 };
 
-const fullPayments: Payment[] = [
-  {
-    id: 12,
-    athleteId: 3,
-    organizationId: 7,
-    amount: 30,
-    paymentDate: '2026-05-05',
-    coveredMonth: 5,
-    coveredYear: 2026,
-    notes: 'Paid in cash',
-    createdAt: '2026-05-05T00:00:00.000Z',
-  },
-];
+const partialMonth: RosterSeasonMonth = {
+  month: 3,
+  year: 2027,
+  status: 'partial',
+  owedSports: [{ id: 1, name: 'Football' }, { id: 2, name: 'Basketball' }],
+  unpaidSports: [{ id: 2, name: 'Basketball' }],
+  entries: [
+    {
+      paymentId: 12,
+      amount: 40,
+      coveredMonthsCount: 1,
+      paymentDate: '2027-03-05',
+      notes: null,
+      sports: [{ id: 1, name: 'Football' }],
+    },
+  ],
+};
+
+function baseData(month: RosterSeasonMonth): PaymentDetailDialogData {
+  return { athleteId: 1, athleteName: 'Kostas Georgiou', month };
+}
 
 async function createFixture(
   data: PaymentDetailDialogData,
   options?: {
-    getPayments?: ReturnType<typeof vi.fn>;
-    deletePayment?: ReturnType<typeof vi.fn>;
+    createPayment?: ReturnType<typeof vi.fn>;
+    deleteMonth?: ReturnType<typeof vi.fn>;
     close?: ReturnType<typeof vi.fn>;
   },
 ): Promise<ComponentFixture<PaymentDetailDialog>> {
@@ -59,13 +83,14 @@ async function createFixture(
       }),
     ],
     providers: [
+      provideNativeDateAdapter(),
       { provide: MAT_DIALOG_DATA, useValue: data },
       { provide: MatDialogRef, useValue: { close: options?.close ?? vi.fn() } },
       {
         provide: PaymentsService,
         useValue: {
-          getPayments: options?.getPayments ?? vi.fn(() => of(fullPayments)),
-          deletePayment: options?.deletePayment ?? vi.fn(() => of(undefined)),
+          createPayment: options?.createPayment ?? vi.fn(() => of({ id: 2, items: [], skipped: [] })),
+          deleteMonth: options?.deleteMonth ?? vi.fn(() => of(undefined)),
         },
       },
     ],
@@ -74,78 +99,101 @@ async function createFixture(
   const fixture = TestBed.createComponent(PaymentDetailDialog);
   fixture.detectChanges();
   await fixture.whenStable();
-  fixture.detectChanges();
   return fixture;
 }
 
-function baseData(overrides?: Partial<PaymentDetailDialogData>): PaymentDetailDialogData {
-  return {
-    athleteId: 3,
-    athleteName: 'Jane Doe',
-    payment: paidMonth,
-    ...overrides,
-  };
-}
-
 describe('PaymentDetailDialog', () => {
-  it('should create', async () => {
-    const fixture = await createFixture(baseData());
-    expect(fixture.componentInstance).toBeTruthy();
+  it('shows the athlete name and month/year in the title', async () => {
+    const fixture = await createFixture(baseData(paidMonth));
+    const title = fixture.nativeElement.querySelector('[mat-dialog-title]');
+    expect(title.textContent).toContain('Kostas Georgiou');
+    expect(title.textContent).toContain('2027');
   });
 
-  it('shows the amount and payment date', async () => {
-    const fixture = await createFixture(baseData());
-    expect(fixture.nativeElement.textContent).toContain('30');
-    expect(fixture.nativeElement.textContent).toContain('2026-05-05');
+  it('lists every entry with its date, sports, and notes', async () => {
+    const fixture = await createFixture(baseData(paidMonth));
+
+    expect(fixture.nativeElement.textContent).toContain('2027-03-05');
+    expect(fixture.nativeElement.textContent).toContain('Football');
+    expect(fixture.nativeElement.textContent).toContain('On time');
   });
 
-  it('shows notes fetched from the full payment record', async () => {
-    const fixture = await createFixture(baseData());
-    expect(fixture.nativeElement.textContent).toContain('Paid in cash');
-  });
+  describe('adding missing sports (partial month)', () => {
+    it('shows the add-sports section listing the unpaid sports', async () => {
+      const fixture = await createFixture(baseData(partialMonth));
 
-  it('does not show a notes line when there are none', async () => {
-    const fixture = await createFixture(baseData(), {
-      getPayments: vi.fn(() => of([{ ...fullPayments[0], notes: null }])),
+      expect(fixture.nativeElement.textContent).toContain('Add the missing sports');
     });
-    expect(fixture.nativeElement.textContent).not.toContain('Notes');
+
+    it('auto-selects when there is exactly one unpaid sport (hides the dropdown)', async () => {
+      const fixture = await createFixture(baseData(partialMonth));
+
+      expect(fixture.componentInstance['showSportsSelect']).toBe(false);
+      expect(fixture.componentInstance['selectedSportIds']()).toEqual([2]);
+    });
+
+    it('does not show the add-sports section for a fully paid month', async () => {
+      const fixture = await createFixture(baseData(paidMonth));
+      expect(fixture.nativeElement.textContent).not.toContain('Add the missing sports');
+    });
+
+    it('posts a single-month payment for the missing sport and closes with { changed: true }', async () => {
+      const createPayment = vi.fn(() => of({ id: 2, items: [], skipped: [] }));
+      const close = vi.fn();
+      const fixture = await createFixture(baseData(partialMonth), { createPayment, close });
+
+      fixture.componentInstance['onAmountInput']('20');
+      fixture.componentInstance['onDateChange'](new Date('2027-03-10'));
+      await fixture.componentInstance['addSports']();
+
+      expect(createPayment).toHaveBeenCalledWith(
+        expect.objectContaining({
+          athleteId: 1,
+          amount: 20,
+          months: [{ month: 3, year: 2027 }],
+          sportIds: [2],
+        }),
+      );
+      expect(close).toHaveBeenCalledWith({ changed: true });
+    });
   });
 
-  it('requires an explicit confirmation step before deleting', async () => {
-    const deletePayment = vi.fn(() => of(undefined));
-    const fixture = await createFixture(baseData(), { deletePayment });
+  describe('deleting a month', () => {
+    it('asks for confirmation before deleting', async () => {
+      const deleteMonth = vi.fn(() => of(undefined));
+      const fixture = await createFixture(baseData(paidMonth), { deleteMonth });
 
-    expect(fixture.nativeElement.textContent).toContain('Delete');
-    expect(deletePayment).not.toHaveBeenCalled();
+      fixture.componentInstance['requestDelete']();
+      fixture.detectChanges();
 
-    fixture.componentInstance['requestDelete']();
-    fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('Are you sure');
-    expect(deletePayment).not.toHaveBeenCalled();
-  });
+      expect(fixture.nativeElement.textContent).toContain('This cannot be undone');
+      expect(deleteMonth).not.toHaveBeenCalled();
+    });
 
-  it('deletes and closes with { deleted: true } on confirm', async () => {
-    const deletePayment = vi.fn(() => of(undefined));
-    const close = vi.fn();
-    const fixture = await createFixture(baseData(), { deletePayment, close });
+    it('calls deleteMonth with athleteId/month/year and closes with { changed: true } on confirm', async () => {
+      const deleteMonth = vi.fn(() => of(undefined));
+      const close = vi.fn();
+      const fixture = await createFixture(baseData(paidMonth), { deleteMonth, close });
 
-    fixture.componentInstance['requestDelete']();
-    await fixture.componentInstance['confirmDelete']();
+      fixture.componentInstance['requestDelete']();
+      await fixture.componentInstance['confirmDelete']();
 
-    expect(deletePayment).toHaveBeenCalledWith(12);
-    expect(close).toHaveBeenCalledWith({ deleted: true });
-  });
+      expect(deleteMonth).toHaveBeenCalledWith(1, 3, 2027);
+      expect(close).toHaveBeenCalledWith({ changed: true });
+    });
 
-  it('shows a translated error and does not close when delete fails', async () => {
-    const deletePayment = vi.fn(() => throwError(() => new Error('boom')));
-    const close = vi.fn();
-    const fixture = await createFixture(baseData(), { deletePayment, close });
+    it('shows an error and does not close when the delete fails', async () => {
+      const deleteMonth = vi.fn(() => throwError(() => new Error('boom')));
+      const close = vi.fn();
+      const fixture = await createFixture(baseData(paidMonth), { deleteMonth, close });
 
-    fixture.componentInstance['requestDelete']();
-    await fixture.componentInstance['confirmDelete']();
-    fixture.detectChanges();
+      fixture.componentInstance['requestDelete']();
+      await fixture.componentInstance['confirmDelete']();
+      fixture.detectChanges();
 
-    expect(close).not.toHaveBeenCalled();
-    expect(fixture.nativeElement.textContent).toContain('Something went wrong while deleting');
+      expect(close).not.toHaveBeenCalled();
+      expect(fixture.componentInstance['deleteError']()).toBe(true);
+      expect(fixture.nativeElement.textContent).toContain('Something went wrong while deleting');
+    });
   });
 });

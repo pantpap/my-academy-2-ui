@@ -31,8 +31,14 @@ export class Http {
     return this.httpClient.put<T>(endpoint, body);
   }
 
-  delete<T>(url: string): Observable<T> {
+  delete<T>(url: string, params?: Record<string, string | number>): Observable<T> {
     const endpoint = `${this.apiUrl}/${url}`;
-    return this.httpClient.delete<T>(endpoint);
+    let httpParams = new HttpParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        httpParams = httpParams.set(key, value.toString());
+      });
+    }
+    return this.httpClient.delete<T>(endpoint, { params: httpParams });
   }
 }

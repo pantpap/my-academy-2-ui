@@ -75,18 +75,181 @@
         <input matInput [formField]="customerForm.country" />
       </mat-form-field>
 
-      <mat-form-field>
+      @if (!isEditMode) {
+        <mat-form-field>
+          <mat-label>{{ translate('customerDetails.registrationDateLabel') }}</mat-label>
+          <input
+            matInput
+            name="registrationDate"
+            [matDatepicker]="registrationDatePicker"
+            [value]="model().registrationDate"
+            (dateChange)="onRegistrationDateChange($event.value)"
+          />
+          <mat-datepicker-toggle matSuffix [for]="registrationDatePicker"></mat-datepicker-toggle>
+          <mat-datepicker #registrationDatePicker></mat-datepicker>
+          @if (hasError(customerForm.registrationDate().errors(), 'required')) {
+            <mat-error>{{ translate('customerDetails.registrationDateRequired') }}</mat-error>
+          }
+        </mat-form-field>
+      } @else {
+        <div class="flex flex-col justify-center">
+          <p class="mat-body-small text-(--mat-sys-on-surface-variant)">
+            {{ translate('customerDetails.registrationDateLabel') }}
+          </p>
+          <p class="font-medium">{{ registrationDateDisplay }}</p>
+        </div>
+      }
+
+      <div class="col-span-2 flex flex-col gap-1">
+        <mat-slide-toggle [checked]="model().active" (change)="onActiveChange($event.checked)">
+          {{ translate('customerDetails.activeLabel') }}
+        </mat-slide-toggle>
+        @if (!model().active && inactiveSince) {
+          <p class="mat-body-small text-(--mat-sys-error)">
+            {{ translate('customerDetails.inactiveSince', { date: inactiveSince }) }}
+          </p>
+        }
+      </div>
+
+      <mat-form-field class="col-span-2">
         <mat-label>{{ translate('customerDetails.sportsLabel') }}</mat-label>
-        <mat-select
-          multiple
-          [value]="model().sportIds"
-          (selectionChange)="onSportIdsChange($event.value)"
-        >
+        <mat-select multiple [value]="selectedSportIds()" (selectionChange)="onSportIdsChange($event)">
           @for (sport of sportsResource.value(); track sport.id) {
             <mat-option [value]="sport.id">{{ sport.name }}</mat-option>
           }
         </mat-select>
       </mat-form-field>
+
+      @if (activePeriods().length > 0) {
+        <div class="col-span-2 flex flex-col gap-3">
+          @for (row of activePeriods(); track row.key) {
+            <div class="flex flex-wrap items-start gap-3 rounded-md border border-(--mat-sys-outline-variant) p-3">
+              <p class="mat-body-medium min-w-24 pt-4 font-medium">{{ row.sportName }}</p>
+
+              <mat-form-field subscriptSizing="dynamic" class="w-40">
+                <mat-label>{{ translate('customerDetails.startDateLabel') }}</mat-label>
+                <input
+                  matInput
+                  [matDatepicker]="startPicker"
+                  [value]="row.startDate"
+                  (dateChange)="onActiveRowStartDateChange(row, $event.value)"
+                />
+                <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
+                <mat-datepicker #startPicker></mat-datepicker>
+              </mat-form-field>
+
+              @if (row.removing) {
+                <p class="mat-body-small pt-4 text-(--mat-sys-error)">{{ translate('customerDetails.leavingLabel') }}</p>
+                <mat-form-field subscriptSizing="dynamic" class="w-40">
+                  <mat-label>{{ translate('customerDetails.endDateLabel') }}</mat-label>
+                  <input
+                    matInput
+                    [matDatepicker]="endPicker"
+                    [value]="row.endDateForRemoval"
+                    (dateChange)="onActiveRowEndDateChange(row, $event.value)"
+                  />
+                  <mat-datepicker-toggle matSuffix [for]="endPicker"></mat-datepicker-toggle>
+                  <mat-datepicker #endPicker></mat-datepicker>
+                </mat-form-field>
+              } @else {
+                <button
+                  mat-icon-button
+                  type="button"
+                  class="mt-2"
+                  [attr.aria-label]="translate('customerDetails.deletePeriod')"
+                  (click)="deleteActivePeriod(row)"
+                >
+                  <mat-icon>delete</mat-icon>
+                </button>
+              }
+
+              @let error = rowError(row.key);
+              @if (error?.startBeforeRegistration) {
+                <p class="mat-body-small basis-full text-(--mat-sys-error)">
+                  {{ translate('customerDetails.startBeforeRegistration') }}
+                </p>
+              }
+              @if (error?.endBeforeStart) {
+                <p class="mat-body-small basis-full text-(--mat-sys-error)">
+                  {{ translate('customerDetails.endBeforeStart') }}
+                </p>
+              }
+              @if (error?.endRequired) {
+                <p class="mat-body-small basis-full text-(--mat-sys-error)">
+                  {{ translate('customerDetails.endDateRequired') }}
+                </p>
+              }
+              @if (error?.overlapping) {
+                <p class="mat-body-small basis-full text-(--mat-sys-error)">
+                  {{ translate('customerDetails.overlappingPeriods') }}
+                </p>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      @if (isEditMode && historyPeriods().length > 0) {
+        <div class="col-span-2 flex flex-col gap-3">
+          <h3 class="mat-title-small">{{ translate('customerDetails.historyTitle') }}</h3>
+          @for (row of historyPeriods(); track row.key) {
+            <div class="flex flex-wrap items-start gap-3 rounded-md border border-(--mat-sys-outline-variant) p-3">
+              <p class="mat-body-medium min-w-24 pt-4 font-medium">{{ row.sportName }}</p>
+
+              <mat-form-field subscriptSizing="dynamic" class="w-40">
+                <mat-label>{{ translate('customerDetails.startDateLabel') }}</mat-label>
+                <input
+                  matInput
+                  [matDatepicker]="historyStartPicker"
+                  [value]="row.startDate"
+                  (dateChange)="onHistoryRowStartDateChange(row, $event.value)"
+                />
+                <mat-datepicker-toggle matSuffix [for]="historyStartPicker"></mat-datepicker-toggle>
+                <mat-datepicker #historyStartPicker></mat-datepicker>
+              </mat-form-field>
+
+              <mat-form-field subscriptSizing="dynamic" class="w-40">
+                <mat-label>{{ translate('customerDetails.endDateLabel') }}</mat-label>
+                <input
+                  matInput
+                  [matDatepicker]="historyEndPicker"
+                  [value]="row.endDate"
+                  (dateChange)="onHistoryRowEndDateChange(row, $event.value)"
+                />
+                <mat-datepicker-toggle matSuffix [for]="historyEndPicker"></mat-datepicker-toggle>
+                <mat-datepicker #historyEndPicker></mat-datepicker>
+              </mat-form-field>
+
+              <button
+                mat-icon-button
+                type="button"
+                class="mt-2"
+                [attr.aria-label]="translate('customerDetails.deletePeriod')"
+                (click)="deleteHistoryPeriod(row)"
+              >
+                <mat-icon>delete</mat-icon>
+              </button>
+
+              @let historyError = rowError(row.key);
+              @if (historyError?.startBeforeRegistration) {
+                <p class="mat-body-small basis-full text-(--mat-sys-error)">
+                  {{ translate('customerDetails.startBeforeRegistration') }}
+                </p>
+              }
+              @if (historyError?.endBeforeStart) {
+                <p class="mat-body-small basis-full text-(--mat-sys-error)">
+                  {{ translate('customerDetails.endBeforeStart') }}
+                </p>
+              }
+              @if (historyError?.overlapping) {
+                <p class="mat-body-small basis-full text-(--mat-sys-error)">
+                  {{ translate('customerDetails.overlappingPeriods') }}
+                </p>
+              }
+            </div>
+          }
+        </div>
+      }
 
       @if (isEditMode) {
         <div class="flex flex-col justify-center">
@@ -105,7 +268,7 @@
 
   <mat-dialog-actions align="end">
     <button mat-button type="button" mat-dialog-close>{{ translate('common.cancel') }}</button>
-    <button mat-flat-button type="submit" form="customer-form" [disabled]="customerForm().invalid()">
+    <button mat-flat-button type="submit" form="customer-form" [disabled]="saveDisabled()">
       {{ translate('common.save') }}
     </button>
   </mat-dialog-actions>

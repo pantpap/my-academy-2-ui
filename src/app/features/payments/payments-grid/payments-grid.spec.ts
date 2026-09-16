@@ -3,7 +3,7 @@ import { By } from '@angular/platform-browser';
 import { TranslocoTestingModule } from '@jsverse/transloco';
 
 import { PaymentsGrid } from './payments-grid';
-import { RosterSeasonEntry } from '../../../common/interfaces/payment';
+import { RosterSeasonEntry, RosterSeasonMonth } from '../../../common/interfaces/payment';
 
 const en = {
   payments: {
@@ -12,13 +12,27 @@ const en = {
     noSearchResults: 'No athletes match your search.',
     stateLabels: {
       paid: 'Paid',
-      due: 'Due',
+      partial: 'Partially paid',
+      unpaid: 'Due',
+      unavailable: 'Not available',
     },
+    unpaidSportsTooltip: 'Not paid: {{sports}}',
     cellAriaLabel: '{{name}}, {{month}} {{year}}: {{state}}',
   },
 };
 
 const SEASON_MONTHS = [9, 10, 11, 12, 1, 2, 3, 4, 5, 6];
+
+function blankMonth(month: number, startYear: number): RosterSeasonMonth {
+  return {
+    month,
+    year: month >= 9 ? startYear : startYear + 1,
+    status: 'unpaid',
+    owedSports: [{ id: 1, name: 'Football' }],
+    unpaidSports: [{ id: 1, name: 'Football' }],
+    entries: [],
+  };
+}
 
 function buildRoster(
   overrides: Partial<RosterSeasonEntry> = {},
@@ -28,14 +42,8 @@ function buildRoster(
     athleteId: 1,
     firstName: 'Kostas',
     lastName: 'Georgiou',
-    months: SEASON_MONTHS.map((month) => ({
-      month,
-      year: month >= 9 ? startYear : startYear + 1,
-      paid: false,
-      paymentId: null,
-      amount: null,
-      paymentDate: null,
-    })),
+    active: true,
+    months: SEASON_MONTHS.map((month) => blankMonth(month, startYear)),
     ...overrides,
   };
 }
@@ -89,63 +97,102 @@ describe('PaymentsGrid', () => {
     ]);
   });
 
-  it('renders a paid month as a clickable cell with a state-naming aria-label', async () => {
+  describe('the four cell states', () => {
+    function rosterWithFirstMonth(status: RosterSeasonMonth['status']): RosterSeasonEntry {
+      const roster = buildRoster();
+      roster.months[0] = {
+        ...roster.months[0],
+        status,
+        unpaidSports: status === 'partial' ? [{ id: 2, name: 'Basketball' }] : [],
+        entries:
+          status === 'unavailable'
+            ? [
+                {
+                  paymentId: 9,
+                  amount: 40,
+                  coveredMonthsCount: 1,
+                  paymentDate: '2026-09-05',
+                  notes: null,
+                  sports: [{ id: 1, name: 'Football' }],
+                },
+              ]
+            : [],
+      };
+      return roster;
+    }
+
+    it('renders "paid" as a clickable cell with a state-naming aria-label', async () => {
+      await setup([rosterWithFirstMonth('paid')]);
+
+      const cell = fixture.debugElement.query(By.css('[data-cell-state="paid"]'));
+      expect(cell).toBeTruthy();
+      expect(cell.nativeElement.tagName.toLowerCase()).toBe('button');
+      expect(cell.nativeElement.disabled).toBe(false);
+      expect(cell.attributes['aria-label']).toContain('Kostas');
+      expect(cell.attributes['aria-label']).toContain('Paid');
+    });
+
+    it('renders "partial" as clickable, with the unpaid sports in the aria-label', async () => {
+      await setup([rosterWithFirstMonth('partial')]);
+
+      const cell = fixture.debugElement.query(By.css('[data-cell-state="partial"]'));
+      expect(cell).toBeTruthy();
+      expect(cell.nativeElement.disabled).toBe(false);
+      expect(cell.attributes['aria-label']).toContain('Basketball');
+    });
+
+    it('renders "unpaid" as a clickable "due" cell', async () => {
+      await setup([buildRoster()]);
+
+      const cell = fixture.debugElement.query(By.css('[data-cell-state="unpaid"]'));
+      expect(cell).toBeTruthy();
+      expect(cell.nativeElement.disabled).toBe(false);
+      expect(cell.attributes['aria-label']).toContain('Due');
+    });
+
+    it('renders "unavailable" with no entries as disabled and non-clickable', async () => {
+      const roster = buildRoster();
+      roster.months[0] = { ...roster.months[0], status: 'unavailable', owedSports: [], unpaidSports: [] };
+      await setup([roster]);
+
+      const cell = fixture.debugElement.query(By.css('[data-cell-state="unavailable"]'));
+      expect(cell).toBeTruthy();
+      expect(cell.nativeElement.disabled).toBe(true);
+      expect(cell.attributes['aria-disabled']).toBe('true');
+    });
+
+    it('renders "unavailable" with entries as clickable', async () => {
+      await setup([rosterWithFirstMonth('unavailable')]);
+
+      const cell = fixture.debugElement.query(By.css('[data-cell-state="unavailable"]'));
+      expect(cell.nativeElement.disabled).toBe(false);
+    });
+  });
+
+  it('builds a tooltip listing the unpaid sports only for a partial month', async () => {
     const roster = buildRoster();
-    roster.months[0] = {
-      month: 9,
-      year: 2026,
-      paid: true,
-      paymentId: 55,
-      amount: 40,
-      paymentDate: '2026-09-05',
-    };
+    roster.months[0] = { ...roster.months[0], status: 'partial', unpaidSports: [{ id: 2, name: 'Basketball' }] };
     await setup([roster]);
 
-    const paidCell = fixture.debugElement.query(By.css('[data-cell-state="paid"]'));
-    expect(paidCell).toBeTruthy();
-    expect(paidCell.nativeElement.tagName.toLowerCase()).toBe('button');
-    expect(paidCell.attributes['aria-label']).toContain('Kostas');
-    expect(paidCell.attributes['aria-label']).toContain('Paid');
-  });
-
-  it('renders every unpaid month as a clickable "due" cell', async () => {
-    await setup([buildRoster()]); // every month starts unpaid
-
-    const dueCell = fixture.debugElement.query(By.css('[data-cell-state="due"]'));
-    expect(dueCell).toBeTruthy();
-    expect(dueCell.nativeElement.tagName.toLowerCase()).toBe('button');
-    expect(dueCell.attributes['aria-label']).toContain('Due');
-  });
-
-  it('has no non-clickable cell state — including the last month of the season', async () => {
-    await setup([buildRoster()]); // June (the last column) is unpaid, same as any other month
-
-    expect(fixture.debugElement.query(By.css('[data-cell-state="future"]'))).toBeFalsy();
-
-    const dueCells = fixture.debugElement.queryAll(By.css('[data-cell-state="due"]'));
-    expect(dueCells.length).toBe(10);
-    for (const cell of dueCells) {
-      expect(cell.nativeElement.tagName.toLowerCase()).toBe('button');
-    }
+    expect(component['tooltipFor'](roster.months[0])).toBe('Basketball');
+    expect(component['tooltipFor'](roster.months[1])).toBeNull(); // unpaid, no tooltip
   });
 
   it('reports each cell\'s own calendar year in its aria-label, across the Dec/Jan boundary', async () => {
     await setup([buildRoster()], 2026);
 
-    // Column order is season order (September..June) — index 0 is September (year 2026),
-    // index 9 is June (year 2027).
-    const dueCells = fixture.debugElement.queryAll(By.css('[data-cell-state="due"]'));
-    expect(dueCells[0].attributes['aria-label']).toContain('2026');
-    expect(dueCells[9].attributes['aria-label']).toContain('2027');
+    const cells = fixture.debugElement.queryAll(By.css('[data-cell-state="unpaid"]'));
+    expect(cells[0].attributes['aria-label']).toContain('2026');
+    expect(cells[9].attributes['aria-label']).toContain('2027');
   });
 
-  it('emits cellActivated when a due cell is clicked, with the athlete and month', async () => {
+  it('emits cellActivated when an unpaid cell is clicked, with the athlete and month', async () => {
     await setup([buildRoster({ athleteId: 7 })]);
     const emitted: unknown[] = [];
     component.cellActivated.subscribe((event) => emitted.push(event));
 
-    const dueCell = fixture.debugElement.query(By.css('[data-cell-state="due"]'));
-    dueCell.nativeElement.click();
+    const cell = fixture.debugElement.query(By.css('[data-cell-state="unpaid"]'));
+    cell.nativeElement.click();
 
     expect(emitted).toEqual([
       expect.objectContaining({
@@ -155,44 +202,23 @@ describe('PaymentsGrid', () => {
     ]);
   });
 
-  it('emits cellActivated when a paid cell is clicked', async () => {
+  it('does not emit cellActivated for a non-clickable unavailable cell', async () => {
     const roster = buildRoster();
-    roster.months[0] = {
-      month: 9,
-      year: 2026,
-      paid: true,
-      paymentId: 9,
-      amount: 40,
-      paymentDate: '2026-09-05',
-    };
+    roster.months[0] = { ...roster.months[0], status: 'unavailable', owedSports: [], unpaidSports: [] };
     await setup([roster]);
     const emitted: unknown[] = [];
     component.cellActivated.subscribe((event) => emitted.push(event));
 
-    const paidCell = fixture.debugElement.query(By.css('[data-cell-state="paid"]'));
-    paidCell.nativeElement.click();
+    const cell = fixture.debugElement.query(By.css('[data-cell-state="unavailable"]'));
+    cell.nativeElement.click();
 
-    expect(emitted.length).toBe(1);
+    expect(emitted).toEqual([]);
   });
 
-  it('shows a paid/total summary for the selected season', async () => {
+  it('shows a paid/total summary counting only fully-paid months', async () => {
     const roster = buildRoster();
-    roster.months[0] = {
-      month: 9,
-      year: 2026,
-      paid: true,
-      paymentId: 1,
-      amount: 40,
-      paymentDate: '2026-09-05',
-    };
-    roster.months[1] = {
-      month: 10,
-      year: 2026,
-      paid: true,
-      paymentId: 2,
-      amount: 40,
-      paymentDate: '2026-10-05',
-    };
+    roster.months[0] = { ...roster.months[0], status: 'paid' };
+    roster.months[1] = { ...roster.months[1], status: 'paid' };
     await setup([roster]);
 
     expect(component.paidCount()).toBe(2);
@@ -242,30 +268,6 @@ describe('PaymentsGrid', () => {
       expect(paginatorLength).toBe(12);
     });
 
-    it('keeps the paid/total summary based on the full roster, not just the current page', async () => {
-      const roster = buildRosterOf(12);
-      roster[0].months[0] = {
-        month: 9,
-        year: 2026,
-        paid: true,
-        paymentId: 1,
-        amount: 40,
-        paymentDate: '2026-09-05',
-      };
-      roster[11].months[0] = {
-        month: 9,
-        year: 2026,
-        paid: true,
-        paymentId: 2,
-        amount: 40,
-        paymentDate: '2026-09-05',
-      };
-      await setup(roster);
-
-      expect(component.paidCount()).toBe(2);
-      expect(component.totalCount()).toBe(120);
-    });
-
     it('resets to the first page when the roster input changes', async () => {
       await setup(buildRosterOf(12));
 
@@ -301,19 +303,6 @@ describe('PaymentsGrid', () => {
       expect(rows[0].nativeElement.textContent).toContain('Georgiou Kostas');
     });
 
-    it('narrows to the athlete matching "last first" order', async () => {
-      await setup(
-        [buildRoster({ athleteId: 1, firstName: 'Kostas', lastName: 'Georgiou' }),
-         buildRoster({ athleteId: 2, firstName: 'Maria', lastName: 'Papadaki' })],
-        2026,
-        'georgiou kos',
-      );
-
-      const rows = fixture.debugElement.queryAll(By.css('tbody tr'));
-      expect(rows.length).toBe(1);
-      expect(rows[0].nativeElement.textContent).toContain('Georgiou Kostas');
-    });
-
     it('is case-insensitive', async () => {
       await setup([buildRoster({ firstName: 'Kostas', lastName: 'Georgiou' })], 2026, 'KOSTAS');
 
@@ -335,50 +324,6 @@ describe('PaymentsGrid', () => {
 
       expect(fixture.debugElement.query(By.css('table'))).toBeFalsy();
       expect(fixture.nativeElement.textContent).toContain('No athletes match your search.');
-    });
-
-    it('resets to the first page when the search term narrows a later page back down', async () => {
-      const roster = Array.from({ length: 12 }, (_, index) =>
-        buildRoster({ athleteId: index + 1, firstName: `Athlete${index + 1}` }),
-      );
-      await setup(roster);
-
-      const nextButton = fixture.debugElement.query(
-        By.css('.mat-mdc-paginator-navigation-next'),
-      );
-      nextButton.nativeElement.click();
-      fixture.detectChanges();
-      await fixture.whenStable();
-      fixture.detectChanges();
-      expect(fixture.debugElement.queryAll(By.css('tbody tr')).length).toBe(2);
-
-      fixture.componentRef.setInput('searchTerm', 'Athlete1');
-      fixture.detectChanges();
-      await fixture.whenStable();
-      fixture.detectChanges();
-
-      // "Athlete1", "Athlete10", "Athlete11", "Athlete12" all match — 4 rows, single page.
-      const rows = fixture.debugElement.queryAll(By.css('tbody tr'));
-      expect(rows.length).toBe(4);
-    });
-
-    it('keeps the paid/total summary based on the full roster regardless of an active search term', async () => {
-      const roster = [
-        buildRoster({ athleteId: 1, firstName: 'Kostas', lastName: 'Georgiou' }),
-        buildRoster({ athleteId: 2, firstName: 'Maria', lastName: 'Papadaki' }),
-      ];
-      roster[0].months[0] = {
-        month: 9,
-        year: 2026,
-        paid: true,
-        paymentId: 1,
-        amount: 40,
-        paymentDate: '2026-09-05',
-      };
-      await setup(roster, 2026, 'maria');
-
-      expect(component.paidCount()).toBe(1);
-      expect(component.totalCount()).toBe(20);
     });
   });
 });

@@ -34,6 +34,8 @@ const en = {
     updateSuccess: 'Customer updated successfully.',
     saveError: 'Something went wrong while saving. Please try again.',
     editButton: 'Edit',
+    activeLabel: 'Active',
+    inactiveSince: 'Inactive since {{date}}',
   },
 };
 
@@ -47,6 +49,10 @@ const existingCustomer: CustomerModel = {
   sportNames: [],
   sports: [],
   paidUntil: null,
+  registrationDate: '2026-01-01',
+  active: true,
+  inactiveSince: null,
+  enrollments: [],
 };
 
 describe('CustomerDetails', () => {
@@ -156,5 +162,36 @@ describe('CustomerDetails', () => {
     await fixture.whenStable();
 
     httpMock.expectNone('http://localhost:3000/athletes/1');
+  });
+
+  it('shows the "Active" chip for an active athlete', async () => {
+    fixture.componentRef.setInput('id', '1');
+    fixture.detectChanges();
+
+    TestBed.inject(HttpTestingController)
+      .expectOne('http://localhost:3000/athletes/1')
+      .flush(existingCustomer);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Active');
+  });
+
+  it('shows "Inactive since …" for an inactive athlete', async () => {
+    fixture.componentRef.setInput('id', '1');
+    fixture.detectChanges();
+
+    const inactiveCustomer: CustomerModel = {
+      ...existingCustomer,
+      active: false,
+      inactiveSince: '2027-02-01',
+    };
+    TestBed.inject(HttpTestingController)
+      .expectOne('http://localhost:3000/athletes/1')
+      .flush(inactiveCustomer);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Inactive since 2027-02-01');
   });
 });

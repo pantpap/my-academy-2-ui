@@ -64,10 +64,10 @@ export class PaymentsContainer {
   }
 
   protected onCellActivated(event: PaymentsGridCellActivated): void {
-    if (event.month.paid) {
-      this.openDetailDialog(event.athlete, event.month);
-    } else {
+    if (event.month.status === 'unpaid') {
       this.openRecordDialog(event.athlete, event.month);
+    } else {
+      this.openDetailDialog(event.athlete, event.month);
     }
   }
 
@@ -80,7 +80,6 @@ export class PaymentsContainer {
         initialMonth: month.month,
         initialYear: month.year,
         months: athlete.months,
-        onSaved: () => this.rosterSeasonResource.reload(),
       },
     });
 
@@ -91,16 +90,16 @@ export class PaymentsContainer {
 
   private openDetailDialog(athlete: RosterSeasonEntry, month: RosterSeasonMonth): void {
     const ref = this.dialog.open<PaymentDetailDialog, PaymentDetailDialogData>(PaymentDetailDialog, {
-      width: '400px',
+      width: '480px',
       data: {
         athleteId: athlete.athleteId,
         athleteName: `${athlete.firstName} ${athlete.lastName}`,
-        payment: month,
+        month,
       },
     });
 
     ref.afterClosed().subscribe((result) => {
-      if (result?.deleted) this.rosterSeasonResource.reload();
+      if (result?.changed) this.rosterSeasonResource.reload();
     });
   }
 }

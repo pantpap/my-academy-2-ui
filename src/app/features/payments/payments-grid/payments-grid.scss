@@ -1,0 +1,44 @@
+:host {
+  --payments-grid-paid-bg: light-dark(#dcfce7, #14532d);
+  --payments-grid-paid-fg: light-dark(#166534, #bbf7d0);
+  --payments-grid-partial-bg: light-dark(#fee2e2, #7f1d1d);
+  --payments-grid-partial-fg: light-dark(#991b1b, #fecaca);
+
+  .cell-state-paid {
+    background-color: var(--payments-grid-paid-bg);
+    color: var(--payments-grid-paid-fg);
+  }
+
+  .cell-state-partial {
+    background-color: var(--payments-grid-partial-bg);
+    color: var(--payments-grid-partial-fg);
+  }
+
+  .cell-state-unpaid {
+    border: 1px solid var(--mat-sys-outline);
+    color: var(--mat-sys-on-surface-variant);
+
+    &:not(:disabled):hover {
+      background-color: var(--mat-sys-surface-variant);
+    }
+  }
+
+  // Γκρι — μη διαθέσιμος μήνας. Όσα έχουν έστω μία καταχώρηση κρατούν τον
+  // πράσινο τόνο σε χαμηλή ένταση (Q-J) — δεν υπάρχει σήμα από το API για να
+  // ξεχωρίσει πλήρως/μερικώς πληρωμένο σε μη διαθέσιμο μήνα, οπότε "υπάρχει
+  // πληρωμή" -> πράσινο, ως το πιο ασφαλές προεπιλεγμένο μήνυμα.
+  .cell-state-unavailable {
+    background-color: var(--mat-sys-surface-variant);
+    color: var(--mat-sys-outline);
+
+    &[data-has-entries='true'] {
+      background-color: var(--payments-grid-paid-bg);
+      color: var(--payments-grid-paid-fg);
+      opacity: 0.55;
+    }
+  }
+
+  button:disabled {
+    cursor: default;
+  }
+}

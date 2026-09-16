@@ -28,27 +28,23 @@
           </th>
           <td mat-cell *matCellDef="let entry" class="p-1 text-center">
             @let month = monthFor(entry, label.month);
-            @if (stateFor(month) === 'paid') {
-              <button
-                type="button"
-                [attr.data-cell-state]="'paid'"
-                [attr.aria-label]="cellAriaLabel(entry, month)"
-                class="flex size-8 items-center justify-center rounded-full bg-(--mat-sys-primary-container) text-(--mat-sys-on-primary-container) mx-auto hover:opacity-80"
-                (click)="onCellActivate(entry, month)"
-              >
-                <mat-icon class="!text-lg">check_circle</mat-icon>
-              </button>
-            } @else {
-              <button
-                type="button"
-                [attr.data-cell-state]="'due'"
-                [attr.aria-label]="cellAriaLabel(entry, month)"
-                class="flex size-8 items-center justify-center rounded-full border border-(--mat-sys-outline) text-(--mat-sys-on-surface-variant) mx-auto hover:bg-(--mat-sys-surface-variant)"
-                (click)="onCellActivate(entry, month)"
-              >
-                <mat-icon class="!text-lg">schedule</mat-icon>
-              </button>
-            }
+            @let state = stateFor(month);
+            @let clickable = isClickable(month);
+            @let tooltip = tooltipFor(month);
+            <button
+              type="button"
+              [attr.data-cell-state]="state"
+              [attr.data-has-entries]="month.entries.length > 0"
+              [attr.aria-label]="cellAriaLabel(entry, month)"
+              [attr.aria-disabled]="!clickable"
+              [disabled]="!clickable"
+              [matTooltip]="tooltip ?? ''"
+              [matTooltipDisabled]="!tooltip"
+              class="cell-state-{{ state }} flex size-8 items-center justify-center rounded-full mx-auto"
+              (click)="onCellActivate(entry, month)"
+            >
+              <mat-icon class="!text-lg">{{ cellIcons[state] }}</mat-icon>
+            </button>
           </td>
         </ng-container>
       }

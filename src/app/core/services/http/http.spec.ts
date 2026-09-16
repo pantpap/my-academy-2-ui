@@ -34,4 +34,18 @@ describe('Http', () => {
     req.flush(null);
     expect(completed).toBe(true);
   });
+
+  it('delete() sends optional params as query parameters', () => {
+    let completed = false;
+    service.delete('payments/months', { athleteId: 3, month: 9, year: 2026 }).subscribe(() => (completed = true));
+
+    const req = httpMock.expectOne((r) => r.url.endsWith('/payments/months'));
+    expect(req.request.method).toBe('DELETE');
+    expect(req.request.params.get('athleteId')).toBe('3');
+    expect(req.request.params.get('month')).toBe('9');
+    expect(req.request.params.get('year')).toBe('2026');
+
+    req.flush(null);
+    expect(completed).toBe(true);
+  });
 });

@@ -38,6 +38,20 @@ const en = {
     paidUntilLabel: 'Paid Until',
     notPaid: 'Not paid',
     saveError: 'Something went wrong while saving. Please try again.',
+    registrationDateLabel: 'Registration Date',
+    registrationDateRequired: 'Registration date is required',
+    activeLabel: 'Active',
+    inactiveSince: 'Inactive since {{date}}',
+    startDateLabel: 'Start Date',
+    endDateLabel: 'End Date',
+    leavingLabel: 'Leaving',
+    deletePeriod: 'Delete this period',
+    historyTitle: 'Sport history',
+    startBeforeRegistration: 'Start date cannot be before the registration date',
+    endBeforeStart: 'End date must be after the start date',
+    endDateRequired: 'End date is required',
+    overlappingPeriods: 'This overlaps with another period for the same sport',
+    sportsLabel: 'Sports',
   },
 };
 
@@ -55,6 +69,10 @@ const existingCustomer: Customer = {
   sportNames: [],
   sports: [],
   paidUntil: '2026-12-31',
+  registrationDate: '2026-01-01',
+  active: true,
+  inactiveSince: null,
+  enrollments: [],
 };
 
 async function createFixture(
@@ -124,6 +142,12 @@ function inputByName(
   return inputs[FIELD_ORDER.indexOf(name)];
 }
 
+function todayAtMidnight(): Date {
+  const date = new Date();
+  date.setHours(0, 0, 0, 0);
+  return date;
+}
+
 describe('CustomerFormDialog', () => {
   it('should create in create mode when no customer is provided', async () => {
     const fixture = await createFixture({});
@@ -146,12 +170,6 @@ describe('CustomerFormDialog', () => {
     const fixture = await createFixture({ customer: existingCustomer });
     const title = fixture.nativeElement.querySelector('[mat-dialog-title]');
     expect(title?.textContent?.trim()).toBe('Edit Customer');
-  });
-
-  it('should render exactly ten form fields (five profile + four address + sports)', async () => {
-    const fixture = await createFixture({});
-    const fields = fixture.nativeElement.querySelectorAll('mat-form-field');
-    expect(fields.length).toBe(10);
   });
 
   it('should render cancel and save actions', async () => {
@@ -188,25 +206,14 @@ describe('CustomerFormDialog', () => {
       expect(inputByName(fixture, 'country').value).toBe('Greece');
     });
 
-    it('shows address fields empty when the customer has no address data', async () => {
-      const customerWithoutAddress: Customer = {
-        ...existingCustomer,
-        street: undefined,
-        city: undefined,
-        postalCode: undefined,
-        country: undefined,
-      };
-      const fixture = await createFixture({ customer: customerWithoutAddress });
-      expect(inputByName(fixture, 'street').value).toBe('');
-      expect(inputByName(fixture, 'city').value).toBe('');
-      expect(inputByName(fixture, 'postalCode').value).toBe('');
-      expect(inputByName(fixture, 'country').value).toBe('');
+    it('shows the registration date as read-only text, not an input', async () => {
+      const fixture = await createFixture({ customer: existingCustomer });
+      expect(fixture.nativeElement.textContent).toContain('2026-01-01');
     });
 
     it('shows paidUntil as read-only text, not an input', async () => {
       const fixture = await createFixture({ customer: existingCustomer });
       expect(fixture.nativeElement.textContent).toContain('2026-12-31');
-      expect(fixture.nativeElement.querySelector('input[name="paidUntil"]')).toBeNull();
     });
 
     it('shows the "not paid" fallback when paidUntil is null', async () => {
@@ -215,41 +222,323 @@ describe('CustomerFormDialog', () => {
     });
   });
 
-  describe('sports assignment', () => {
-    it('lists the organization\'s available sports fetched from SportsService', async () => {
-      // mat-select renders its mat-options into a CDK overlay only once the panel is opened,
-      // so this asserts against the resource data the template iterates over rather than
-      // querying rendered DOM (which would require driving the overlay open in jsdom).
+  describe('registration date (create mode)', () => {
+    it('defaults to today', async () => {
       const fixture = await createFixture({});
-      expect(fixture.componentInstance['sportsResource'].value()).toEqual(availableSports);
+      const registrationDate = fixture.componentInstance['model']().registrationDate;
+      expect(registrationDate?.getTime()).toBe(todayAtMidnight().getTime());
     });
 
-    it('pre-selects the customer\'s current sports in edit mode', async () => {
-      const customerWithSports: Customer = {
-        ...existingCustomer,
-        sports: [{ id: 1, name: 'Football' }],
-        sportNames: ['Football'],
-      };
-      const fixture = await createFixture({ customer: customerWithSports });
-
-      expect(fixture.componentInstance['model']().sportIds).toEqual([1]);
-      expect(fixture.nativeElement.textContent).toContain('Football');
-    });
-
-    it('starts with no sports selected in create mode', async () => {
+    it('disables save when cleared', async () => {
       const fixture = await createFixture({});
-      expect(fixture.componentInstance['model']().sportIds).toEqual([]);
+      fixture.componentInstance['onRegistrationDateChange'](null);
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance['saveDisabled']()).toBe(true);
     });
+  });
 
-    it('includes sportIds in the payload when saving', async () => {
-      const updateCustomer = vi.fn(() => of(existingCustomer));
-      const fixture = await createFixture({ customer: existingCustomer }, { updateCustomer });
+  describe('active toggle', () => {
+    it('defaults to active in create mode and is included in the payload', async () => {
+      const createCustomer = vi.fn(() => of(existingCustomer));
+      const fixture = await createFixture({}, { createCustomer });
 
-      fixture.componentInstance['model'].update((m) => ({ ...m, sportIds: [2] }));
+      fixture.componentInstance['model'].update((m) => ({
+        ...m,
+        firstName: 'Alex',
+        lastName: 'Smith',
+        birthDate: new Date('1990-05-05'),
+        gender: 'male',
+        phone: '+30 6911111111',
+      }));
 
       await submit(fixture.componentInstance['customerForm']);
 
-      expect(updateCustomer).toHaveBeenCalledWith(1, expect.objectContaining({ sportIds: [2] }));
+      expect(createCustomer).toHaveBeenCalledWith(expect.objectContaining({ active: true }));
+    });
+
+    it('sends active: false when toggled off', async () => {
+      const updateCustomer = vi.fn(() => of(existingCustomer));
+      const fixture = await createFixture({ customer: existingCustomer }, { updateCustomer });
+
+      fixture.componentInstance['onActiveChange'](false);
+      await submit(fixture.componentInstance['customerForm']);
+
+      expect(updateCustomer).toHaveBeenCalledWith(1, expect.objectContaining({ active: false }));
+    });
+
+    it('shows "Inactive since …" when the athlete is inactive', async () => {
+      const fixture = await createFixture({
+        customer: { ...existingCustomer, active: false, inactiveSince: '2027-02-01' },
+      });
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.textContent).toContain('Inactive since 2027-02-01');
+    });
+  });
+
+  describe('sport enrollment — create mode', () => {
+    it('starts with no enrollment rows', async () => {
+      const fixture = await createFixture({});
+      expect(fixture.componentInstance['activePeriods']()).toEqual([]);
+    });
+
+    it('selecting two sports creates two rows starting on the registration date', async () => {
+      const fixture = await createFixture({});
+      const registrationDate = fixture.componentInstance['model']().registrationDate;
+
+      fixture.componentInstance['onSportIdsChange']({ value: [1, 2] } as any);
+
+      const rows = fixture.componentInstance['activePeriods']();
+      expect(rows.map((r) => r.sportId).sort()).toEqual([1, 2]);
+      expect(rows.every((r) => r.startDate?.getTime() === registrationDate?.getTime())).toBe(true);
+    });
+
+    it('rows the user has not touched follow a changed registration date', async () => {
+      const fixture = await createFixture({});
+      fixture.componentInstance['onSportIdsChange']({ value: [1] } as any);
+
+      const newDate = new Date('2026-10-01');
+      fixture.componentInstance['onRegistrationDateChange'](newDate);
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance['activePeriods']()[0].startDate?.getTime()).toBe(newDate.getTime());
+    });
+
+    it('includes sportId and startDate (no id) in the create payload', async () => {
+      const createCustomer = vi.fn(() => of(existingCustomer));
+      const fixture = await createFixture({}, { createCustomer });
+
+      fixture.componentInstance['model'].update((m) => ({
+        ...m,
+        firstName: 'Alex',
+        lastName: 'Smith',
+        birthDate: new Date('1990-05-05'),
+        gender: 'male',
+        phone: '+30 6911111111',
+      }));
+      fixture.componentInstance['onSportIdsChange']({ value: [1] } as any);
+
+      await submit(fixture.componentInstance['customerForm']);
+
+      expect(createCustomer).toHaveBeenCalledWith(
+        expect.objectContaining({
+          enrollments: [expect.objectContaining({ sportId: 1, startDate: expect.any(String) })],
+        }),
+      );
+      const payload = (createCustomer.mock.calls[0] as any[])[0];
+      expect(payload.enrollments[0].id).toBeUndefined();
+    });
+
+    it('does not send registrationDate on update', async () => {
+      const updateCustomer = vi.fn(() => of(existingCustomer));
+      const fixture = await createFixture({ customer: existingCustomer }, { updateCustomer });
+
+      await submit(fixture.componentInstance['customerForm']);
+
+      const payload = (updateCustomer.mock.calls[0] as any[])[1];
+      expect(payload.registrationDate).toBeUndefined();
+    });
+  });
+
+  describe('sport enrollment — edit mode', () => {
+    const withFootball: Customer = {
+      ...existingCustomer,
+      enrollments: [
+        { id: 10, sportId: 1, sportName: 'Football', startDate: '2026-01-01', endDate: null },
+      ],
+    };
+
+    it('pre-populates the active period for an enrolled sport', async () => {
+      const fixture = await createFixture({ customer: withFootball });
+      const rows = fixture.componentInstance['activePeriods']();
+      expect(rows).toEqual([
+        expect.objectContaining({ id: 10, sportId: 1, sportName: 'Football' }),
+      ]);
+    });
+
+    it('a newly added sport defaults its start date to today', async () => {
+      const fixture = await createFixture({ customer: withFootball });
+
+      fixture.componentInstance['onSportIdsChange']({ value: [1, 2] } as any);
+
+      const newRow = fixture.componentInstance['activePeriods']().find((r) => r.sportId === 2)!;
+      expect(newRow.startDate?.getTime()).toBe(todayAtMidnight().getTime());
+      expect(newRow.id).toBeNull();
+    });
+
+    it('deselecting an existing period marks it "removing" and keeps the row', async () => {
+      const fixture = await createFixture({ customer: withFootball });
+
+      fixture.componentInstance['onSportIdsChange']({ value: [] } as any);
+
+      const rows = fixture.componentInstance['activePeriods']();
+      expect(rows).toHaveLength(1);
+      expect(rows[0].removing).toBe(true);
+    });
+
+    it('re-selecting a removing sport cancels the removal', async () => {
+      const fixture = await createFixture({ customer: withFootball });
+
+      fixture.componentInstance['onSportIdsChange']({ value: [] } as any);
+      fixture.componentInstance['onSportIdsChange']({ value: [1] } as any);
+
+      const rows = fixture.componentInstance['activePeriods']();
+      expect(rows).toHaveLength(1);
+      expect(rows[0].removing).toBe(false);
+    });
+
+    it('deselecting an unsaved new row just removes it', async () => {
+      const fixture = await createFixture({ customer: existingCustomer });
+
+      fixture.componentInstance['onSportIdsChange']({ value: [1] } as any);
+      fixture.componentInstance['onSportIdsChange']({ value: [] } as any);
+
+      expect(fixture.componentInstance['activePeriods']()).toEqual([]);
+    });
+
+    it('requires an end date before a removing row can be saved', async () => {
+      const fixture = await createFixture({ customer: withFootball });
+      fixture.componentInstance['onSportIdsChange']({ value: [] } as any);
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance['saveDisabled']()).toBe(true);
+
+      const row = fixture.componentInstance['activePeriods']()[0];
+      fixture.componentInstance['onActiveRowEndDateChange'](row, new Date('2027-01-20'));
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance['saveDisabled']()).toBe(false);
+    });
+
+    it('sends the ended period as an update with id/startDate/endDate', async () => {
+      const updateCustomer = vi.fn(() => of(existingCustomer));
+      const fixture = await createFixture({ customer: withFootball }, { updateCustomer });
+
+      fixture.componentInstance['onSportIdsChange']({ value: [] } as any);
+      const row = fixture.componentInstance['activePeriods']()[0];
+      fixture.componentInstance['onActiveRowEndDateChange'](row, new Date('2027-01-20'));
+
+      await submit(fixture.componentInstance['customerForm']);
+
+      expect(updateCustomer).toHaveBeenCalledWith(
+        1,
+        expect.objectContaining({
+          enrollments: [{ id: 10, sportId: 1, startDate: '2026-01-01', endDate: '2027-01-20' }],
+        }),
+      );
+    });
+
+    it('a deletion button on an active row removes it from the payload entirely', async () => {
+      const updateCustomer = vi.fn(() => of(existingCustomer));
+      const fixture = await createFixture({ customer: withFootball }, { updateCustomer });
+
+      const row = fixture.componentInstance['activePeriods']()[0];
+      fixture.componentInstance['deleteActivePeriod'](row);
+
+      await submit(fixture.componentInstance['customerForm']);
+
+      expect(updateCustomer).toHaveBeenCalledWith(1, expect.objectContaining({ enrollments: [] }));
+    });
+  });
+
+  describe('sport history (edit mode)', () => {
+    const withHistory: Customer = {
+      ...existingCustomer,
+      enrollments: [
+        { id: 10, sportId: 1, sportName: 'Football', startDate: '2026-01-01', endDate: null },
+        { id: 11, sportId: 2, sportName: 'Basketball', startDate: '2025-09-01', endDate: '2025-12-31' },
+      ],
+    };
+
+    it('lists only ended periods in the history, not the active one', async () => {
+      const fixture = await createFixture({ customer: withHistory });
+      const history = fixture.componentInstance['historyPeriods']();
+
+      expect(history).toEqual([
+        expect.objectContaining({ id: 11, sportId: 2, sportName: 'Basketball' }),
+      ]);
+    });
+
+    it('does not render the history section when there is nothing ended', async () => {
+      const fixture = await createFixture({ customer: existingCustomer });
+      expect(fixture.nativeElement.textContent).not.toContain('Sport history');
+    });
+
+    it('renders the history section when a period has ended', async () => {
+      const fixture = await createFixture({ customer: withHistory });
+      fixture.detectChanges();
+      expect(fixture.nativeElement.textContent).toContain('Sport history');
+    });
+
+    it('editing history dates updates the row', async () => {
+      const fixture = await createFixture({ customer: withHistory });
+      const row = fixture.componentInstance['historyPeriods']()[0];
+
+      fixture.componentInstance['onHistoryRowEndDateChange'](row, new Date('2025-12-15'));
+
+      expect(fixture.componentInstance['historyPeriods']()[0].endDate).toEqual(new Date('2025-12-15'));
+    });
+
+    it('deleting a history row removes it from the payload', async () => {
+      const updateCustomer = vi.fn(() => of(existingCustomer));
+      const fixture = await createFixture({ customer: withHistory }, { updateCustomer });
+
+      const row = fixture.componentInstance['historyPeriods']()[0];
+      fixture.componentInstance['deleteHistoryPeriod'](row);
+
+      await submit(fixture.componentInstance['customerForm']);
+
+      const payload = (updateCustomer.mock.calls[0] as any[])[1];
+      expect(payload.enrollments.find((e: any) => e.id === 11)).toBeUndefined();
+    });
+  });
+
+  describe('enrollment validation', () => {
+    it('flags a start date before the registration date and disables save', async () => {
+      const fixture = await createFixture({});
+      fixture.componentInstance['onSportIdsChange']({ value: [1] } as any);
+      const row = fixture.componentInstance['activePeriods']()[0];
+
+      fixture.componentInstance['onActiveRowStartDateChange'](row, new Date('2020-01-01'));
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance['saveDisabled']()).toBe(true);
+    });
+
+    it('flags an end date at or before the start date', async () => {
+      const withFootball: Customer = {
+        ...existingCustomer,
+        enrollments: [
+          { id: 10, sportId: 1, sportName: 'Football', startDate: '2026-09-01', endDate: null },
+        ],
+      };
+      const fixture = await createFixture({ customer: withFootball });
+
+      fixture.componentInstance['onSportIdsChange']({ value: [] } as any);
+      const row = fixture.componentInstance['activePeriods']()[0];
+      fixture.componentInstance['onActiveRowEndDateChange'](row, new Date('2026-09-01'));
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance['saveDisabled']()).toBe(true);
+    });
+
+    it('flags overlapping periods for the same sport', async () => {
+      const withHistory: Customer = {
+        ...existingCustomer,
+        enrollments: [
+          { id: 10, sportId: 1, sportName: 'Football', startDate: '2026-09-01', endDate: null },
+          { id: 11, sportId: 1, sportName: 'Football', startDate: '2025-01-01', endDate: '2025-06-01' },
+        ],
+      };
+      const fixture = await createFixture({ customer: withHistory });
+
+      // Move the history period so it overlaps the active one.
+      const historyRow = fixture.componentInstance['historyPeriods']()[0];
+      fixture.componentInstance['onHistoryRowEndDateChange'](historyRow, new Date('2026-10-01'));
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance['saveDisabled']()).toBe(true);
     });
   });
 
@@ -348,9 +637,13 @@ describe('CustomerFormDialog', () => {
       sportNames: [],
       sports: [],
       paidUntil: null,
+      registrationDate: '2026-09-16',
+      active: true,
+      inactiveSince: null,
+      enrollments: [],
     };
 
-    it('shows all five inputs empty and no paidUntil line', async () => {
+    it('shows all inputs empty and no paidUntil line', async () => {
       const fixture = await createFixture({});
 
       expect(inputByName(fixture, 'firstName').value).toBe('');
@@ -371,7 +664,8 @@ describe('CustomerFormDialog', () => {
       const close = vi.fn();
       const fixture = await createFixture({}, { createCustomer, updateCustomer, close });
 
-      fixture.componentInstance['model'].set({
+      fixture.componentInstance['model'].update((m) => ({
+        ...m,
         firstName: 'Alex',
         lastName: 'Smith',
         birthDate: new Date('1990-05-05'),
@@ -381,8 +675,7 @@ describe('CustomerFormDialog', () => {
         city: 'Patras',
         postalCode: '22222',
         country: 'Greece',
-        sportIds: [],
-      });
+      }));
 
       const result = await submit(fixture.componentInstance['customerForm']);
 
@@ -421,7 +714,8 @@ describe('CustomerFormDialog', () => {
       const close = vi.fn();
       const fixture = await createFixture({}, { createCustomer, close });
 
-      fixture.componentInstance['model'].set({
+      fixture.componentInstance['model'].update((m) => ({
+        ...m,
         firstName: 'Alex',
         lastName: 'Smith',
         birthDate: new Date('1990-05-05'),
@@ -431,8 +725,7 @@ describe('CustomerFormDialog', () => {
         city: '',
         postalCode: '',
         country: '',
-        sportIds: [],
-      });
+      }));
 
       await submit(fixture.componentInstance['customerForm']);
       fixture.detectChanges();

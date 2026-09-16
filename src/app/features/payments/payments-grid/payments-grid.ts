@@ -10,6 +10,7 @@ import {
   untracked,
 } from '@angular/core';
 import { MatIcon } from '@angular/material/icon';
+import { MatTooltip } from '@angular/material/tooltip';
 import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import {
   MatCell,
@@ -26,7 +27,7 @@ import {
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { RosterSeasonEntry, RosterSeasonMonth } from '../../../common/interfaces/payment';
 import { LanguageService } from '../../../core/services/language/language.service';
-import { CellState, cellState } from './cell-state';
+import { CellState, cellState, isClickable } from './cell-state';
 
 export interface PaymentsGridCellActivated {
   athlete: RosterSeasonEntry;
@@ -42,10 +43,18 @@ interface MonthLabel {
 // Fixed season order: September(startYear) -> June(startYear + 1).
 const SEASON_MONTHS = [9, 10, 11, 12, 1, 2, 3, 4, 5, 6];
 
+const CELL_ICONS: Record<CellState, string> = {
+  paid: 'check_circle',
+  partial: 'close',
+  unpaid: 'schedule',
+  unavailable: 'schedule',
+};
+
 @Component({
   selector: 'app-payments-grid',
   imports: [
     MatIcon,
+    MatTooltip,
     MatTable,
     MatColumnDef,
     MatHeaderCell,
@@ -110,20 +119,33 @@ export class PaymentsGrid {
     ...this.monthLabels().map((label) => `m${label.month}`),
   ]);
 
+  // Εκτός scope (SPEC-payments-sports-grid.md): μόνο ώστε το summary να κάνει
+  // compile με το νέο μοντέλο status. "Πλήρως πληρωμένα" μόνο.
   readonly totalCount = computed(() => this.roster().length * this.monthLabels().length);
   readonly paidCount = computed(() =>
     this.roster().reduce(
-      (sum, entry) => sum + entry.months.filter((month) => month.paid).length,
+      (sum, entry) => sum + entry.months.filter((month) => month.status === 'paid').length,
       0,
     ),
   );
 
+  protected readonly cellIcons = CELL_ICONS;
+
   protected stateFor(month: RosterSeasonMonth): CellState {
-    return cellState(month.paid);
+    return cellState(month);
+  }
+
+  protected isClickable(month: RosterSeasonMonth): boolean {
+    return isClickable(month);
   }
 
   protected monthFor(entry: RosterSeasonEntry, monthNumber: number): RosterSeasonMonth {
     return entry.months.find((month) => month.month === monthNumber)!;
+  }
+
+  protected tooltipFor(month: RosterSeasonMonth): string | null {
+    if (month.status !== 'partial' || month.unpaidSports.length === 0) return null;
+    return month.unpaidSports.map((sport) => sport.name).join(', ');
   }
 
   private matchesSearch(entry: RosterSeasonEntry, term: string): boolean {
@@ -134,7 +156,12 @@ export class PaymentsGrid {
 
   protected cellAriaLabel(entry: RosterSeasonEntry, month: RosterSeasonMonth): string {
     const state = this.stateFor(month);
-    const stateLabel = this.translocoService.translate(`payments.stateLabels.${state}`);
+    let stateLabel = this.translocoService.translate(`payments.stateLabels.${state}`);
+    if (state === 'partial' && month.unpaidSports.length > 0) {
+      stateLabel = this.translocoService.translate('payments.unpaidSportsTooltip', {
+        sports: month.unpaidSports.map((sport) => sport.name).join(', '),
+      });
+    }
     const monthLabel = this.monthLabels().find((label) => label.month === month.month)?.label ?? '';
 
     return this.translocoService.translate('payments.cellAriaLabel', {
@@ -146,6 +173,7 @@ export class PaymentsGrid {
   }
 
   protected onCellActivate(entry: RosterSeasonEntry, month: RosterSeasonMonth): void {
+    if (!this.isClickable(month)) return;
     this.cellActivated.emit({ athlete: entry, month });
   }
 
