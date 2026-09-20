@@ -15,7 +15,10 @@ export class Http {
     let httpParams = new HttpParams();
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
-        httpParams = httpParams.set(key, value.toString());
+        if(value){
+          httpParams = httpParams.set(key, value.toString());
+        }
+
       });
     }
     return this.httpClient.get<T>(endpoint, { params: httpParams });

@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { rxResource } from '@angular/core/rxjs-interop';
+import { rxResource, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { MatDialog } from '@angular/material/dialog';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
@@ -13,6 +13,7 @@ import { PaymentsGrid, PaymentsGridCellActivated } from '../payments-grid/paymen
 import { PaymentFormDialog, PaymentFormDialogData } from '../payment-form-dialog/payment-form-dialog';
 import { PaymentDetailDialog, PaymentDetailDialogData } from '../payment-detail-dialog/payment-detail-dialog';
 import { defaultSeasonStartYear, seasonOptions, SeasonOption } from './season';
+import { debounceTime, distinctUntilChanged, map } from 'rxjs';
 
 const SEASON_RANGE = 2;
 
@@ -46,9 +47,22 @@ export class PaymentsContainer {
   readonly selectedSeasonStartYear = signal(defaultSeasonStartYear(this.today));
   readonly searchTerm = signal('');
 
+  private readonly debouncedSearchTerm = toSignal(
+    toObservable(this.searchTerm).pipe(
+      debounceTime(300),
+      map((term) => term.trim()),
+      distinctUntilChanged(),
+    ),
+    { initialValue: '' },
+  );
+
   readonly rosterSeasonResource = rxResource({
-    params: () => this.selectedSeasonStartYear(),
-    stream: ({ params: startYear }) => this.paymentsService.getRosterSeason(startYear),
+    params: () => ({
+      year: this.selectedSeasonStartYear(),
+      searchTerm: this.debouncedSearchTerm()
+    }),
+    stream: ({ params }) =>
+      this.paymentsService.getRosterSeason(params.year, params.searchTerm),
   });
 
   onSeasonChange(startYear: number): void {
@@ -89,14 +103,17 @@ export class PaymentsContainer {
   }
 
   private openDetailDialog(athlete: RosterSeasonEntry, month: RosterSeasonMonth): void {
-    const ref = this.dialog.open<PaymentDetailDialog, PaymentDetailDialogData>(PaymentDetailDialog, {
-      width: '480px',
-      data: {
-        athleteId: athlete.athleteId,
-        athleteName: `${athlete.firstName} ${athlete.lastName}`,
-        month,
+    const ref = this.dialog.open<PaymentDetailDialog, PaymentDetailDialogData>(
+      PaymentDetailDialog,
+      {
+        width: '480px',
+        data: {
+          athleteId: athlete.athleteId,
+          athleteName: `${athlete.firstName} ${athlete.lastName}`,
+          month,
+        },
       },
-    });
+    );
 
     ref.afterClosed().subscribe((result) => {
       if (result?.changed) this.rosterSeasonResource.reload();

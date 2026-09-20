@@ -76,10 +76,11 @@ export class Payments {
     });
   }
 
-  getRosterSeason(startYear: number) {
+  getRosterSeason(startYear: number, searchTerm: string) {
     return this.httpService.get<RosterSeasonEntry[]>(`${PAYMENTS_API}/roster-season`, {
       organizationId: this.organizationId(),
       startYear,
+      searchTerm,
     });
   }
 
