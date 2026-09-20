@@ -73,7 +73,7 @@ export class PaymentsContainer {
 
   private openRecordDialog(athlete: RosterSeasonEntry, month: RosterSeasonMonth): void {
     const ref = this.dialog.open<PaymentFormDialog, PaymentFormDialogData>(PaymentFormDialog, {
-      width: '480px',
+      width: '700px',
       data: {
         athleteId: athlete.athleteId,
         athleteName: `${athlete.firstName} ${athlete.lastName}`,
