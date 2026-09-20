@@ -1,16 +1,9 @@
-// 40px στις εξωτερικές πλευρές του dialog (SPEC-customer-dialog-padding.md).
-// Τα εσωτερικά κάθετα κενά (13/20/16px) μένουν στις τιμές του Material.
-// Μέσω tokens και όχι με `padding:`, ώστε να μην εξαρτάται από σειρά φόρτωσης —
-// ο κανόνας `.mat-mdc-dialog-container-with-actions .mat-mdc-dialog-content`
-// του Material έχει ίδια specificity με έναν component-scoped κανόνα.
 :host {
   --mat-dialog-headline-padding: 40px 40px 13px;
   --mat-dialog-with-actions-content-padding: 20px 40px 0;
   --mat-dialog-actions-padding: 16px 40px 40px;
 }
 
-// Το .dialog-header δεν έχει padding — το δίνει ο τίτλος. Το κουμπί X είναι
-// αδελφός του τίτλου, άρα χρειάζεται δικό του περιθώριο για τα 40px.
 .dialog-close-button {
-  margin-right: 32px; // 40px - 8px εσωτερικό padding του mat-icon-button
+  margin-right: 32px;
 }
