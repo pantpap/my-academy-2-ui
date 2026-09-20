@@ -6,6 +6,7 @@
 // custom components at https://material.angular.dev/guide/theming
 @use '@angular/material' as mat;
 @use './theme-overrides' as app-theme;
+@use './dialog-overrides';
 
 html {
   height: 100%;
