@@ -15,7 +15,7 @@ import { MatInput } from '@angular/material/input';
 import { MatSelect } from '@angular/material/select';
 import { MatOption } from '@angular/material/core';
 import { MatDatepicker, MatDatepickerInput, MatDatepickerToggle } from '@angular/material/datepicker';
-import { MatButton } from '@angular/material/button';
+import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { RosterSeasonMonth, RosterSeasonSport, CellStatus } from '../../../common/interfaces/payment';
@@ -80,6 +80,7 @@ function formatDateForApi(date: Date | null): string {
     MatButton,
     MatIcon,
     TranslocoDirective,
+    MatIconButton,
   ],
   templateUrl: './payment-form-dialog.html',
   styleUrl: './payment-form-dialog.scss',

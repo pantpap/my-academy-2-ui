@@ -1,81 +1,95 @@
 <ng-container *transloco="let translate">
-  <h2 mat-dialog-title>{{ translate('payments.recordTitle', { name: athleteName }) }}</h2>
+  <div class="dialog-header">
+    <h2 mat-dialog-title>{{ translate('payments.recordTitle', { name: athleteName }) }}</h2>
+    <button
+      mat-icon-button
+      type="button"
+      mat-dialog-close
+      class="dialog-close-button"
+      [disabled]="submitting()"
+      [attr.aria-label]="translate('common.close')"
+    >
+      <mat-icon aria-hidden="true">close</mat-icon>
+    </button>
+  </div>
 
   <mat-dialog-content class="flex flex-col gap-4 pt-2">
-    <mat-form-field>
-      <mat-label>{{ translate('payments.monthsLabel') }}</mat-label>
-      <mat-select
-        multiple
-        [value]="selectedMonths()"
-        [disabled]="submitting()"
-        (selectionChange)="onMonthsSelectionChange($event.value)"
-      >
-        @for (monthToggle of monthToggles(); track monthToggle.month) {
-          <mat-option
-            [value]="monthToggle.month"
-            [disabled]="monthToggle.status === 'paid' || monthToggle.status === 'unavailable'"
-          >
-            {{ monthToggle.label }}
-            @if (monthToggle.status === 'paid') {
-              <mat-icon aria-hidden="true" class="!text-base align-middle">check_circle</mat-icon>
-            }
-          </mat-option>
-        }
-      </mat-select>
-    </mat-form-field>
-
-    @if (showSportsSelect()) {
+    <div class="grid grid-cols-2 gap-4">
       <mat-form-field>
-        <mat-label>{{ translate('payments.sportsLabel') }}</mat-label>
-        <mat-select
-          multiple
-          [value]="selectedSportIds()"
+        <mat-label>{{ translate('payments.amountLabel') }}</mat-label>
+        <input
+          matInput
+          type="number"
+          step="0.01"
+          min="0"
+          [value]="model().amount ?? ''"
+          (input)="onAmountInput($any($event.target).value)"
           [disabled]="submitting()"
-          (selectionChange)="onSportIdsChange($event.value)"
-        >
-          @for (sport of availableSports(); track sport.id) {
-            <mat-option [value]="sport.id">{{ sport.name }}</mat-option>
-          }
-        </mat-select>
-        @if (selectedSportIds().length === 0) {
-          <mat-error>{{ translate('payments.sportsRequired') }}</mat-error>
+        />
+        @if (hasError(paymentForm.amount().errors(), 'required')) {
+          <mat-error>{{ translate('payments.amountRequired') }}</mat-error>
+        } @else if (hasError(paymentForm.amount().errors(), 'min')) {
+          <mat-error>{{ translate('payments.amountInvalid') }}</mat-error>
         }
       </mat-form-field>
-    }
 
-    <mat-form-field>
-      <mat-label>{{ translate('payments.amountLabel') }}</mat-label>
-      <input
-        matInput
-        type="number"
-        step="0.01"
-        min="0"
-        [value]="model().amount ?? ''"
-        (input)="onAmountInput($any($event.target).value)"
-        [disabled]="submitting()"
-      />
-      @if (hasError(paymentForm.amount().errors(), 'required')) {
-        <mat-error>{{ translate('payments.amountRequired') }}</mat-error>
-      } @else if (hasError(paymentForm.amount().errors(), 'min')) {
-        <mat-error>{{ translate('payments.amountInvalid') }}</mat-error>
-      }
-    </mat-form-field>
+      <mat-form-field>
+        <mat-label>{{ translate('payments.dateLabel') }}</mat-label>
+        <input
+          matInput
+          [matDatepicker]="paymentDatePicker"
+          [value]="model().paymentDate"
+          (dateChange)="onDateChange($event.value)"
+          [disabled]="submitting()"
+        />
+        <mat-datepicker-toggle matSuffix [for]="paymentDatePicker"></mat-datepicker-toggle>
+        <mat-datepicker #paymentDatePicker></mat-datepicker>
+        @if (hasError(paymentForm.paymentDate().errors(), 'required')) {
+          <mat-error>{{ translate('payments.dateRequired') }}</mat-error>
+        }
+      </mat-form-field>
 
-    <mat-form-field>
-      <mat-label>{{ translate('payments.dateLabel') }}</mat-label>
-      <input
-        matInput
-        [matDatepicker]="paymentDatePicker"
-        [value]="model().paymentDate"
-        (dateChange)="onDateChange($event.value)"
-        [disabled]="submitting()"
-      />
-      <mat-datepicker-toggle matSuffix [for]="paymentDatePicker"></mat-datepicker-toggle>
-      <mat-datepicker #paymentDatePicker></mat-datepicker>
-      @if (hasError(paymentForm.paymentDate().errors(), 'required')) {
-        <mat-error>{{ translate('payments.dateRequired') }}</mat-error>
+      <mat-form-field>
+        <mat-label>{{ translate('payments.monthsLabel') }}</mat-label>
+        <mat-select
+          multiple
+          [value]="selectedMonths()"
+          [disabled]="submitting()"
+          (selectionChange)="onMonthsSelectionChange($event.value)"
+        >
+          @for (monthToggle of monthToggles(); track monthToggle.month) {
+            <mat-option
+              [value]="monthToggle.month"
+              [disabled]="monthToggle.status === 'paid' || monthToggle.status === 'unavailable'"
+            >
+              {{ monthToggle.label }}
+              @if (monthToggle.status === 'paid') {
+                <mat-icon aria-hidden="true" class="!text-base align-middle">check_circle</mat-icon>
+              }
+            </mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      @if (showSportsSelect()) {
+        <mat-form-field>
+          <mat-label>{{ translate('payments.sportsLabel') }}</mat-label>
+          <mat-select
+            multiple
+            [value]="selectedSportIds()"
+            [disabled]="submitting()"
+            (selectionChange)="onSportIdsChange($event.value)"
+          >
+            @for (sport of availableSports(); track sport.id) {
+              <mat-option [value]="sport.id">{{ sport.name }}</mat-option>
+            }
+          </mat-select>
+          @if (selectedSportIds().length === 0) {
+            <mat-error>{{ translate('payments.sportsRequired') }}</mat-error>
+          }
+        </mat-form-field>
       }
-    </mat-form-field>
+    </div>
 
     @if (failureMessage()) {
       <p class="text-(--mat-sys-error)">{{ failureMessage() }}</p>

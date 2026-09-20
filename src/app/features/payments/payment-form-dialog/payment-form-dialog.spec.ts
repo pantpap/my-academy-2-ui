@@ -97,6 +97,17 @@ describe('PaymentFormDialog', () => {
     expect(title.textContent).toContain('Kostas Georgiou');
   });
 
+  it('renders a close button that closes the dialog', async () => {
+    const close = vi.fn();
+    const fixture = await createFixture(baseData(), { close });
+
+    const closeButton: HTMLButtonElement = fixture.nativeElement.querySelector('.dialog-close-button');
+    expect(closeButton).toBeTruthy();
+
+    closeButton.click();
+    expect(close).toHaveBeenCalled();
+  });
+
   it('pre-selects the initially clicked month', async () => {
     const fixture = await createFixture(baseData({ initialMonth: 11, initialYear: 2026 }));
     expect(fixture.componentInstance['selectedMonths']()).toEqual([11]);
@@ -110,6 +121,38 @@ describe('PaymentFormDialog', () => {
     const toggles = fixture.componentInstance['monthToggles']();
     expect(toggles.find((m) => m.month === 9)?.selected).toBe(true);
     expect(fixture.componentInstance['monthsToSubmit']().some((m) => m.month === 9)).toBe(false);
+  });
+
+  it('lays out the fields in a 2-column grid, ordered Amount, Date, Months, Sports', async () => {
+    const fixture = await createFixture(
+      baseData({
+        months: seasonMonths({
+          9: {
+            owedSports: [{ id: 1, name: 'Football' }, { id: 2, name: 'Basketball' }],
+            unpaidSports: [{ id: 1, name: 'Football' }, { id: 2, name: 'Basketball' }],
+          },
+        }),
+      }),
+    );
+
+    const grid: HTMLElement = fixture.nativeElement.querySelector('.grid.grid-cols-2');
+    expect(grid).toBeTruthy();
+
+    const labels = Array.from(grid.querySelectorAll<HTMLElement>('mat-label')).map((el) => el.textContent?.trim());
+    expect(labels).toEqual(['Amount', 'Payment date', 'Months', 'Sports']);
+  });
+
+  it('leaves the grid cell empty, without expanding Months, when Sports is hidden', async () => {
+    const fixture = await createFixture(baseData());
+
+    expect(fixture.componentInstance['showSportsSelect']()).toBe(false);
+
+    const grid: HTMLElement = fixture.nativeElement.querySelector('.grid.grid-cols-2');
+    const formFields = grid.querySelectorAll<HTMLElement>('mat-form-field');
+    expect(formFields.length).toBe(3);
+
+    const monthsField = Array.from(formFields).find((el) => el.textContent?.includes('Months'));
+    expect(monthsField?.className).not.toContain('col-span-2');
   });
 
   it('disables unavailable months in the multi-select', async () => {
