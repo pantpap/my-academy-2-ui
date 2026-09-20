@@ -1,7 +1,18 @@
 <ng-container *transloco="let translate">
-  <h2 mat-dialog-title>
-    {{ isEditMode ? translate('customerDetails.editTitle') : translate('customerDetails.createTitle') }}
-  </h2>
+  <div class="dialog-header">
+    <h2 mat-dialog-title>
+      {{ isEditMode ? translate('customerDetails.editTitle') : translate('customerDetails.createTitle') }}
+    </h2>
+    <button
+      mat-icon-button
+      type="button"
+      mat-dialog-close
+      class="dialog-close-button"
+      [attr.aria-label]="translate('common.close')"
+    >
+      <mat-icon aria-hidden="true">close</mat-icon>
+    </button>
+  </div>
 
   <mat-dialog-content>
     <form id="customer-form" [formRoot]="customerForm" class="grid grid-cols-2 gap-4 pt-2">

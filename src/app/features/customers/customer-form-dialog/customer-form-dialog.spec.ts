@@ -20,6 +20,7 @@ const en = {
   common: {
     save: 'Save',
     cancel: 'Cancel',
+    close: 'Close',
   },
   customerDetails: {
     createTitle: 'New Customer',
@@ -170,6 +171,17 @@ describe('CustomerFormDialog', () => {
     const fixture = await createFixture({ customer: existingCustomer });
     const title = fixture.nativeElement.querySelector('[mat-dialog-title]');
     expect(title?.textContent?.trim()).toBe('Edit Customer');
+  });
+
+  it('renders a close button that closes the dialog', async () => {
+    const close = vi.fn();
+    const fixture = await createFixture({}, { close });
+
+    const closeButton: HTMLButtonElement = fixture.nativeElement.querySelector('.dialog-close-button');
+    expect(closeButton).toBeTruthy();
+
+    closeButton.click();
+    expect(close).toHaveBeenCalled();
   });
 
   it('should render cancel and save actions', async () => {
