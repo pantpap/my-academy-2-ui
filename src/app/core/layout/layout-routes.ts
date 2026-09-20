@@ -24,6 +24,11 @@ export const layoutRoutes: Routes = [
         loadChildren: () =>
           import('../../features/payments/payment-routes').then((m) => m.paymentRoutes),
       },
+      {
+        path: 'events',
+        loadComponent: () =>
+          import('../../features/events/events').then((c) => c.Events),
+      },
       // {
       //   path: 'profile',
       //   loadComponent: () => import('../user-profile/user-profile').then((c) => c.UserProfile),

@@ -23,38 +23,36 @@ export class Sidebar {
         { label: 'Πελάτες', icon: 'group', route: 'customers' },
         { label: 'Πληρωμές', icon: 'payments', route: 'payments' },
         {
-          label: 'Εκκρεμή',
+          label: 'Events',
           icon: 'pending_actions',
-          route: 'pending',
-          badge: 0,
-          badgeType: 'danger',
+          route: 'events',
         },
-        {
-          label: 'Ληξιπρόθεσμα',
-          icon: 'schedule',
-          route: 'overdue',
-          badge: 4,
-          badgeType: 'warning',
-        },
+        // {
+        //   label: 'Ληξιπρόθεσμα',
+        //   icon: 'schedule',
+        //   route: 'overdue',
+        //   badge: 4,
+        //   badgeType: 'warning',
+        // },
       ],
     },
-    {
-      label: 'Αναλύσεις',
-      items: [
-        { label: 'Αναφορές', icon: 'bar_chart', route: 'reports' },
-        { label: 'Ιστορικό', icon: 'history', route: 'history' },
-      ],
-    },
+    // {
+    //   label: 'Αναλύσεις',
+    //   items: [
+    //     { label: 'Αναφορές', icon: 'bar_chart', route: 'reports' },
+    //     { label: 'Ιστορικό', icon: 'history', route: 'history' },
+    //   ],
+    // },
     {
       label: 'Σύστημα',
       items: [
-        {
-          label: 'Ειδοποιήσεις',
-          icon: 'notifications',
-          route: 'notifications',
-          badge: 3,
-          badgeType: 'danger',
-        },
+        // {
+        //   label: 'Ειδοποιήσεις',
+        //   icon: 'notifications',
+        //   route: 'notifications',
+        //   badge: 3,
+        //   badgeType: 'danger',
+        // },
         { label: 'Ρυθμίσεις', icon: 'settings', route: 'settings' },
       ],
     },
