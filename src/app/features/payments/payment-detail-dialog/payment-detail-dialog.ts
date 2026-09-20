@@ -13,7 +13,8 @@ import { MatInput } from '@angular/material/input';
 import { MatSelect } from '@angular/material/select';
 import { MatOption } from '@angular/material/core';
 import { MatDatepicker, MatDatepickerInput, MatDatepickerToggle } from '@angular/material/datepicker';
-import { MatButton } from '@angular/material/button';
+import { MatButton, MatIconButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { RosterSeasonMonth, RosterSeasonSport } from '../../../common/interfaces/payment';
 import { Payments as PaymentsService } from '../../../shared/services/payment/payment';
@@ -64,6 +65,8 @@ function formatDateForApi(date: Date | null): string {
     MatDatepickerInput,
     MatDatepickerToggle,
     MatButton,
+    MatIconButton,
+    MatIcon,
     TranslocoDirective,
   ],
   templateUrl: './payment-detail-dialog.html',

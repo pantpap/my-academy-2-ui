@@ -110,6 +110,17 @@ describe('PaymentDetailDialog', () => {
     expect(title.textContent).toContain('2027');
   });
 
+  it('renders a close button that closes the dialog', async () => {
+    const close = vi.fn();
+    const fixture = await createFixture(baseData(paidMonth), { close });
+
+    const closeButton: HTMLButtonElement = fixture.nativeElement.querySelector('.dialog-close-button');
+    expect(closeButton).toBeTruthy();
+
+    closeButton.click();
+    expect(close).toHaveBeenCalled();
+  });
+
   it('lists every entry with its date, sports, and notes', async () => {
     const fixture = await createFixture(baseData(paidMonth));
 
