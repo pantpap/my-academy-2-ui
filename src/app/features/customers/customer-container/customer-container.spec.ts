@@ -175,4 +175,44 @@ describe('CustomerContainer', () => {
       expect(getCustomersSpy).toHaveBeenLastCalledWith(3, 25);
     });
   });
+
+  describe('out-of-range page', () => {
+    async function respondWith(meta: CustomersPagedResponse['meta']) {
+      const navigateSpy = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+      getCustomersSpy.mockReturnValue(of({ data: [], meta }));
+      fixture.componentRef.setInput('page', String(meta.page));
+      await fixture.whenStable();
+      return navigateSpy;
+    }
+
+    it('navigates to the last page when page is past pageCount', async () => {
+      const navigateSpy = await respondWith({
+        page: 9, take: 10, itemCount: 25, pageCount: 3, hasPreviousPage: true, hasNextPage: false,
+      });
+
+      expect(navigateSpy).toHaveBeenCalledTimes(1);
+      expect(navigateSpy).toHaveBeenCalledWith([], {
+        relativeTo: TestBed.inject(ActivatedRoute),
+        queryParams: { page: 3 },
+        queryParamsHandling: 'merge',
+        replaceUrl: true,
+      });
+    });
+
+    it('does not navigate when there are no customers', async () => {
+      const navigateSpy = await respondWith({
+        page: 1, take: 10, itemCount: 0, pageCount: 0, hasPreviousPage: false, hasNextPage: false,
+      });
+
+      expect(navigateSpy).not.toHaveBeenCalled();
+    });
+
+    it('does not navigate when page is within range', async () => {
+      const navigateSpy = await respondWith({
+        page: 3, take: 10, itemCount: 25, pageCount: 3, hasPreviousPage: true, hasNextPage: false,
+      });
+
+      expect(navigateSpy).not.toHaveBeenCalled();
+    });
+  });
 });

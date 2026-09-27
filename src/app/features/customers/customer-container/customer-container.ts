@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
 import { CustomerList } from '../customer-list/customer-list';
 import { LocalStorage } from '../../../core/services/localStorage/local-storage';
 import { rxResource } from '@angular/core/rxjs-interop';
@@ -71,10 +71,27 @@ export class CustomerContainer {
     },
   });
 
+  constructor() {
+    // `?page=` πέρα από την τελευταία σελίδα → τελευταία σελίδα. Με 0 πελάτες το
+    // pageCount είναι 0, οπότε η συνθήκη itemCount > 0 αποτρέπει redirect loop.
+    effect(() => {
+      if (this.dataSourceResource.isLoading()) return;
+
+      const meta = this.dataSourceResource.value()?.meta;
+      if (meta && meta.itemCount > 0 && meta.page > meta.pageCount) {
+        this.updateQueryParams({ page: meta.pageCount });
+      }
+    });
+  }
+
   onPageChange({ pageIndex, pageSize }: PageEvent) {
+    this.updateQueryParams({ page: pageIndex + 1, take: pageSize });
+  }
+
+  private updateQueryParams(queryParams: { page: number; take?: number }) {
     this.router.navigate([], {
       relativeTo: this.route,
-      queryParams: { page: pageIndex + 1, take: pageSize },
+      queryParams,
       queryParamsHandling: 'merge',
       replaceUrl: true,
     });
