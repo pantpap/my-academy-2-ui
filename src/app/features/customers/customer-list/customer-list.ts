@@ -8,6 +8,7 @@ import { TranslocoDirective } from '@jsverse/transloco';
 import { MatTooltip } from '@angular/material/tooltip';
 import { Router } from '@angular/router';
 import { buildPaidStatusMap } from './paid-status';
+import { DatePipe } from '@angular/common';
 
 @Component({
   selector: 'app-customer-list',
@@ -25,6 +26,7 @@ import { buildPaidStatusMap } from './paid-status';
     MatIcon,
     TranslocoDirective,
     MatTooltip,
+    DatePipe,
   ],
   templateUrl: './customer-list.html',
   styleUrl: './customer-list.scss',
@@ -53,7 +55,6 @@ export class CustomerList {
   ];
 
   onEditClick(customer: Customer) {
-    console.log(customer);
     this.router.navigate(['/app/customers', customer.id]);
   }
 }
