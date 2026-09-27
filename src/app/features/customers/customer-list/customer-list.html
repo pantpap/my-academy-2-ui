@@ -32,6 +32,25 @@
       }
     </td>
   </ng-container>
+  <ng-container matColumnDef="active">
+    <th mat-header-cell *matHeaderCellDef> {{translate('table.active')}} </th>
+    <td mat-cell *matCellDef="let element">
+      @if(element.active){
+        <mat-icon aria-hidden="false" aria-label="active customer" fontIcon="check_circle" class="text-green-500!"></mat-icon>
+      } @else {
+        <mat-icon aria-hidden="false" aria-label="inactive customer" fontIcon="cancel_circle" class="text-red-500! "></mat-icon>
+      }
+      <!--      @if (paidStatusByAthleteId().get(element.id)) {-->
+      <!--        <span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">-->
+      <!--          {{ translate('table.paid') }}-->
+      <!--        </span>-->
+      <!--      } @else {-->
+      <!--        <span class="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">-->
+      <!--          {{ translate('table.unpaid') }}-->
+      <!--        </span>-->
+      <!--      }-->
+    </td>
+  </ng-container>
 
   <ng-container matColumnDef="paymentStatus">
     <th mat-header-cell *matHeaderCellDef> {{translate('table.paymentStatus')}} </th>

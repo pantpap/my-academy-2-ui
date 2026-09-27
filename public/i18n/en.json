@@ -36,7 +36,8 @@
     "sport": "Sport",
     "paymentStatus": "This month",
     "paid": "Paid",
-    "unpaid": "Unpaid"
+    "unpaid": "Unpaid",
+    "active": "Active"
   },
   "customerDetails": {
     "createTitle": "New Customer",

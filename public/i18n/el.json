@@ -36,7 +36,8 @@
     "sport": "Άθλημα",
     "paymentStatus": "Αυτόν τον μήνα",
     "paid": "Πληρωμένο",
-    "unpaid": "Απλήρωτο"
+    "unpaid": "Απλήρωτο",
+    "active": "Ενεργός"
   },
   "customerDetails": {
     "createTitle": "Νέος Πελάτης",

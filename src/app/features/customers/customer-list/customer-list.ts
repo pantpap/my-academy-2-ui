@@ -31,17 +31,26 @@ import { buildPaidStatusMap } from './paid-status';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CustomerList {
-  private readonly router = inject(Router)
+  private readonly router = inject(Router);
   readonly dataSourceResourceValue =
     input.required<ResourceRef<CustomersPagedResponse | undefined>>();
-  readonly rosterStatusResourceValue =
-    input<ResourceRef<RosterStatusEntry[] | undefined>>();
+
+  readonly rosterStatusResourceValue = input<ResourceRef<RosterStatusEntry[] | undefined>>();
 
   readonly paidStatusByAthleteId = computed(() =>
     buildPaidStatusMap(this.rosterStatusResourceValue()?.value()),
   );
 
-  displayedColumns: string[] = ['name', 'birthDate', 'gender', 'phone', 'sport', 'paymentStatus', 'actions'];
+  displayedColumns: string[] = [
+    'name',
+    'birthDate',
+    'gender',
+    'phone',
+    'sport',
+    'active',
+    'paymentStatus',
+    'actions',
+  ];
 
   onEditClick(customer: Customer) {
     console.log(customer);
