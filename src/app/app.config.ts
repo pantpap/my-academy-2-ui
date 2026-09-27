@@ -8,6 +8,7 @@ import { routes } from './app.routes';
 import { TranslocoHttpLoader } from './core/config/transloco-loader';
 import { httpInterceptor } from './core/interceptros/http-interceptor';
 import { provideMatFormFieldDefaultConfig } from './core/providers/provide-mat-form-field-defualt-config';
+import { provideTranslatedPaginatorIntl } from './core/providers/provide-paginator-intl';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -26,5 +27,6 @@ export const appConfig: ApplicationConfig = {
       loader: TranslocoHttpLoader,
     }),
     provideMatFormFieldDefaultConfig(),
+    provideTranslatedPaginatorIntl(),
   ],
 };
