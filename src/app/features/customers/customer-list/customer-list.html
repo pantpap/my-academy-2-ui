@@ -1,10 +1,12 @@
 @let data = dataSourceResourceValue().value()?.data ?? [];
 @let meta = dataSourceResourceValue().value()?.meta;
+
+<div class="h-1">
+  @if (dataSourceResourceValue().isLoading()) {
+    <mat-progress-bar mode="indeterminate" />
+  }
+</div>
 <table mat-table [dataSource]="data" class="mat-elevation-z8" *transloco="let translate">
-
-  <!--- Note that these columns can be defined in any order.
-        The actual rendered columns are set as a property on the row definition" -->
-
   <ng-container matColumnDef="name">
     <th mat-header-cell *matHeaderCellDef> {{translate('table.name')}} </th>
     <td mat-cell *matCellDef="let element"> {{element.firstName}} {{element.lastName}} </td>
@@ -41,15 +43,6 @@
       } @else {
         <mat-icon aria-hidden="false" aria-label="inactive customer" fontIcon="cancel_circle" class="text-red-500! "></mat-icon>
       }
-      <!--      @if (paidStatusByAthleteId().get(element.id)) {-->
-      <!--        <span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">-->
-      <!--          {{ translate('table.paid') }}-->
-      <!--        </span>-->
-      <!--      } @else {-->
-      <!--        <span class="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">-->
-      <!--          {{ translate('table.unpaid') }}-->
-      <!--        </span>-->
-      <!--      }-->
     </td>
   </ng-container>
 

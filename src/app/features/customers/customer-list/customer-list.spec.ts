@@ -3,15 +3,16 @@ import { ResourceRef, signal } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
 import { MatPaginator, PageEvent } from '@angular/material/paginator';
+import { MatProgressBar } from '@angular/material/progress-bar';
 import { TranslocoTestingModule } from '@jsverse/transloco';
 
 import { CustomerList } from './customer-list';
 import { CustomersPagedResponse } from '../../../common/interfaces/customer';
 
-function fakeResource(value: CustomersPagedResponse | undefined) {
+function fakeResource(value: CustomersPagedResponse | undefined, loading = false) {
   return {
     value: signal(value),
-    isLoading: signal(false),
+    isLoading: signal(loading),
   } as unknown as ResourceRef<CustomersPagedResponse | undefined>;
 }
 
@@ -24,8 +25,8 @@ describe('CustomerList', () => {
   let component: CustomerList;
   let fixture: ComponentFixture<CustomerList>;
 
-  async function setup(value: CustomersPagedResponse | undefined) {
-    fixture.componentRef.setInput('dataSourceResourceValue', fakeResource(value));
+  async function setup(value: CustomersPagedResponse | undefined, loading = false) {
+    fixture.componentRef.setInput('dataSourceResourceValue', fakeResource(value, loading));
     await fixture.whenStable();
     return fixture.debugElement.query(By.directive(MatPaginator)).componentInstance as MatPaginator;
   }
@@ -71,5 +72,19 @@ describe('CustomerList', () => {
     paginator.page.emit(event);
 
     expect(emitted).toEqual([event]);
+  });
+
+  it('shows an indeterminate progress bar while loading', async () => {
+    await setup(secondPage, true);
+
+    const progressBar = fixture.debugElement.query(By.directive(MatProgressBar));
+    expect(progressBar).toBeTruthy();
+    expect((progressBar.componentInstance as MatProgressBar).mode).toBe('indeterminate');
+  });
+
+  it('hides the progress bar once loaded', async () => {
+    await setup(secondPage, false);
+
+    expect(fixture.debugElement.query(By.directive(MatProgressBar))).toBeNull();
   });
 });

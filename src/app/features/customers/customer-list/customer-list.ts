@@ -10,6 +10,7 @@ import { Router } from '@angular/router';
 import { buildPaidStatusMap } from './paid-status';
 import { DatePipe } from '@angular/common';
 import { MatPaginator, PageEvent } from '@angular/material/paginator';
+import { MatProgressBar } from '@angular/material/progress-bar';
 
 @Component({
   selector: 'app-customer-list',
@@ -29,6 +30,7 @@ import { MatPaginator, PageEvent } from '@angular/material/paginator';
     MatTooltip,
     DatePipe,
     MatPaginator,
+    MatProgressBar,
   ],
   templateUrl: './customer-list.html',
   styleUrl: './customer-list.scss',
