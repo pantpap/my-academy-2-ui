@@ -162,12 +162,13 @@ describe('Payments', () => {
     ];
 
     let result: RosterSeasonEntry[] | undefined;
-    service.getRosterSeason(2026).subscribe((res) => (result = res));
+    service.getRosterSeason(2026, 'Jane').subscribe((res) => (result = res));
 
     const req = httpMock.expectOne((r) => r.url.endsWith('/payments/roster-season'));
     expect(req.request.method).toBe('GET');
     expect(req.request.params.get('organizationId')).toBe('7');
     expect(req.request.params.get('startYear')).toBe('2026');
+    expect(req.request.params.get('searchTerm')).toBe('Jane');
 
     req.flush(roster);
     expect(result).toEqual(roster);
