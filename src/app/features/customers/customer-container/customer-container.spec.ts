@@ -1,11 +1,15 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatDialog } from '@angular/material/dialog';
+import { provideRouter, withComponentInputBinding } from '@angular/router';
+import { RouterTestingHarness } from '@angular/router/testing';
 import { TranslocoTestingModule } from '@jsverse/transloco';
 import { of } from 'rxjs';
 
 import { CustomerContainer } from './customer-container';
 import { CustomerFormDialog } from '../customer-form-dialog/customer-form-dialog';
-import { Customer as CustomerModel } from '../../../common/interfaces/customer';
+import { Customer as CustomerModel, CustomersPagedResponse } from '../../../common/interfaces/customer';
+import { Customer } from '../../../shared/services/customer/customer';
+import { Payments } from '../../../shared/services/payment/payment';
 
 const createdCustomer: CustomerModel = {
   id: 1,
@@ -23,6 +27,11 @@ const createdCustomer: CustomerModel = {
   enrollments: [],
 };
 
+const emptyPage: CustomersPagedResponse = {
+  data: [],
+  meta: { page: 1, take: 10, itemCount: 0, pageCount: 0, hasPreviousPage: false, hasNextPage: false },
+};
+
 const en = {
   common: {
     add: 'Add',
@@ -33,11 +42,13 @@ describe('CustomerContainer', () => {
   let component: CustomerContainer;
   let fixture: ComponentFixture<CustomerContainer>;
   let dialogOpenSpy: ReturnType<typeof vi.fn>;
+  let getCustomersSpy: ReturnType<typeof vi.fn>;
 
   beforeEach(async () => {
     localStorage.setItem('CS_ACADEMY_ORGANIZATION', JSON.stringify({ id: 1 }));
 
     dialogOpenSpy = vi.fn().mockReturnValue({ afterClosed: () => of(undefined) });
+    getCustomersSpy = vi.fn().mockReturnValue(of(emptyPage));
 
     await TestBed.configureTestingModule({
       imports: [
@@ -50,7 +61,12 @@ describe('CustomerContainer', () => {
           },
         }),
       ],
-      providers: [{ provide: MatDialog, useValue: { open: dialogOpenSpy } }],
+      providers: [
+        provideRouter([{ path: 'customers', component: CustomerContainer }], withComponentInputBinding()),
+        { provide: MatDialog, useValue: { open: dialogOpenSpy } },
+        { provide: Customer, useValue: { getCustomers: getCustomersSpy } },
+        { provide: Payments, useValue: { getRosterStatus: vi.fn().mockReturnValue(of([])) } },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(CustomerContainer);
@@ -87,5 +103,43 @@ describe('CustomerContainer', () => {
     component.addNewCustomer();
 
     expect(reloadSpy).not.toHaveBeenCalled();
+  });
+
+  describe('page/take query params', () => {
+    async function setParams(page?: string, take?: string) {
+      getCustomersSpy.mockClear();
+      fixture.componentRef.setInput('page', page);
+      fixture.componentRef.setInput('take', take);
+      await fixture.whenStable();
+    }
+
+    it('fetches page 1 with 10 items when there are no query params', () => {
+      expect(getCustomersSpy).toHaveBeenLastCalledWith(1, 10);
+    });
+
+    it('fetches the requested page and size', async () => {
+      await setParams('3', '25');
+      expect(getCustomersSpy).toHaveBeenLastCalledWith(3, 25);
+    });
+
+    it('falls back to 1/10 for non-numeric page and unsupported take', async () => {
+      await setParams('3', '25');
+      await setParams('abc', '7');
+      expect(getCustomersSpy).toHaveBeenLastCalledWith(1, 10);
+    });
+
+    it.each(['-1', '0', '2.5'])('falls back to page 1 for page=%s', async (page) => {
+      await setParams('3', '50');
+      await setParams(page, '50');
+      expect(getCustomersSpy).toHaveBeenLastCalledWith(1, 50);
+    });
+
+    it('binds page/take from the URL query params', async () => {
+      getCustomersSpy.mockClear();
+      const harness = await RouterTestingHarness.create();
+      await harness.navigateByUrl('/customers?page=2&take=50', CustomerContainer);
+      await harness.fixture.whenStable();
+      expect(getCustomersSpy).toHaveBeenLastCalledWith(2, 50);
+    });
   });
 });
