@@ -11,6 +11,7 @@ import { buildPaidStatusMap } from './paid-status';
 import { DatePipe } from '@angular/common';
 import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatProgressBar } from '@angular/material/progress-bar';
+import { MatSort, MatSortHeader, Sort } from '@angular/material/sort';
 
 @Component({
   selector: 'app-customer-list',
@@ -31,6 +32,8 @@ import { MatProgressBar } from '@angular/material/progress-bar';
     DatePipe,
     MatPaginator,
     MatProgressBar,
+    MatSort,
+    MatSortHeader,
   ],
   templateUrl: './customer-list.html',
   styleUrl: './customer-list.scss',
@@ -64,5 +67,9 @@ export class CustomerList {
 
   onEditClick(customer: Customer) {
     this.router.navigate(['/app/customers', customer.id]);
+  }
+
+  protected onSortChange($event: Sort) {
+    console.log($event);
   }
 }
