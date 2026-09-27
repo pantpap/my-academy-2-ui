@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, input, ResourceRef, inject, computed } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, output, ResourceRef, inject, computed } from '@angular/core';
 import { MatCell, MatCellDef, MatColumnDef, MatHeaderCell, MatHeaderCellDef, MatHeaderRow,
   MatHeaderRowDef, MatRow, MatRowDef, MatTable } from '@angular/material/table';
 import { Customer, CustomersPagedResponse } from '../../../common/interfaces/customer';
@@ -9,6 +9,7 @@ import { MatTooltip } from '@angular/material/tooltip';
 import { Router } from '@angular/router';
 import { buildPaidStatusMap } from './paid-status';
 import { DatePipe } from '@angular/common';
+import { MatPaginator, PageEvent } from '@angular/material/paginator';
 
 @Component({
   selector: 'app-customer-list',
@@ -27,6 +28,7 @@ import { DatePipe } from '@angular/common';
     TranslocoDirective,
     MatTooltip,
     DatePipe,
+    MatPaginator,
   ],
   templateUrl: './customer-list.html',
   styleUrl: './customer-list.scss',
@@ -38,6 +40,10 @@ export class CustomerList {
     input.required<ResourceRef<CustomersPagedResponse | undefined>>();
 
   readonly rosterStatusResourceValue = input<ResourceRef<RosterStatusEntry[] | undefined>>();
+
+  readonly pageChange = output<PageEvent>();
+
+  readonly pageSizeOptions = [10, 25, 50];
 
   readonly paidStatusByAthleteId = computed(() =>
     buildPaidStatusMap(this.rosterStatusResourceValue()?.value()),

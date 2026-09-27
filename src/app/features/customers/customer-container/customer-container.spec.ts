@@ -1,12 +1,15 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatDialog } from '@angular/material/dialog';
-import { provideRouter, withComponentInputBinding } from '@angular/router';
+import { ActivatedRoute, provideRouter, Router, withComponentInputBinding } from '@angular/router';
+import { By } from '@angular/platform-browser';
+import { PageEvent } from '@angular/material/paginator';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { TranslocoTestingModule } from '@jsverse/transloco';
 import { of } from 'rxjs';
 
 import { CustomerContainer } from './customer-container';
 import { CustomerFormDialog } from '../customer-form-dialog/customer-form-dialog';
+import { CustomerList } from '../customer-list/customer-list';
 import { Customer as CustomerModel, CustomersPagedResponse } from '../../../common/interfaces/customer';
 import { Customer } from '../../../shared/services/customer/customer';
 import { Payments } from '../../../shared/services/payment/payment';
@@ -140,6 +143,36 @@ describe('CustomerContainer', () => {
       await harness.navigateByUrl('/customers?page=2&take=50', CustomerContainer);
       await harness.fixture.whenStable();
       expect(getCustomersSpy).toHaveBeenLastCalledWith(2, 50);
+    });
+  });
+
+  describe('page changes', () => {
+    it('navigates to the new page/take with replaceUrl when the list pages', () => {
+      const navigateSpy = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+      const event: PageEvent = { pageIndex: 2, previousPageIndex: 1, pageSize: 25, length: 100 };
+
+      fixture.debugElement.query(By.directive(CustomerList)).triggerEventHandler('pageChange', event);
+
+      expect(navigateSpy).toHaveBeenCalledWith([], {
+        relativeTo: TestBed.inject(ActivatedRoute),
+        queryParams: { page: 3, take: 25 },
+        queryParamsHandling: 'merge',
+        replaceUrl: true,
+      });
+    });
+
+    it('reloads the same page/take after adding a customer', async () => {
+      fixture.componentRef.setInput('page', '3');
+      fixture.componentRef.setInput('take', '25');
+      await fixture.whenStable();
+      getCustomersSpy.mockClear();
+      dialogOpenSpy.mockReturnValue({ afterClosed: () => of(createdCustomer) });
+
+      component.addNewCustomer();
+      await fixture.whenStable();
+
+      expect(getCustomersSpy).toHaveBeenCalledTimes(1);
+      expect(getCustomersSpy).toHaveBeenLastCalledWith(3, 25);
     });
   });
 });

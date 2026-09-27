@@ -13,6 +13,8 @@ import { MatDialog } from '@angular/material/dialog';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { MatIcon } from '@angular/material/icon';
 import { CustomerFormDialog } from '../customer-form-dialog/customer-form-dialog';
+import { ActivatedRoute, Router } from '@angular/router';
+import { PageEvent } from '@angular/material/paginator';
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50] as const;
 const DEFAULT_PAGE = 1;
@@ -30,6 +32,8 @@ export class CustomerContainer {
   private readonly customerService = inject(Customer);
   private readonly paymentsService = inject(Payments);
   private readonly dialog = inject(MatDialog);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   readonly organizationId = signal(this.localStorageService.getItem<Organization>(ORGANIZATION).id);
 
@@ -66,6 +70,15 @@ export class CustomerContainer {
       return this.paymentsService.getRosterStatus(now.getFullYear(), now.getMonth() + 1);
     },
   });
+
+  onPageChange({ pageIndex, pageSize }: PageEvent) {
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { page: pageIndex + 1, take: pageSize },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
+  }
 
   addNewCustomer() {
     const options = {
