@@ -9,6 +9,7 @@ import { SubscriptionRow, SubscriptionsPagedResponse } from '../../../common/int
 import { MatDialog } from '@angular/material/dialog';
 import { NotificationService } from '../../../core/services/notification/notification.service';
 import { SubscriptionPaymentFormDialog } from '../subscription-payment-form-dialog/subscription-payment-form-dialog';
+import { SubscriptionPaymentsDialog } from '../subscription-payments-dialog/subscription-payments-dialog';
 
 const en = {
   common: { noData: 'No data' },
@@ -165,5 +166,18 @@ describe('SubscriptionsGrid', () => {
       expect(notification.success).not.toHaveBeenCalled();
       expect(list).not.toHaveBeenCalled();
     });
+  });
+
+  // SPEC-organizations-admin.md, task T20.
+  it('opens the payments history of the row', async () => {
+    await render([row(7, 'paid')]);
+    dialogOpen.mockReturnValue({ afterClosed: () => of(undefined) });
+
+    (rows()[0].querySelector('[data-testid="show-payments"]') as HTMLElement).click();
+
+    expect(dialogOpen).toHaveBeenCalledWith(
+      SubscriptionPaymentsDialog,
+      expect.objectContaining({ data: { organizationId: 7, organizationName: 'Org 7' } }),
+    );
   });
 });

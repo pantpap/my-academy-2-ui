@@ -29,6 +29,10 @@ import {
   SubscriptionPaymentFormDialogData,
   SubscriptionPaymentFormDialogResult,
 } from '../subscription-payment-form-dialog/subscription-payment-form-dialog';
+import {
+  SubscriptionPaymentsDialog,
+  SubscriptionPaymentsDialogData,
+} from '../subscription-payments-dialog/subscription-payments-dialog';
 import { Subscriptions } from '../../../shared/services/subscription/subscription';
 import { SubscriptionRow } from '../../../common/interfaces/subscription';
 
@@ -130,6 +134,10 @@ export class SubscriptionsGrid {
       });
   }
 
-  // Dialog ιστορικού πληρωμών (T20).
-  protected showPayments(_row: SubscriptionRow): void {}
+  protected showPayments(row: SubscriptionRow): void {
+    this.dialog.open<SubscriptionPaymentsDialog, SubscriptionPaymentsDialogData>(SubscriptionPaymentsDialog, {
+      width: '640px',
+      data: { organizationId: row.organizationId, organizationName: row.name },
+    });
+  }
 }

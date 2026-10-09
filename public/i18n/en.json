@@ -198,6 +198,8 @@
     "descriptionLabel": "Description",
     "saveError": "The payment was not saved. Please try again.",
     "paymentSaved": "Payment saved",
-    "paymentSavedWithOverlap": "Payment saved. It overlaps another payment of the organization within a year."
+    "paymentSavedWithOverlap": "Payment saved. It overlaps another payment of the organization within a year.",
+    "paymentsTitle": "Subscription payments: {{name}}",
+    "expiresAt": "Period ends"
   }
 }
