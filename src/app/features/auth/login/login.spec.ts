@@ -1,6 +1,11 @@
 import { TestBed } from '@angular/core/testing';
+import { HttpErrorResponse } from '@angular/common/http';
+import { Router } from '@angular/router';
 import { TranslocoTestingModule } from '@jsverse/transloco';
+import { of, throwError } from 'rxjs';
 import { Login } from './login';
+import { Auth } from '../services/auth';
+import { NotificationService } from '../../../core/services/notification/notification.service';
 
 const en = {
   login: {
@@ -15,15 +20,31 @@ const en = {
     showPassword: 'Show password',
     submit: 'Sign in',
   },
+  errors: {
+    ORGANIZATION_INACTIVE: 'Your organization is inactive. Please contact the platform administrator.',
+  },
 };
 
 describe('Login', () => {
+  let auth: { login: ReturnType<typeof vi.fn> };
+  let notification: { error: ReturnType<typeof vi.fn>; success: ReturnType<typeof vi.fn> };
+  let router: { navigate: ReturnType<typeof vi.fn> };
+
   beforeEach(async () => {
+    auth = { login: vi.fn() };
+    notification = { error: vi.fn(), success: vi.fn() };
+    router = { navigate: vi.fn() };
     await TestBed.configureTestingModule({
+      providers: [
+        { provide: Auth, useValue: auth },
+        { provide: NotificationService, useValue: notification },
+        { provide: Router, useValue: router },
+      ],
       imports: [
         Login,
         TranslocoTestingModule.forRoot({
           langs: { en },
+          preloadLangs: true,
           translocoConfig: {
             availableLangs: ['en', 'el'],
             defaultLang: 'en',
@@ -104,5 +125,42 @@ describe('Login', () => {
     component['togglePasswordVisibility']();
     expect(component['passwordVisible']()).toBe(false);
   });
-});
 
+  describe('sign in (SPEC-organizations-admin.md)', () => {
+    const credentials = { email: 'user@example.com', password: 'secret123' };
+
+    it('navigates into the app on success', () => {
+      auth.login.mockReturnValue(of({ accessToken: 't', organization: { id: 1 } }));
+      const component = TestBed.createComponent(Login).componentInstance;
+
+      component['signIn'](credentials);
+
+      expect(router.navigate).toHaveBeenCalledWith(['/app']);
+    });
+
+    it('shows the contact-the-administrator message for 403 ORGANIZATION_INACTIVE', () => {
+      auth.login.mockReturnValue(
+        throwError(
+          () => new HttpErrorResponse({ status: 403, error: { message: 'ORGANIZATION_INACTIVE' } }),
+        ),
+      );
+      const component = TestBed.createComponent(Login).componentInstance;
+
+      component['signIn'](credentials);
+
+      expect(notification.error).toHaveBeenCalledWith(en.errors.ORGANIZATION_INACTIVE);
+      expect(router.navigate).not.toHaveBeenCalled();
+    });
+
+    it('leaves wrong credentials (401) to the interceptor', () => {
+      auth.login.mockReturnValue(
+        throwError(() => new HttpErrorResponse({ status: 401, error: { message: 'Invalid credentials' } })),
+      );
+      const component = TestBed.createComponent(Login).componentInstance;
+
+      component['signIn'](credentials);
+
+      expect(notification.error).not.toHaveBeenCalled();
+    });
+  });
+});

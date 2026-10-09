@@ -5,12 +5,14 @@ import { MatFormField, MatLabel, MatError, MatPrefix, MatSuffix } from '@angular
 import { MatInput } from '@angular/material/input';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
-import { TranslocoDirective } from '@jsverse/transloco';
+import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Auth } from '../services/auth';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AUTH_TOKEN, ORGANIZATION } from '../../../common/constants/local-storage-constants';
 import { LocalStorage } from '../../../core/services/localStorage/local-storage';
 import { Router } from '@angular/router';
+import { NotificationService } from '../../../core/services/notification/notification.service';
 
 interface LoginModel {
   email: string;
@@ -46,6 +48,8 @@ export class Login {
   private readonly authService = inject(Auth);
   private readonly localStorageService = inject(LocalStorage);
   private readonly router = inject(Router);
+  private readonly notification = inject(NotificationService);
+  private readonly transloco = inject(TranslocoService);
 
   protected readonly loginForm = form(
     this.model,
@@ -57,15 +61,7 @@ export class Login {
     {
       submission: {
         action: async (field) => {
-          const value = field().value();
-          this.authService
-            .login(value)
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe((res) => {
-              this.localStorageService.setItem(AUTH_TOKEN, res.accessToken);
-              this.localStorageService.setItem(ORGANIZATION, res.organization);
-              this.router.navigate(['/app']);
-            });
+          this.signIn(field().value());
           return undefined;
         },
       },
@@ -73,6 +69,30 @@ export class Login {
   );
 
   protected readonly passwordVisible = signal(false);
+
+  protected signIn(credentials: LoginModel): void {
+    this.authService
+      .login(credentials)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => {
+          this.localStorageService.setItem(AUTH_TOKEN, res.accessToken);
+          this.localStorageService.setItem(ORGANIZATION, res.organization);
+          this.router.navigate(['/app']);
+        },
+        // Ανενεργός οργανισμός (SPEC-organizations-admin.md). Τα λάθος στοιχεία (401)
+        // τα δείχνει ο interceptor.
+        error: (error: unknown) => {
+          if (
+            error instanceof HttpErrorResponse &&
+            error.status === 403 &&
+            error.error?.message === 'ORGANIZATION_INACTIVE'
+          ) {
+            this.notification.error(this.transloco.translate('errors.ORGANIZATION_INACTIVE'));
+          }
+        },
+      });
+  }
 
   protected togglePasswordVisibility(): void {
     this.passwordVisible.update((visible) => !visible);

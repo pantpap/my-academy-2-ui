@@ -18,4 +18,24 @@
       elevated-container-color: light-dark(#fff, var(--mat-sys-surface-container-low)),
     )
   );
+
+  // NotificationService panel classes: ίδια χρώματα με τα badges Πληρωμένο/Απλήρωτο
+  // των πελατών (Tailwind green/red 100 και 800).
+  .notification-success {
+    @include mat.snack-bar-overrides(
+      (
+        container-color: light-dark(#dcfce7, #166534),
+        supporting-text-color: light-dark(#166534, #dcfce7),
+      )
+    );
+  }
+
+  .notification-error {
+    @include mat.snack-bar-overrides(
+      (
+        container-color: light-dark(#fee2e2, #991b1b),
+        supporting-text-color: light-dark(#991b1b, #fee2e2),
+      )
+    );
+  }
 }

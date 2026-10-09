@@ -126,6 +126,8 @@
     "lastPage": "Last page",
     "range": "{{start}} – {{end}} of {{length}}",
     "rangeEmpty": "0 of {{length}}"
+  },
+  "errors": {
+    "ORGANIZATION_INACTIVE": "Your organization is inactive. Please contact the platform administrator."
   }
 }
-
