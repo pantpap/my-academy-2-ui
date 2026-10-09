@@ -33,4 +33,41 @@ describe('Organizations service', () => {
     expect(req.request.params.has('name')).toBe(false);
     req.flush({ data: [], meta: {} });
   });
+
+  const url = `${environment.apiUrl}/organizations`;
+
+  it('get() loads one organization with its sports', () => {
+    service.get(4).subscribe();
+
+    const req = controller.expectOne(`${url}/4`);
+    expect(req.request.method).toBe('GET');
+    req.flush({});
+  });
+
+  it('create() posts the organization with its sportIds', () => {
+    const payload = {
+      name: 'Academy',
+      email: 'a@x.gr',
+      password: '1234',
+      vatNumber: '1',
+      address: 'Street',
+      sportIds: [1, 2],
+    };
+    service.create(payload).subscribe();
+
+    const req = controller.expectOne(url);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual(payload);
+    req.flush({});
+  });
+
+  it('update() patches the organization', () => {
+    const payload = { name: 'Academy', isActive: false, sportIds: [2] };
+    service.update(4, payload).subscribe();
+
+    const req = controller.expectOne(`${url}/4`);
+    expect(req.request.method).toBe('PATCH');
+    expect(req.request.body).toEqual(payload);
+    req.flush({});
+  });
 });

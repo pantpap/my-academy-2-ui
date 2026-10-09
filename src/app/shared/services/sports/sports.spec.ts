@@ -41,4 +41,26 @@ describe('Sports', () => {
     req.flush(sports);
     expect(result).toEqual(sports);
   });
+
+  // SPEC-organizations-admin.md: κοινός κατάλογος αθλημάτων.
+  it('catalog() fetches the whole sports catalog', () => {
+    let result: Sport[] | undefined;
+    service.catalog().subscribe((res) => (result = res));
+
+    const req = httpMock.expectOne((r) => r.url.endsWith('/sports/catalog'));
+    expect(req.request.method).toBe('GET');
+    req.flush([{ id: 1, name: 'Judo' }]);
+    expect(result).toEqual([{ id: 1, name: 'Judo' }]);
+  });
+
+  it('addToCatalog() posts the new sport name', () => {
+    let result: Sport | undefined;
+    service.addToCatalog('Judo').subscribe((res) => (result = res));
+
+    const req = httpMock.expectOne((r) => r.url.endsWith('/sports/catalog'));
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ name: 'Judo' });
+    req.flush({ id: 9, name: 'Judo' });
+    expect(result).toEqual({ id: 9, name: 'Judo' });
+  });
 });

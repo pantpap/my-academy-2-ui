@@ -34,6 +34,11 @@ export class Http {
     return this.httpClient.put<T>(endpoint, body);
   }
 
+  patch<T>(url: string, body?: T): Observable<any> {
+    const endpoint = `${this.apiUrl}/${url}`;
+    return this.httpClient.patch<T>(endpoint, body);
+  }
+
   delete<T>(url: string, params?: Record<string, string | number>): Observable<T> {
     const endpoint = `${this.apiUrl}/${url}`;
     let httpParams = new HttpParams();
