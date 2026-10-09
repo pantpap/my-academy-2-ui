@@ -188,6 +188,16 @@
     "status": "Status",
     "expiring": "Expiring soon",
     "addPayment": "Add payment",
-    "showPayments": "Payments"
+    "showPayments": "Payments",
+    "addPaymentTitle": "Subscription payment: {{name}}",
+    "dateLabel": "Payment date",
+    "dateRequired": "Date is required",
+    "dateInFuture": "The date cannot be in the future",
+    "amountRequired": "Amount is required",
+    "amountInvalid": "Amount must be positive",
+    "descriptionLabel": "Description",
+    "saveError": "The payment was not saved. Please try again.",
+    "paymentSaved": "Payment saved",
+    "paymentSavedWithOverlap": "Payment saved. It overlaps another payment of the organization within a year."
   }
 }

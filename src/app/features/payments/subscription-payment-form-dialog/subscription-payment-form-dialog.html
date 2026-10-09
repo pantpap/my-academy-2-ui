@@ -1,0 +1,82 @@
+<ng-container *transloco="let translate">
+  <div class="dialog-header">
+    <h2 mat-dialog-title>{{ translate('subscriptions.addPaymentTitle', { name: data.organizationName }) }}</h2>
+    <button
+      mat-icon-button
+      type="button"
+      mat-dialog-close
+      class="dialog-close-button"
+      [disabled]="submitting()"
+      [attr.aria-label]="translate('common.close')"
+    >
+      <mat-icon aria-hidden="true">close</mat-icon>
+    </button>
+  </div>
+
+  <mat-dialog-content class="flex flex-col gap-4 pt-2">
+    <div class="grid grid-cols-2 gap-4">
+      <mat-form-field>
+        <mat-label>{{ translate('subscriptions.dateLabel') }}</mat-label>
+        <input
+          matInput
+          data-testid="payment-date"
+          [matDatepicker]="paymentDatePicker"
+          [max]="today"
+          [value]="model().paymentDate"
+          (dateChange)="onDateChange($event.value)"
+          [disabled]="submitting()"
+        />
+        <mat-datepicker-toggle matSuffix [for]="paymentDatePicker"></mat-datepicker-toggle>
+        <mat-datepicker #paymentDatePicker></mat-datepicker>
+        @if (hasError(paymentForm.paymentDate().errors(), 'required')) {
+          <mat-error>{{ translate('subscriptions.dateRequired') }}</mat-error>
+        } @else if (hasError(paymentForm.paymentDate().errors(), 'future')) {
+          <mat-error>{{ translate('subscriptions.dateInFuture') }}</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>{{ translate('subscriptions.amount') }}</mat-label>
+        <input
+          matInput
+          type="number"
+          step="0.01"
+          min="0"
+          data-testid="amount"
+          [value]="model().amount ?? ''"
+          (input)="onAmountInput($any($event.target).value)"
+          [disabled]="submitting()"
+        />
+        @if (hasError(paymentForm.amount().errors(), 'required')) {
+          <mat-error>{{ translate('subscriptions.amountRequired') }}</mat-error>
+        } @else if (hasError(paymentForm.amount().errors(), 'min')) {
+          <mat-error>{{ translate('subscriptions.amountInvalid') }}</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field class="col-span-2">
+        <mat-label>{{ translate('subscriptions.descriptionLabel') }}</mat-label>
+        <input
+          matInput
+          data-testid="description"
+          [value]="model().description"
+          (input)="onDescriptionInput($any($event.target).value)"
+          [disabled]="submitting()"
+        />
+      </mat-form-field>
+    </div>
+
+    @if (failureMessage()) {
+      <p class="text-(--mat-sys-error)">{{ failureMessage() }}</p>
+    }
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" mat-dialog-close [disabled]="submitting()">
+      {{ translate('common.cancel') }}
+    </button>
+    <button mat-flat-button type="button" data-testid="save" [disabled]="saveDisabled()" (click)="save()">
+      {{ translate('common.save') }}
+    </button>
+  </mat-dialog-actions>
+</ng-container>

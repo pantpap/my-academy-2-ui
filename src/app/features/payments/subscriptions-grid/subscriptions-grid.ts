@@ -21,7 +21,14 @@ import { MatInput } from '@angular/material/input';
 import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatProgressBar } from '@angular/material/progress-bar';
 import { MatTooltip } from '@angular/material/tooltip';
-import { TranslocoDirective } from '@jsverse/transloco';
+import { MatDialog } from '@angular/material/dialog';
+import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
+import { NotificationService } from '../../../core/services/notification/notification.service';
+import {
+  SubscriptionPaymentFormDialog,
+  SubscriptionPaymentFormDialogData,
+  SubscriptionPaymentFormDialogResult,
+} from '../subscription-payment-form-dialog/subscription-payment-form-dialog';
 import { Subscriptions } from '../../../shared/services/subscription/subscription';
 import { SubscriptionRow } from '../../../common/interfaces/subscription';
 
@@ -60,6 +67,9 @@ const PAGE_SIZE_OPTIONS = [10, 20, 50];
 })
 export class SubscriptionsGrid {
   private readonly subscriptionsService = inject(Subscriptions);
+  private readonly dialog = inject(MatDialog);
+  private readonly notification = inject(NotificationService);
+  private readonly transloco = inject(TranslocoService);
 
   protected readonly pageSizeOptions = PAGE_SIZE_OPTIONS;
   protected readonly displayedColumns = [
@@ -103,8 +113,22 @@ export class SubscriptionsGrid {
     this.take.set(pageSize);
   }
 
-  // Dialog προσθήκης πληρωμής (T19).
-  protected addPayment(_row: SubscriptionRow): void {}
+  // Μετά την αποθήκευση: ξαναφόρτωση και μήνυμα. Η επικάλυψη επιτρέπεται, αλλά το
+  // μήνυμα ενημερώνει τον admin (SPEC-organizations-admin.md).
+  protected addPayment(row: SubscriptionRow): void {
+    this.dialog
+      .open<SubscriptionPaymentFormDialog, SubscriptionPaymentFormDialogData, SubscriptionPaymentFormDialogResult>(
+        SubscriptionPaymentFormDialog,
+        { width: '560px', data: { organizationId: row.organizationId, organizationName: row.name } },
+      )
+      .afterClosed()
+      .subscribe((result) => {
+        if (!result?.saved) return;
+        const key = result.overlaps ? 'subscriptions.paymentSavedWithOverlap' : 'subscriptions.paymentSaved';
+        this.notification.success(this.transloco.translate(key));
+        this.subscriptionsResource.reload();
+      });
+  }
 
   // Dialog ιστορικού πληρωμών (T20).
   protected showPayments(_row: SubscriptionRow): void {}

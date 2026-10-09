@@ -6,11 +6,18 @@ import { of } from 'rxjs';
 import { SubscriptionsGrid } from './subscriptions-grid';
 import { Subscriptions } from '../../../shared/services/subscription/subscription';
 import { SubscriptionRow, SubscriptionsPagedResponse } from '../../../common/interfaces/subscription';
+import { MatDialog } from '@angular/material/dialog';
+import { NotificationService } from '../../../core/services/notification/notification.service';
+import { SubscriptionPaymentFormDialog } from '../subscription-payment-form-dialog/subscription-payment-form-dialog';
 
 const en = {
   common: { noData: 'No data' },
   table: { paid: 'Paid', unpaid: 'Unpaid' },
-  subscriptions: { expiring: 'Expiring soon' },
+  subscriptions: {
+    expiring: 'Expiring soon',
+    paymentSaved: 'Payment saved',
+    paymentSavedWithOverlap: 'Payment saved. It overlaps another payment within a year.',
+  },
 };
 
 function row(organizationId: number, status: SubscriptionRow['status']): SubscriptionRow {
@@ -34,9 +41,13 @@ const page = (data: SubscriptionRow[]): SubscriptionsPagedResponse => ({
 describe('SubscriptionsGrid', () => {
   let fixture: ComponentFixture<SubscriptionsGrid>;
   let list: ReturnType<typeof vi.fn>;
+  let dialogOpen: ReturnType<typeof vi.fn>;
+  let notification: { success: ReturnType<typeof vi.fn>; error: ReturnType<typeof vi.fn> };
 
   async function render(data: SubscriptionRow[]) {
     list = vi.fn().mockReturnValue(of(page(data)));
+    dialogOpen = vi.fn();
+    notification = { success: vi.fn(), error: vi.fn() };
     await TestBed.configureTestingModule({
       imports: [
         SubscriptionsGrid,
@@ -46,7 +57,11 @@ describe('SubscriptionsGrid', () => {
           translocoConfig: { availableLangs: ['en'], defaultLang: 'en' },
         }),
       ],
-      providers: [{ provide: Subscriptions, useValue: { list } }],
+      providers: [
+        { provide: Subscriptions, useValue: { list } },
+        { provide: MatDialog, useValue: { open: dialogOpen } },
+        { provide: NotificationService, useValue: notification },
+      ],
     }).compileComponents();
     fixture = TestBed.createComponent(SubscriptionsGrid);
     await fixture.whenStable();
@@ -116,5 +131,39 @@ describe('SubscriptionsGrid', () => {
     expect(fixture.debugElement.query(By.directive(MatPaginator)).componentInstance.pageSizeOptions).toEqual([
       10, 20, 50,
     ]);
+  });
+
+  // SPEC-organizations-admin.md, task T19.
+  describe('add payment', () => {
+    it.each([
+      [false, 'Payment saved'],
+      [true, 'Payment saved. It overlaps another payment within a year.'],
+    ])('opens the dialog for the row, then reloads and notifies (overlaps: %s)', async (overlaps, message) => {
+      await render([row(7, 'unpaid')]);
+      dialogOpen.mockReturnValue({ afterClosed: () => of({ saved: true, overlaps }) });
+      list.mockClear();
+
+      (rows()[0].querySelector('[data-testid="add-payment"]') as HTMLElement).click();
+      await fixture.whenStable();
+
+      expect(dialogOpen).toHaveBeenCalledWith(
+        SubscriptionPaymentFormDialog,
+        expect.objectContaining({ data: { organizationId: 7, organizationName: 'Org 7' } }),
+      );
+      expect(notification.success).toHaveBeenCalledWith(message);
+      expect(list).toHaveBeenCalledTimes(1);
+    });
+
+    it('does nothing when the dialog is cancelled', async () => {
+      await render([row(7, 'unpaid')]);
+      dialogOpen.mockReturnValue({ afterClosed: () => of(undefined) });
+      list.mockClear();
+
+      (rows()[0].querySelector('[data-testid="add-payment"]') as HTMLElement).click();
+      await fixture.whenStable();
+
+      expect(notification.success).not.toHaveBeenCalled();
+      expect(list).not.toHaveBeenCalled();
+    });
   });
 });
