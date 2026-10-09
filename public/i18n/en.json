@@ -129,5 +129,17 @@
   },
   "errors": {
     "ORGANIZATION_INACTIVE": "Your organization is inactive. Please contact the platform administrator."
+  },
+  "sidebar": {
+    "sections": {
+      "main": "Main",
+      "system": "System"
+    },
+    "dashboard": "Dashboard",
+    "customers": "Customers",
+    "payments": "Payments",
+    "events": "Events",
+    "organizations": "Organizations",
+    "settings": "Settings"
   }
 }

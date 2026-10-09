@@ -129,5 +129,17 @@
   },
   "errors": {
     "ORGANIZATION_INACTIVE": "Ο οργανισμός σας είναι ανενεργός. Επικοινωνήστε με τον διαχειριστή της πλατφόρμας."
+  },
+  "sidebar": {
+    "sections": {
+      "main": "Κύριο",
+      "system": "Σύστημα"
+    },
+    "dashboard": "Dashboard",
+    "customers": "Πελάτες",
+    "payments": "Πληρωμές",
+    "events": "Events",
+    "organizations": "Οργανισμοί",
+    "settings": "Ρυθμίσεις"
   }
 }

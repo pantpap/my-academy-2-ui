@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { organizationGuard } from '../guards/organization-guard';
 
 export const layoutRoutes: Routes = [
   {
@@ -16,6 +17,7 @@ export const layoutRoutes: Routes = [
       },
       {
         path: 'customers',
+        canActivate: [organizationGuard],
         loadChildren: () =>
           import('../../features/customers/customer-routes').then((m) => m.customerRoutes),
       },
@@ -26,6 +28,7 @@ export const layoutRoutes: Routes = [
       },
       {
         path: 'events',
+        canActivate: [organizationGuard],
         loadComponent: () =>
           import('../../features/events/events').then((c) => c.Events),
       },
