@@ -177,5 +177,17 @@
     "discardMessage": "Unsaved changes will be lost.",
     "discardConfirm": "Discard",
     "keepEditing": "Keep editing"
+  },
+  "subscriptions": {
+    "searchLabel": "Search by name",
+    "search": "Search",
+    "clearSearch": "Clear search",
+    "lastPaymentDate": "Last payment",
+    "createdAt": "Registered",
+    "amount": "Amount",
+    "status": "Status",
+    "expiring": "Expiring soon",
+    "addPayment": "Add payment",
+    "showPayments": "Payments"
   }
 }

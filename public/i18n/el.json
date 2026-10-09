@@ -177,5 +177,17 @@
     "discardMessage": "Οι αλλαγές που δεν αποθηκεύτηκαν θα χαθούν.",
     "discardConfirm": "Απόρριψη",
     "keepEditing": "Συνέχεια επεξεργασίας"
+  },
+  "subscriptions": {
+    "searchLabel": "Αναζήτηση με όνομα",
+    "search": "Αναζήτηση",
+    "clearSearch": "Καθαρισμός αναζήτησης",
+    "lastPaymentDate": "Τελευταία πληρωμή",
+    "createdAt": "Ημ. εγγραφής",
+    "amount": "Ποσό",
+    "status": "Κατάσταση",
+    "expiring": "Λήγει σύντομα",
+    "addPayment": "Προσθήκη πληρωμής",
+    "showPayments": "Πληρωμές"
   }
 }

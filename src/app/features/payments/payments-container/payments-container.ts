@@ -13,7 +13,9 @@ import { PaymentsGrid, PaymentsGridCellActivated } from '../payments-grid/paymen
 import { PaymentFormDialog, PaymentFormDialogData } from '../payment-form-dialog/payment-form-dialog';
 import { PaymentDetailDialog, PaymentDetailDialogData } from '../payment-detail-dialog/payment-detail-dialog';
 import { defaultSeasonStartYear, seasonOptions, SeasonOption } from './season';
-import { debounceTime, distinctUntilChanged, map } from 'rxjs';
+import { debounceTime, distinctUntilChanged, EMPTY, map } from 'rxjs';
+import { SubscriptionsGrid } from '../subscriptions-grid/subscriptions-grid';
+import { currentRole } from '../../../core/guards/current-role';
 
 const SEASON_RANGE = 2;
 
@@ -28,6 +30,7 @@ const SEASON_RANGE = 2;
     MatButton,
     TranslocoDirective,
     PaymentsGrid,
+    SubscriptionsGrid,
   ],
   templateUrl: './payments-container.html',
   styleUrl: './payments-container.scss',
@@ -38,6 +41,10 @@ export class PaymentsContainer {
   private readonly dialog = inject(MatDialog);
 
   private readonly today = new Date();
+
+  // Ίδιο route για admin και οργανισμό, άλλο περιεχόμενο (SPEC-organizations-admin.md):
+  // ο admin βλέπει τις συνδρομές των οργανισμών.
+  protected readonly isAdmin = currentRole() === 'admin';
 
   readonly seasons: SeasonOption[] = seasonOptions(
     defaultSeasonStartYear(this.today),
@@ -61,8 +68,9 @@ export class PaymentsContainer {
       year: this.selectedSeasonStartYear(),
       searchTerm: this.debouncedSearchTerm()
     }),
+    // Το roster-season είναι μόνο του οργανισμού.
     stream: ({ params }) =>
-      this.paymentsService.getRosterSeason(params.year, params.searchTerm),
+      this.isAdmin ? EMPTY : this.paymentsService.getRosterSeason(params.year, params.searchTerm),
   });
 
   onSeasonChange(startYear: number): void {

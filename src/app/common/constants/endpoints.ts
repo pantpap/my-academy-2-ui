@@ -3,3 +3,4 @@ export const ATHLETES_API = 'athletes';
 export const SPORTS_API = 'sports';
 export const PAYMENTS_API = 'payments';
 export const ORGANIZATIONS_API = 'organizations';
+export const SUBSCRIPTIONS_API = 'subscriptions';

@@ -10,6 +10,8 @@ import { RosterSeasonEntry, RosterSeasonMonth } from '../../../common/interfaces
 import { PaymentFormDialog } from '../payment-form-dialog/payment-form-dialog';
 import { PaymentDetailDialog } from '../payment-detail-dialog/payment-detail-dialog';
 import { defaultSeasonStartYear, seasonLabel } from './season';
+import { SubscriptionsGrid } from '../subscriptions-grid/subscriptions-grid';
+import { Subscriptions } from '../../../shared/services/subscription/subscription';
 
 const en = {
   common: {
@@ -143,6 +145,10 @@ describe('PaymentsContainer', () => {
       providers: [
         { provide: PaymentsService, useValue: { getRosterSeason: getRosterSeasonSpy } },
         { provide: MatDialog, useValue: { open: dialogOpenSpy } },
+        {
+          provide: Subscriptions,
+          useValue: { list: vi.fn().mockReturnValue(of({ data: [], meta: { page: 1, take: 10, itemCount: 0, pageCount: 0 } })) },
+        },
       ],
     }).compileComponents();
 
@@ -379,6 +385,31 @@ describe('PaymentsContainer', () => {
 
       expect(fixture.nativeElement.textContent).toContain('Papas Nikos');
       expect(fixture.nativeElement.textContent).toContain('B A');
+    });
+  });
+
+  // SPEC-organizations-admin.md, task T18: ίδιο route, άλλο περιεχόμενο για τον admin.
+  describe('by role', () => {
+    afterEach(() => localStorage.removeItem('CS_ACADEMY_ORGANIZATION'));
+
+    it('shows the admin the subscriptions grid without seasons or athlete roster', async () => {
+      localStorage.setItem('CS_ACADEMY_ORGANIZATION', JSON.stringify({ id: 1, name: 'Admin', role: 'admin' }));
+
+      await createFixture();
+
+      expect(fixture.debugElement.query(By.directive(SubscriptionsGrid))).not.toBeNull();
+      expect(fixture.nativeElement.querySelector('[data-testid="payments-search"]')).toBeNull();
+      expect(fixture.nativeElement.textContent).not.toContain('Season');
+      expect(getRosterSeasonSpy).not.toHaveBeenCalled();
+    });
+
+    it('keeps the organization page as it was', async () => {
+      localStorage.setItem('CS_ACADEMY_ORGANIZATION', JSON.stringify({ id: 2, name: 'Org', role: 'organization' }));
+
+      await createFixture();
+
+      expect(fixture.debugElement.query(By.directive(SubscriptionsGrid))).toBeNull();
+      expect(getRosterSeasonSpy).toHaveBeenCalled();
     });
   });
 });
