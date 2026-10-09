@@ -1,0 +1,72 @@
+@let data = dataSourceResourceValue().value()?.data ?? [];
+@let meta = dataSourceResourceValue().value()?.meta;
+
+<div class="h-1">
+  @if (dataSourceResourceValue().isLoading()) {
+    <mat-progress-bar mode="indeterminate" />
+  }
+</div>
+<table mat-table [dataSource]="data" class="mat-elevation-z8" *transloco="let translate">
+  <ng-container matColumnDef="name">
+    <th mat-header-cell *matHeaderCellDef> {{ translate('table.name') }} </th>
+    <td mat-cell *matCellDef="let element"> {{ element.name }} </td>
+  </ng-container>
+
+  <ng-container matColumnDef="email">
+    <th mat-header-cell *matHeaderCellDef> {{ translate('organizations.email') }} </th>
+    <td mat-cell *matCellDef="let element"> {{ element.email }} </td>
+  </ng-container>
+
+  <ng-container matColumnDef="vatNumber">
+    <th mat-header-cell *matHeaderCellDef> {{ translate('organizations.vatNumber') }} </th>
+    <td mat-cell *matCellDef="let element"> {{ element.vatNumber }} </td>
+  </ng-container>
+
+  <ng-container matColumnDef="address">
+    <th mat-header-cell *matHeaderCellDef> {{ translate('organizations.address') }} </th>
+    <td mat-cell *matCellDef="let element"> {{ element.address }} </td>
+  </ng-container>
+
+  <!-- Ίδιο εικονίδιο με τη στήλη «ενεργός» των πελατών (Q5). -->
+  <ng-container matColumnDef="active">
+    <th mat-header-cell *matHeaderCellDef> {{ translate('table.active') }} </th>
+    <td mat-cell *matCellDef="let element">
+      @if (element.isActive) {
+        <mat-icon data-testid="active-icon" aria-hidden="false" aria-label="active organization" fontIcon="check_circle" class="text-green-500!"></mat-icon>
+      } @else {
+        <mat-icon data-testid="active-icon" aria-hidden="false" aria-label="inactive organization" fontIcon="cancel_circle" class="text-red-500!"></mat-icon>
+      }
+    </td>
+  </ng-container>
+
+  <ng-container matColumnDef="actions">
+    <th mat-header-cell *matHeaderCellDef></th>
+    <td mat-cell *matCellDef="let organization">
+      <mat-icon
+        data-testid="edit"
+        aria-hidden="false"
+        aria-label="Edit organization"
+        fontIcon="edit"
+        class="cursor-pointer"
+        matTooltip="{{ translate('common.edit') }}"
+        matTooltipPosition="right"
+        (click)="onEditClick(organization)">
+      </mat-icon>
+    </td>
+  </ng-container>
+
+  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+  <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  <tr class="mat-row" *matNoDataRow>
+    <td class="mat-cell p-4" data-testid="no-data" [attr.colspan]="displayedColumns.length">
+      {{ translate('common.noData') }}
+    </td>
+  </tr>
+</table>
+<mat-paginator
+  [length]="meta?.itemCount ?? 0"
+  [pageIndex]="(meta?.page ?? 1) - 1"
+  [pageSize]="meta?.take ?? pageSizeOptions[0]"
+  [pageSizeOptions]="pageSizeOptions"
+  (page)="pageChange.emit($event)"
+/>

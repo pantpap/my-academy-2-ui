@@ -1,6 +1,7 @@
 import { Route } from '@angular/router';
 import { layoutRoutes } from './layout-routes';
 import { organizationGuard } from '../guards/organization-guard';
+import { adminGuard } from '../guards/admin-guard';
 
 // Q6 (SPEC-organizations-admin.md): οι σελίδες μόνο του οργανισμού μπλοκάρονται για τον admin.
 describe('layoutRoutes', () => {
@@ -13,5 +14,9 @@ describe('layoutRoutes', () => {
 
   it.each(['dashboard', 'payments'])('leaves %s open to both roles', (path) => {
     expect(byPath(path).canActivate ?? []).not.toContain(organizationGuard);
+  });
+
+  it('guards organizations with adminGuard', () => {
+    expect(byPath('organizations').canActivate).toContain(adminGuard);
   });
 });

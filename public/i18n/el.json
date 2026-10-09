@@ -141,5 +141,13 @@
     "events": "Events",
     "organizations": "Οργανισμοί",
     "settings": "Ρυθμίσεις"
+  },
+  "organizations": {
+    "searchLabel": "Αναζήτηση με όνομα",
+    "search": "Αναζήτηση",
+    "clearSearch": "Καθαρισμός αναζήτησης",
+    "email": "Email",
+    "vatNumber": "ΑΦΜ",
+    "address": "Διεύθυνση"
   }
 }

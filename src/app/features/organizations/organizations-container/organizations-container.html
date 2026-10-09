@@ -1,0 +1,31 @@
+<div *transloco="let translate" class="flex flex-col gap-2">
+  <div class="flex flex-wrap items-center justify-between gap-3 mt-2">
+    <form class="flex items-center gap-2" (submit)="$event.preventDefault(); search()">
+      <mat-form-field subscriptSizing="dynamic">
+        <mat-label>{{ translate('organizations.searchLabel') }}</mat-label>
+        <input matInput type="text" data-testid="search-input" [value]="searchInput()" (input)="onSearchInput($event)" />
+        @if (searchInput()) {
+          <button
+            matIconButton
+            matSuffix
+            type="button"
+            data-testid="clear-search"
+            [attr.aria-label]="translate('organizations.clearSearch')"
+            (click)="clearSearch()">
+            <mat-icon>close</mat-icon>
+          </button>
+        }
+      </mat-form-field>
+      <button mat-stroked-button type="submit" data-testid="search">
+        <mat-icon>search</mat-icon>
+        {{ translate('organizations.search') }}
+      </button>
+    </form>
+
+    <button mat-flat-button type="button" data-testid="add" (click)="addOrganization()">
+      <mat-icon>add</mat-icon>
+      {{ translate('common.add') }}
+    </button>
+  </div>
+  <app-organizations-list [dataSourceResourceValue]="dataSourceResource" (pageChange)="onPageChange($event)" />
+</div>

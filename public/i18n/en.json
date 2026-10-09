@@ -141,5 +141,13 @@
     "events": "Events",
     "organizations": "Organizations",
     "settings": "Settings"
+  },
+  "organizations": {
+    "searchLabel": "Search by name",
+    "search": "Search",
+    "clearSearch": "Clear search",
+    "email": "Email",
+    "vatNumber": "VAT number",
+    "address": "Address"
   }
 }

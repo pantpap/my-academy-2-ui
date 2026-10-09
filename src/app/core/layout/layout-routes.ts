@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { organizationGuard } from '../guards/organization-guard';
+import { adminGuard } from '../guards/admin-guard';
 
 export const layoutRoutes: Routes = [
   {
@@ -20,6 +21,12 @@ export const layoutRoutes: Routes = [
         canActivate: [organizationGuard],
         loadChildren: () =>
           import('../../features/customers/customer-routes').then((m) => m.customerRoutes),
+      },
+      {
+        path: 'organizations',
+        canActivate: [adminGuard],
+        loadChildren: () =>
+          import('../../features/organizations/organization-routes').then((m) => m.organizationRoutes),
       },
       {
         path: 'payments',
