@@ -7,11 +7,15 @@ import { OrganizationForm } from './organization-form';
 import { Organizations } from '../../../shared/services/organization/organization';
 import { Sports } from '../../../shared/services/sports/sports';
 import { NotificationService } from '../../../core/services/notification/notification.service';
+import { MatDialog } from '@angular/material/dialog';
+import { ConfirmDialog } from '../../../shared/components/confirm-dialog/confirm-dialog';
 
 const en = {
   organizationForm: {
     sportExists: 'This sport is already in the list',
     created: 'Organization created',
+    updated: 'Organization updated',
+    discardTitle: 'Discard changes?',
     emailTaken: 'This email is already in use',
   },
   common: { error: 'Something went wrong' },
@@ -33,8 +37,10 @@ describe('OrganizationForm (create)', () => {
   let sports: { catalog: ReturnType<typeof vi.fn>; addToCatalog: ReturnType<typeof vi.fn> };
   let notification: { success: ReturnType<typeof vi.fn>; error: ReturnType<typeof vi.fn> };
   let navigate: ReturnType<typeof vi.spyOn>;
+  let dialog: { open: ReturnType<typeof vi.fn> };
 
   beforeEach(async () => {
+    dialog = { open: vi.fn() };
     organizations = { create: vi.fn(), get: vi.fn(), update: vi.fn() };
     sports = { catalog: vi.fn().mockReturnValue(of(catalog)), addToCatalog: vi.fn() };
     notification = { success: vi.fn(), error: vi.fn() };
@@ -52,6 +58,7 @@ describe('OrganizationForm (create)', () => {
         { provide: Organizations, useValue: organizations },
         { provide: Sports, useValue: sports },
         { provide: NotificationService, useValue: notification },
+        { provide: MatDialog, useValue: dialog },
       ],
     }).compileComponents();
     fixture = TestBed.createComponent(OrganizationForm);
@@ -176,6 +183,113 @@ describe('OrganizationForm (create)', () => {
 
       expect(notification.error).toHaveBeenCalledWith('Something went wrong');
       expect(navigate).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('cancel', () => {
+    it('goes straight back to the grid without changes', () => {
+      fixture.nativeElement.querySelector('[data-testid="cancel"]').click();
+
+      expect(dialog.open).not.toHaveBeenCalled();
+      expect(navigate).toHaveBeenCalledWith(['/app/organizations']);
+    });
+
+    it('asks for confirmation with changes, and stays when the user keeps editing', () => {
+      dialog.open.mockReturnValue({ afterClosed: () => of(false) });
+      component['model'].update((m) => ({ ...m, name: 'Changed' }));
+
+      fixture.nativeElement.querySelector('[data-testid="cancel"]').click();
+
+      expect(dialog.open).toHaveBeenCalledWith(ConfirmDialog, expect.anything());
+      expect(navigate).not.toHaveBeenCalled();
+    });
+
+    it('leaves when the user confirms', () => {
+      dialog.open.mockReturnValue({ afterClosed: () => of(true) });
+      component['model'].update((m) => ({ ...m, name: 'Changed' }));
+
+      fixture.nativeElement.querySelector('[data-testid="cancel"]').click();
+
+      expect(navigate).toHaveBeenCalledWith(['/app/organizations']);
+    });
+  });
+
+  // SPEC-organizations-admin.md, task T15 (επεξεργασία).
+  describe('edit', () => {
+    const existing = {
+      id: 5,
+      name: 'Academy',
+      email: 'a@x.gr',
+      vatNumber: '123',
+      address: null,
+      isActive: true,
+      sports: [{ id: 2, name: 'Karate' }],
+    };
+
+    beforeEach(async () => {
+      organizations.get.mockReturnValue(of(existing));
+      fixture.componentRef.setInput('id', '5');
+      await fixture.whenStable();
+      fixture.detectChanges();
+    });
+
+    it('loads the organization into the form without a password field', () => {
+      expect(organizations.get).toHaveBeenCalledWith(5);
+      expect(component['model']()).toMatchObject({
+        name: 'Academy',
+        email: 'a@x.gr',
+        vatNumber: '123',
+        address: '',
+        isActive: true,
+        sportIds: [2],
+      });
+      expect(fixture.nativeElement.querySelector('[data-testid="password"]')).toBeNull();
+      expect(fixture.nativeElement.querySelector('[data-testid="is-active"]')).not.toBeNull();
+      expect(component['organizationForm']().valid()).toBe(true);
+    });
+
+    it('shows an enabled change-password button that does nothing yet', () => {
+      const button = fixture.nativeElement.querySelector('[data-testid="change-password"]') as HTMLButtonElement;
+
+      expect(button.disabled).toBe(false);
+      button.click();
+      expect(navigate).not.toHaveBeenCalled();
+      expect(dialog.open).not.toHaveBeenCalled();
+    });
+
+    it('updates the organization with isActive and sportIds, then returns to the grid', async () => {
+      organizations.update.mockReturnValue(of(existing));
+      component['model'].update((m) => ({ ...m, isActive: false, sportIds: [2, 1] }));
+
+      await submit();
+
+      expect(organizations.update).toHaveBeenCalledWith(5, {
+        name: 'Academy',
+        email: 'a@x.gr',
+        vatNumber: '123',
+        address: '',
+        isActive: false,
+        sportIds: [2, 1],
+      });
+      expect(organizations.create).not.toHaveBeenCalled();
+      expect(notification.success).toHaveBeenCalledWith('Organization updated');
+      expect(navigate).toHaveBeenCalledWith(['/app/organizations']);
+    });
+
+    it('marks the email as taken on 409', async () => {
+      organizations.update.mockReturnValue(conflict('Organization with email "a@x.gr" already exists'));
+
+      await submit();
+
+      expect(component['organizationForm'].email().errors().map((e) => e.kind)).toContain('emailTaken');
+    });
+
+    it('counts no change when nothing was edited, and a change after editing', () => {
+      expect(component['hasChanges']()).toBe(false);
+
+      component['model'].update((m) => ({ ...m, sportIds: [2, 1] }));
+
+      expect(component['hasChanges']()).toBe(true);
     });
   });
 });

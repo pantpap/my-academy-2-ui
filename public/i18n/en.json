@@ -169,6 +169,13 @@
     "newSportLabel": "New sport",
     "addSport": "Add sport",
     "sportExists": "This sport is already in the list",
-    "created": "Organization created"
+    "created": "Organization created",
+    "updated": "Organization updated",
+    "activeLabel": "Active",
+    "changePassword": "Change password",
+    "discardTitle": "Discard changes?",
+    "discardMessage": "Unsaved changes will be lost.",
+    "discardConfirm": "Discard",
+    "keepEditing": "Keep editing"
   }
 }

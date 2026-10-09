@@ -10,4 +10,8 @@ export const organizationRoutes: Route[] = [
     path: 'new',
     loadComponent: () => import('./organization-form/organization-form').then((c) => c.OrganizationForm),
   },
+  {
+    path: ':id',
+    loadComponent: () => import('./organization-form/organization-form').then((c) => c.OrganizationForm),
+  },
 ];

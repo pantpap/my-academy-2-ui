@@ -1,7 +1,9 @@
 <ng-container *transloco="let translate">
   <mat-card class="mt-2 max-w-3xl">
     <mat-card-content>
-      <h1 class="mat-headline-small mb-4">{{ translate('organizationForm.createTitle') }}</h1>
+      <h1 class="mat-headline-small mb-4">
+        {{ translate(isEditMode() ? 'organizationForm.editTitle' : 'organizationForm.createTitle') }}
+      </h1>
 
       <form [formRoot]="organizationForm" class="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <mat-form-field>
@@ -24,15 +26,17 @@
           }
         </mat-form-field>
 
-        <mat-form-field>
-          <mat-label>{{ translate('organizationForm.passwordLabel') }}</mat-label>
-          <input matInput type="password" data-testid="password" [formField]="organizationForm.password" />
-          @if (hasError(organizationForm.password().errors(), 'required')) {
-            <mat-error>{{ translate('organizationForm.passwordRequired') }}</mat-error>
-          } @else if (hasError(organizationForm.password().errors(), 'minLength')) {
-            <mat-error>{{ translate('organizationForm.passwordMinLength') }}</mat-error>
-          }
-        </mat-form-field>
+        @if (!isEditMode()) {
+          <mat-form-field>
+            <mat-label>{{ translate('organizationForm.passwordLabel') }}</mat-label>
+            <input matInput type="password" data-testid="password" [formField]="organizationForm.password" />
+            @if (hasError(organizationForm.password().errors(), 'required')) {
+              <mat-error>{{ translate('organizationForm.passwordRequired') }}</mat-error>
+            } @else if (hasError(organizationForm.password().errors(), 'minLength')) {
+              <mat-error>{{ translate('organizationForm.passwordMinLength') }}</mat-error>
+            }
+          </mat-form-field>
+        }
 
         <mat-form-field>
           <mat-label>{{ translate('organizationForm.vatNumberLabel') }}</mat-label>
@@ -75,6 +79,12 @@
           </button>
         </div>
 
+        @if (isEditMode()) {
+          <mat-slide-toggle class="sm:col-span-2" data-testid="is-active" [formField]="organizationForm.isActive">
+            {{ translate('organizationForm.activeLabel') }}
+          </mat-slide-toggle>
+        }
+
         <div class="flex justify-end gap-2 sm:col-span-2">
           <button mat-button type="button" data-testid="cancel" (click)="cancel()">{{ translate('common.cancel') }}</button>
           <button mat-flat-button type="submit" data-testid="save">{{ translate('common.save') }}</button>
@@ -82,4 +92,14 @@
       </form>
     </mat-card-content>
   </mat-card>
+
+  <!-- Στο τέλος της σελίδας, μετά τη φόρμα· προς το παρόν δεν κάνει τίποτα. -->
+  @if (isEditMode()) {
+    <div class="mt-4 max-w-3xl">
+      <button mat-stroked-button type="button" data-testid="change-password" (click)="changePassword()">
+        <mat-icon>lock_reset</mat-icon>
+        {{ translate('organizationForm.changePassword') }}
+      </button>
+    </div>
+  }
 </ng-container>

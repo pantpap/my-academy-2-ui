@@ -1,9 +1,10 @@
-import { ChangeDetectionStrategy, Component, inject, linkedSignal, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, linkedSignal, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { firstValueFrom } from 'rxjs';
+import { EMPTY, firstValueFrom } from 'rxjs';
 import {
+  applyWhen,
   email,
   form,
   FormField,
@@ -14,6 +15,8 @@ import {
   ValidationError,
 } from '@angular/forms/signals';
 import { MatButton } from '@angular/material/button';
+import { MatDialog } from '@angular/material/dialog';
+import { MatSlideToggle } from '@angular/material/slide-toggle';
 import { MatCard, MatCardContent } from '@angular/material/card';
 import { MatError, MatFormField, MatHint, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
@@ -24,7 +27,12 @@ import { Organizations } from '../../../shared/services/organization/organizatio
 import { Sports } from '../../../shared/services/sports/sports';
 import { NotificationService } from '../../../core/services/notification/notification.service';
 import { Sport } from '../../../common/interfaces/sport';
-import { CreateOrganizationPayload } from '../../../common/interfaces/organization';
+import {
+  CreateOrganizationPayload,
+  OrganizationDetails,
+  UpdateOrganizationPayload,
+} from '../../../common/interfaces/organization';
+import { ConfirmDialog, ConfirmDialogData } from '../../../shared/components/confirm-dialog/confirm-dialog';
 
 interface OrganizationFormModel {
   name: string;
@@ -46,12 +54,39 @@ const EMPTY_MODEL: OrganizationFormModel = {
   sportIds: [],
 };
 
+function toFormModel(organization: OrganizationDetails | undefined): OrganizationFormModel {
+  if (!organization) return { ...EMPTY_MODEL };
+  return {
+    name: organization.name,
+    email: organization.email,
+    password: '',
+    vatNumber: organization.vatNumber ?? '',
+    address: organization.address ?? '',
+    isActive: organization.isActive,
+    sportIds: organization.sports.map((sport) => sport.id),
+  };
+}
+
+// Ίδιες τιμές, με τα αθλήματα σε οποιαδήποτε σειρά.
+function sameModel(a: OrganizationFormModel, b: OrganizationFormModel): boolean {
+  const sortedIds = (ids: number[]) => [...ids].sort((x, y) => x - y).join(',');
+  return (
+    a.name === b.name &&
+    a.email === b.email &&
+    a.password === b.password &&
+    a.vatNumber === b.vatNumber &&
+    a.address === b.address &&
+    a.isActive === b.isActive &&
+    sortedIds(a.sportIds) === sortedIds(b.sportIds)
+  );
+}
+
 // Κανονικοποιημένο όνομα αθλήματος, όπως στο backend: lower(trim(name)).
 function normalize(name: string): string {
   return name.trim().toLowerCase();
 }
 
-// Σελίδα προσθήκης οργανισμού από τον admin (SPEC-organizations-admin.md).
+// Σελίδα προσθήκης και επεξεργασίας οργανισμού από τον admin (SPEC-organizations-admin.md).
 @Component({
   selector: 'app-organization-form',
   imports: [
@@ -68,6 +103,7 @@ function normalize(name: string): string {
     MatLabel,
     MatOption,
     MatSelect,
+    MatSlideToggle,
     TranslocoDirective,
   ],
   templateUrl: './organization-form.html',
@@ -79,8 +115,28 @@ export class OrganizationForm {
   private readonly notification = inject(NotificationService);
   private readonly transloco = inject(TranslocoService);
   private readonly router = inject(Router);
+  private readonly dialog = inject(MatDialog);
 
-  protected readonly model = signal<OrganizationFormModel>({ ...EMPTY_MODEL });
+  // Route param `:id` (withComponentInputBinding)· χωρίς id η σελίδα είναι προσθήκη.
+  readonly id = input<string>();
+
+  protected readonly organizationId = computed(() => {
+    const id = this.id();
+    return id ? Number(id) : undefined;
+  });
+  protected readonly isEditMode = computed(() => this.organizationId() !== undefined);
+
+  private readonly organizationResource = rxResource({
+    params: () => this.organizationId(),
+    stream: ({ params: id }) => (id === undefined ? EMPTY : this.organizationsService.get(id)),
+  });
+
+  // Οι αρχικές τιμές: κενές στην προσθήκη, του οργανισμού στην επεξεργασία.
+  private readonly initialModel = computed(() => toFormModel(this.organizationResource.value()));
+
+  protected readonly model = linkedSignal<OrganizationFormModel>(() => this.initialModel());
+
+  protected readonly hasChanges = computed(() => !sameModel(this.model(), this.initialModel()));
 
   private readonly catalogResource = rxResource({
     stream: () => this.sportsService.catalog(),
@@ -104,8 +160,11 @@ export class OrganizationForm {
       validate(organization.email, ({ value }) =>
         value() !== '' && value() === this.takenEmail() ? { kind: 'emailTaken' } : undefined,
       );
-      required(organization.password);
-      minLength(organization.password, 4);
+      // Ο κωδικός υπάρχει μόνο στην προσθήκη.
+      applyWhen(organization, () => !this.isEditMode(), (newOrganization) => {
+        required(newOrganization.password);
+        minLength(newOrganization.password, 4);
+      });
       minLength(organization.sportIds, 1);
     },
     {
@@ -151,7 +210,31 @@ export class OrganizationForm {
     });
   }
 
+  // Με αλλαγές ζητά επιβεβαίωση (SPEC-organizations-admin.md).
   protected cancel(): void {
+    if (!this.hasChanges()) {
+      this.backToGrid();
+      return;
+    }
+    const data: ConfirmDialogData = {
+      title: this.transloco.translate('organizationForm.discardTitle'),
+      message: this.transloco.translate('organizationForm.discardMessage'),
+      confirmLabel: this.transloco.translate('organizationForm.discardConfirm'),
+      cancelLabel: this.transloco.translate('organizationForm.keepEditing'),
+    };
+    this.dialog
+      .open(ConfirmDialog, { data })
+      .afterClosed()
+      .subscribe((confirmed?: boolean) => {
+        if (confirmed) this.backToGrid();
+      });
+  }
+
+  // Η αλλαγή κωδικού δεν έχει υλοποιηθεί ακόμα· το κουμπί μένει ενεργό χωρίς ενέργεια.
+  protected changePassword(): void {}
+
+  // Επιστροφή στο grid, που ξαναφορτώνει από τη σελίδα 1.
+  private backToGrid(): void {
     this.router.navigate(['/app/organizations']);
   }
 
@@ -160,11 +243,16 @@ export class OrganizationForm {
   }
 
   private async save(value: OrganizationFormModel): Promise<void> {
+    const id = this.organizationId();
     try {
-      await firstValueFrom(this.organizationsService.create(this.toCreatePayload(value)));
-      this.notification.success(this.transloco.translate('organizationForm.created'));
-      // Επιστροφή στο grid, που ξαναφορτώνει από τη σελίδα 1.
-      this.router.navigate(['/app/organizations']);
+      if (id === undefined) {
+        await firstValueFrom(this.organizationsService.create(this.toCreatePayload(value)));
+        this.notification.success(this.transloco.translate('organizationForm.created'));
+      } else {
+        await firstValueFrom(this.organizationsService.update(id, this.toUpdatePayload(value)));
+        this.notification.success(this.transloco.translate('organizationForm.updated'));
+      }
+      this.backToGrid();
     } catch (error) {
       if (error instanceof HttpErrorResponse && error.status === 409) {
         this.takenEmail.set(value.email);
@@ -183,6 +271,18 @@ export class OrganizationForm {
       password: value.password,
       ...(value.vatNumber.trim() ? { vatNumber: value.vatNumber.trim() } : {}),
       ...(value.address.trim() ? { address: value.address.trim() } : {}),
+      sportIds: value.sportIds,
+    };
+  }
+
+  // Στην επεξεργασία ΑΦΜ και διεύθυνση στέλνονται πάντα, ώστε να μπορούν να αδειάσουν.
+  private toUpdatePayload(value: OrganizationFormModel): UpdateOrganizationPayload {
+    return {
+      name: value.name.trim(),
+      email: value.email.trim(),
+      vatNumber: value.vatNumber.trim(),
+      address: value.address.trim(),
+      isActive: value.isActive,
       sportIds: value.sportIds,
     };
   }
