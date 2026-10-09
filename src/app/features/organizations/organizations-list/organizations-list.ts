@@ -51,7 +51,7 @@ export class OrganizationsList {
 
   readonly pageChange = output<PageEvent>();
 
-  readonly pageSizeOptions = [10, 25, 50];
+  readonly pageSizeOptions = [10, 20, 50];
 
   readonly displayedColumns = ['name', 'email', 'vatNumber', 'address', 'active', 'actions'];
 

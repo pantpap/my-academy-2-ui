@@ -10,7 +10,8 @@ import { TranslocoDirective } from '@jsverse/transloco';
 import { OrganizationsList } from '../organizations-list/organizations-list';
 import { Organizations } from '../../../shared/services/organization/organization';
 
-const PAGE_SIZE_OPTIONS = [10, 25, 50] as const;
+// 10/20/50 από τον πίνακα αποφάσεων του spec.
+const PAGE_SIZE_OPTIONS = [10, 20, 50] as const;
 const DEFAULT_PAGE = 1;
 const DEFAULT_TAKE = PAGE_SIZE_OPTIONS[0];
 

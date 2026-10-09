@@ -51,6 +51,16 @@ describe('OrganizationsContainer', () => {
     expect(list).toHaveBeenLastCalledWith(1, 10, '');
   });
 
+  it('accepts the page sizes 10/20/50 and falls back to 10 for others', async () => {
+    fixture.componentRef.setInput('take', '20');
+    await fixture.whenStable();
+    expect(list).toHaveBeenLastCalledWith(1, 20, '');
+
+    fixture.componentRef.setInput('take', '25');
+    await fixture.whenStable();
+    expect(list).toHaveBeenLastCalledWith(1, 10, '');
+  });
+
   it('binds page, take and name from the URL', async () => {
     list.mockClear();
     const harness = await RouterTestingHarness.create();
@@ -80,11 +90,11 @@ describe('OrganizationsContainer', () => {
   });
 
   it('navigates to the new page and size when the list pages', () => {
-    const event: PageEvent = { pageIndex: 1, previousPageIndex: 0, pageSize: 25, length: 40 };
+    const event: PageEvent = { pageIndex: 1, previousPageIndex: 0, pageSize: 20, length: 40 };
 
     fixture.debugElement.query(By.directive(OrganizationsList)).triggerEventHandler('pageChange', event);
 
-    expect(navigate).toHaveBeenCalledWith(...queryNavigation({ page: 2, take: 25 }));
+    expect(navigate).toHaveBeenCalledWith(...queryNavigation({ page: 2, take: 20 }));
   });
 
   it('opens the new organization page from the add button', () => {
