@@ -70,7 +70,7 @@ const ADMIN_SECTIONS: NavigationSection[] = [
 export class Sidebar {
   private readonly localStorageService = inject(LocalStorage);
 
-  readonly userData = signal(this.localStorageService.getItem<Organization>(ORGANIZATION));
+  readonly userData = signal(this.localStorageService.getItem<Organization | null>(ORGANIZATION));
   readonly initials = signal(this.userData()?.name?.[0] ?? '');
 
   // Οι ετικέτες είναι κλειδιά transloco (Q7). Ο admin βλέπει άλλες σελίδες από τον

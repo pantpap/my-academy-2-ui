@@ -149,5 +149,26 @@
     "email": "Email",
     "vatNumber": "VAT number",
     "address": "Address"
+  },
+  "organizationForm": {
+    "createTitle": "New organization",
+    "editTitle": "Edit organization",
+    "nameLabel": "Name",
+    "nameRequired": "Name is required",
+    "emailLabel": "Email",
+    "emailRequired": "Email is required",
+    "emailInvalid": "Please enter a valid email address",
+    "emailTaken": "This email is already in use",
+    "passwordLabel": "Password",
+    "passwordRequired": "Password is required",
+    "passwordMinLength": "Password must be at least 4 characters",
+    "vatNumberLabel": "VAT number",
+    "addressLabel": "Address",
+    "sportsLabel": "Sports",
+    "sportsRequired": "Select at least one sport",
+    "newSportLabel": "New sport",
+    "addSport": "Add sport",
+    "sportExists": "This sport is already in the list",
+    "created": "Organization created"
   }
 }

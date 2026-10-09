@@ -1,0 +1,85 @@
+<ng-container *transloco="let translate">
+  <mat-card class="mt-2 max-w-3xl">
+    <mat-card-content>
+      <h1 class="mat-headline-small mb-4">{{ translate('organizationForm.createTitle') }}</h1>
+
+      <form [formRoot]="organizationForm" class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <mat-form-field>
+          <mat-label>{{ translate('organizationForm.nameLabel') }}</mat-label>
+          <input matInput data-testid="name" [formField]="organizationForm.name" />
+          @if (hasError(organizationForm.name().errors(), 'required')) {
+            <mat-error>{{ translate('organizationForm.nameRequired') }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-label>{{ translate('organizationForm.emailLabel') }}</mat-label>
+          <input matInput type="email" data-testid="email" [formField]="organizationForm.email" />
+          @if (hasError(organizationForm.email().errors(), 'required')) {
+            <mat-error>{{ translate('organizationForm.emailRequired') }}</mat-error>
+          } @else if (hasError(organizationForm.email().errors(), 'email')) {
+            <mat-error>{{ translate('organizationForm.emailInvalid') }}</mat-error>
+          } @else if (hasError(organizationForm.email().errors(), 'emailTaken')) {
+            <mat-error>{{ translate('organizationForm.emailTaken') }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-label>{{ translate('organizationForm.passwordLabel') }}</mat-label>
+          <input matInput type="password" data-testid="password" [formField]="organizationForm.password" />
+          @if (hasError(organizationForm.password().errors(), 'required')) {
+            <mat-error>{{ translate('organizationForm.passwordRequired') }}</mat-error>
+          } @else if (hasError(organizationForm.password().errors(), 'minLength')) {
+            <mat-error>{{ translate('organizationForm.passwordMinLength') }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-label>{{ translate('organizationForm.vatNumberLabel') }}</mat-label>
+          <input matInput [formField]="organizationForm.vatNumber" />
+        </mat-form-field>
+
+        <mat-form-field class="sm:col-span-2">
+          <mat-label>{{ translate('organizationForm.addressLabel') }}</mat-label>
+          <input matInput [formField]="organizationForm.address" />
+        </mat-form-field>
+
+        <mat-form-field class="sm:col-span-2">
+          <mat-label>{{ translate('organizationForm.sportsLabel') }}</mat-label>
+          <mat-select multiple data-testid="sports" [formField]="organizationForm.sportIds">
+            @for (sport of catalog(); track sport.id) {
+              <mat-option [value]="sport.id">{{ sport.name }}</mat-option>
+            }
+          </mat-select>
+          @if (hasError(organizationForm.sportIds().errors(), 'minLength')) {
+            <mat-error>{{ translate('organizationForm.sportsRequired') }}</mat-error>
+          }
+        </mat-form-field>
+
+        <div class="flex items-start gap-2 sm:col-span-2">
+          <mat-form-field class="flex-1">
+            <mat-label>{{ translate('organizationForm.newSportLabel') }}</mat-label>
+            <input
+              matInput
+              data-testid="new-sport"
+              [value]="newSportName()"
+              (input)="onNewSportInput($event)"
+              (keydown.enter)="$event.preventDefault(); addSport()" />
+            @if (sportError()) {
+              <mat-hint class="text-(--mat-sys-error)!">{{ sportError() }}</mat-hint>
+            }
+          </mat-form-field>
+          <button mat-stroked-button type="button" class="mt-2" data-testid="add-sport" (click)="addSport()">
+            <mat-icon>add</mat-icon>
+            {{ translate('organizationForm.addSport') }}
+          </button>
+        </div>
+
+        <div class="flex justify-end gap-2 sm:col-span-2">
+          <button mat-button type="button" data-testid="cancel" (click)="cancel()">{{ translate('common.cancel') }}</button>
+          <button mat-flat-button type="submit" data-testid="save">{{ translate('common.save') }}</button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</ng-container>
