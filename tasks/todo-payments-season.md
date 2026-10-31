@@ -4,8 +4,8 @@ Plan: [`plan-payments-season.md`](./plan-payments-season.md) · Capability map:
 [`../CAPABILITY-MAP-payments-season.md`](../CAPABILITY-MAP-payments-season.md)
 
 Does not touch the active [`todo.md`](./todo.md) (original payments-screen capability) or
-`BE/my-academy-2-be/tasks/todo.md` (customer-dialog capability, complete). Paths below are
-relative to each repo root: `BE/` = `BE/my-academy-2-be`, `FE/` = `FE/my-academy-2-UI`.
+`BE/athlos-API/tasks/todo.md` (customer-dialog capability, complete). Paths below are
+relative to each repo root: `BE/` = `BE/athlos-API`, `FE/` = `FE/athlos-UI`.
 
 Record the exact `ng test` (FE) and `npm test` (BE) baselines before Task 1, and compare every
 later run against *that*, never against zero — both repos have pre-existing unrelated failures

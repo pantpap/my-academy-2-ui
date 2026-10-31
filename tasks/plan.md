@@ -4,8 +4,8 @@
 **Task list:** [`todo.md`](./todo.md)
 **Status:** awaiting human approval — no code written yet.
 
-**Repos touched:** `BE/my-academy-2-be` (NestJS 11 + TypeORM + Postgres, Jest) and
-`FE/my-academy-2-UI` (Angular 21 standalone + Material 3 + Tailwind v4 + Transloco, Vitest).
+**Repos touched:** `BE/athlos-API` (NestJS 11 + TypeORM + Postgres, Jest) and
+`FE/athlos-UI` (Angular 21 standalone + Material 3 + Tailwind v4 + Transloco, Vitest).
 Both are on branch `dev` and clean as of 2026-09-05.
 
 > The previous initiative's plan/todo (Customer Form Dialog, complete) were moved to

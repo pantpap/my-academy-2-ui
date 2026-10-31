@@ -9,7 +9,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "my-academy-2-ui": {
+    "athlos-ui": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -60,10 +60,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "my-academy-2-ui:build:production"
+              "buildTarget": "athlos-ui:build:production"
             },
             "development": {
-              "buildTarget": "my-academy-2-ui:build:development"
+              "buildTarget": "athlos-ui:build:development"
             }
           },
           "defaultConfiguration": "development"

@@ -4,8 +4,8 @@ Plan: [`plan.md`](./plan.md) · Capability map: [`../CAPABILITY-MAP-payments.md`
 
 **Do not start until the plan is approved.**
 
-Paths are written relative to each repo root: `BE/` = `BE/my-academy-2-be`,
-`FE/` = `FE/my-academy-2-UI`.
+Paths are written relative to each repo root: `BE/` = `BE/athlos-API`,
+`FE/` = `FE/athlos-UI`.
 
 Both suites have **pre-existing failures unrelated to this work** (FE ~6, BE ~9 per the archived
 todo). Record the exact baseline before the first task of each phase and compare against *that*,

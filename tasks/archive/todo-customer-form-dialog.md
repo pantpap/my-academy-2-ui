@@ -368,7 +368,7 @@ bound to a new `sportIds: number[]` on `CustomerFormModel`/`toFormModel`/`toCust
 - [x] `mat-select` confirmed incompatible with `[formField]` by reading source, not assumed —
       documented in `SPEC-dialog-sports.md` and `tasks/plan.md` Architecture Decision 13
 - [x] Review with the human before starting `dialog-address` (blocked on `backend-address`,
-      implemented but not committed in `BE/my-academy-2-be`) or `dialog-consolidation`
+      implemented but not committed in `BE/athlos-API`) or `dialog-consolidation`
 
 ---
 

@@ -100,7 +100,7 @@ export class CustomerContainer {
   addNewCustomer() {
     const options = {
       width: '800px',
-      height: '500px',
+      height: '650px',
     };
     const dialogRef = this.dialog.open(CustomerFormDialog, options);
 

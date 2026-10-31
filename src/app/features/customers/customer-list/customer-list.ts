@@ -70,6 +70,7 @@ export class CustomerList {
   }
 
   protected onSortChange($event: Sort) {
+    // TODO: Implement sorting logic
     console.log($event);
   }
 }

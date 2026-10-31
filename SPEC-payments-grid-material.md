@@ -159,6 +159,6 @@ work against real data) before marking this done.
 **Never do:**
 - Don't change the record-payment / payment-detail dialog flows (`payment-form-dialog`,
   `payment-detail-dialog`) — out of scope.
-- Don't touch the backend (`BE/my-academy-2-be`) for this change.
+- Don't touch the backend (`BE/athlos-API`) for this change.
 - Don't remove or rename the existing `RosterYearEntry`/`RosterYearMonth` interfaces or the
   `Payments` service methods.

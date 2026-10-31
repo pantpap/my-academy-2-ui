@@ -51,8 +51,8 @@ start month (hardcoded Sep→Jun); the `customer-list` "this month" payment colu
 
 | Module id | Responsibility | Depends on | Repo |
 |---|---|---|---|
-| `payments-season-api` | New `GET /payments/roster-season?startYear=` endpoint returning every athlete with a 10-slot month array (Sep `startYear` → Jun `startYear+1`, each slot carrying its own `month` **and** `year`) in one query. No schema/migration change — `Payment.coveredMonth`/`coveredYear` already support arbitrary pairs. | — | BE (`my-academy-2-be`) |
-| `payments-season-grid` | Retype and rewire `payments-grid`, `payments-container`, `payment-form-dialog`, `payment-detail-dialog` from calendar-year to season: season-label selector, 10 Sep→Jun columns, `future` cell state retired (all unpaid season months render/behave as `due`), multi-month record dialog carries a `year` per selected month (needed since a season spans two calendar years) instead of one shared `year`. | `payments-season-api` | FE (`my-academy-2-UI`) |
+| `payments-season-api` | New `GET /payments/roster-season?startYear=` endpoint returning every athlete with a 10-slot month array (Sep `startYear` → Jun `startYear+1`, each slot carrying its own `month` **and** `year`) in one query. No schema/migration change — `Payment.coveredMonth`/`coveredYear` already support arbitrary pairs. | — | BE (`athlos-API`) |
+| `payments-season-grid` | Retype and rewire `payments-grid`, `payments-container`, `payment-form-dialog`, `payment-detail-dialog` from calendar-year to season: season-label selector, 10 Sep→Jun columns, `future` cell state retired (all unpaid season months render/behave as `due`), multi-month record dialog carries a `year` per selected month (needed since a season spans two calendar years) instead of one shared `year`. | `payments-season-api` | FE (`athlos-UI`) |
 
 **Build order:** `payments-season-api` → `payments-season-grid` (hard dependency: the FE module
 calls the new endpoint and consumes its per-month `year` field, which doesn't exist on the old
@@ -77,5 +77,5 @@ provider) and consumed as given by `payments-season-grid`.
 
 ## Module Specs
 
-- [SPEC-payments-season-api.md](../BE/my-academy-2-be/SPEC-payments-season-api.md) *(lives in the BE repo, per precedent set by `SPEC-backend-address.md`)*
+- [SPEC-payments-season-api.md](../BE/athlos-API/SPEC-payments-season-api.md) *(lives in the BE repo, per precedent set by `SPEC-backend-address.md`)*
 - [SPEC-payments-season-grid.md](./SPEC-payments-season-grid.md)

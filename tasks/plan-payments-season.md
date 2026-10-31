@@ -1,12 +1,12 @@
 # Plan: Payments Season View (Sep→Jun)
 
 Capability map: [`../CAPABILITY-MAP-payments-season.md`](../CAPABILITY-MAP-payments-season.md)
-Module specs: [`../../BE/my-academy-2-be/SPEC-payments-season-api.md`](../../BE/my-academy-2-be/SPEC-payments-season-api.md),
+Module specs: [`../../BE/athlos-API/SPEC-payments-season-api.md`](../../BE/athlos-API/SPEC-payments-season-api.md),
 [`../SPEC-payments-season-grid.md`](../SPEC-payments-season-grid.md)
 Todo: [`todo-payments-season.md`](./todo-payments-season.md)
 
 **Does not touch** the active [`plan.md`](./plan.md) / [`todo.md`](./todo.md) (original
-payments-screen capability) or `BE/my-academy-2-be/tasks/plan.md`/`todo.md` (customer-dialog
+payments-screen capability) or `BE/athlos-API/tasks/plan.md`/`todo.md` (customer-dialog
 capability, complete). This is a follow-on refinement to the already-shipped `payments-grid`
 module, spanning both repos, one pair of task files per the same convention the original payments
 capability map used (paths below prefixed `BE/`/`FE/`).
@@ -26,7 +26,7 @@ payment dialogs to consume it. Full acceptance criteria live in the two `SPEC-*.
 this plan slices that into an ordered task list with per-task verification.
 
 Both repos are on branch `dev`. BE changes are not auto-committed — the user reviews and commits
-`my-academy-2-be` changes themselves.
+`athlos-API` changes themselves.
 
 ## Dependency Graph / Build Order
 
@@ -48,12 +48,12 @@ on `PaymentsGridCellActivated`.
 
 ## Files Involved
 
-**BE (`BE/my-academy-2-be`):**
+**BE (`BE/athlos-API`):**
 - `src/payments/payments.service.ts` — add `RosterSeasonMonth`/`RosterSeasonEntry` + `getRosterSeason()`
 - `src/payments/payments.controller.ts` — add `GET /roster-season` handler
 - `src/payments/payments.service.roster-season.integration.spec.ts` — new
 
-**FE (`FE/my-academy-2-UI`):**
+**FE (`FE/athlos-UI`):**
 - `src/app/common/interfaces/payment.ts` — add `RosterSeasonMonth`/`RosterSeasonEntry` (additive; `RosterYearEntry`/`RosterYearMonth` untouched)
 - `src/app/shared/services/payment/payment.ts` — add `getRosterSeason()`
 - `src/app/features/payments/payments-grid/cell-state.ts` — collapse to `paid | due`

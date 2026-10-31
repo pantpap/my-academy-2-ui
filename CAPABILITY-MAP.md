@@ -31,8 +31,8 @@ Discovered along the way and folded into scope:
 
 | Module id | Responsibility | Depends on | Repo |
 |---|---|---|---|
-| `backend-address` | Add structured address (`street`, `city`, `postalCode`, `country`) to the `Athlete` entity, `Create`/`UpdateAthleteDto`, and `mapAthleteToResponse()` | — | BE (`my-academy-2-be`) |
-| `dialog-core` | Make `CustomerFormDialog` functional: signal-form bound to the 5 existing fields, populated from `data.customer` in edit mode, working save via `CustomerService.createCustomer`/`updateCustomer`, closes with the saved `Customer`. Shows `paidUntil` read-only. | — | FE (`my-academy-2-UI`) |
+| `backend-address` | Add structured address (`street`, `city`, `postalCode`, `country`) to the `Athlete` entity, `Create`/`UpdateAthleteDto`, and `mapAthleteToResponse()` | — | BE (`athlos-API`) |
+| `dialog-core` | Make `CustomerFormDialog` functional: signal-form bound to the 5 existing fields, populated from `data.customer` in edit mode, working save via `CustomerService.createCustomer`/`updateCustomer`, closes with the saved `Customer`. Shows `paidUntil` read-only. | — | FE (`athlos-UI`) |
 | `dialog-address` | Add address fields to the FE `Customer` model, the dialog form, and the create/update payload mapping | `backend-address`, `dialog-core` | FE |
 | `dialog-sports` | Add sports multi-select editing to the dialog, backed by a new minimal FE service that lists an organization's sports (`GET /sports`) | `dialog-core` | FE |
 | `dialog-consolidation` | Delete the dead `form()`/`model`/`toFormModel`/`toCustomerPayload` code from `customer-details.ts`; details page refreshes from the dialog's closed result instead | `dialog-core`, `dialog-address`, `dialog-sports` | FE |
@@ -44,7 +44,7 @@ Discovered along the way and folded into scope:
 
 ## Module Specs
 
-- [SPEC-backend-address.md](../BE/my-academy-2-be/SPEC-backend-address.md) *(lives in the BE repo)*
+- [SPEC-backend-address.md](../BE/athlos-API/SPEC-backend-address.md) *(lives in the BE repo)*
 - [SPEC-dialog-core.md](./SPEC-dialog-core.md)
 - [SPEC-dialog-address.md](./SPEC-dialog-address.md)
 - [SPEC-dialog-sports.md](./SPEC-dialog-sports.md)

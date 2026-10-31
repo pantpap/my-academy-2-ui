@@ -1,11 +1,11 @@
 # Implementation Plan: Customer Form Dialog
 
-**Repo:** `FE/my-academy-2-UI` (Angular 21 + Material 21 + Transloco)
+**Repo:** `FE/athlos-UI` (Angular 21 + Material 21 + Transloco)
 **Status:** Phases 1–3 shipped and marked done (`dialog-core`, see
 [`SPEC-dialog-core.md`](../SPEC-dialog-core.md)). Phase 4 (below) is new — `dialog-sports`, see
 [`SPEC-dialog-sports.md`](../SPEC-dialog-sports.md) — implemented and verified
 (build/lint/test), not yet reviewed by the human. `dialog-address` (blocked on `backend-address`,
-implemented in `BE/my-academy-2-be` but not yet committed there) and `dialog-consolidation` are
+implemented in `BE/athlos-API` but not yet committed there) and `dialog-consolidation` are
 still pending. See [`CAPABILITY-MAP.md`](../CAPABILITY-MAP.md) for the full module picture.
 
 ## Overview
@@ -212,15 +212,15 @@ Full task detail — acceptance criteria, verification, files touched — lives 
 ## Verification Commands
 
 ```bash
-cd /Users/pantpap/dev/clientside/products/my-academy-2/FE/my-academy-2-UI && npm run lint
+cd /Users/pantpap/dev/clientside/products/athlos/FE/athlos-UI && npm run lint
 ```
 
 ```bash
-cd /Users/pantpap/dev/clientside/products/my-academy-2/FE/my-academy-2-UI && npm run build
+cd /Users/pantpap/dev/clientside/products/athlos/FE/athlos-UI && npm run build
 ```
 
 ```bash
-cd /Users/pantpap/dev/clientside/products/my-academy-2/FE/my-academy-2-UI && npm test
+cd /Users/pantpap/dev/clientside/products/athlos/FE/athlos-UI && npm test
 ```
 
 Runtime check: `npm start` → `http://localhost:4200/app/customers`.

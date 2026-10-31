@@ -15,7 +15,7 @@ the month it covers (every customer owes a subscription every month).
 
 **What already exists — this is not greenfield.** Reuse it rather than re-deriving it:
 
-Backend (`BE/my-academy-2-be`, `src/payments/`) is largely built:
+Backend (`BE/athlos-API`, `src/payments/`) is largely built:
 - `POST /payments` — transactional, advances `OrganizationAthlete.paidUntil` **only forwards**
   (an out-of-order payment for an earlier month cannot move it backwards).
 - `GET /payments/status?athleteId=&year=` — 12-month paid/unpaid breakdown for **one** athlete.
@@ -27,7 +27,7 @@ Backend (`BE/my-academy-2-be`, `src/payments/`) is largely built:
 - All routes are `@UseGuards(AuthGuard('jwt'))` and take `organizationId` **from the token**, never
   from the client.
 
-Frontend (`FE/my-academy-2-UI`):
+Frontend (`FE/athlos-UI`):
 - `common/interfaces/payment.ts` — `Payment`, `PaymentStatus`, `PaymentStatusMonth`,
   `RosterStatusEntry`. Already correct.
 - `shared/services/payment/payment.ts` (`Payments`) — `createPayment`, `getPaymentStatus`,
@@ -55,7 +55,7 @@ change to the existing customer-list payment column.
 
 | Module id | Responsibility | Depends on | Repo |
 |---|---|---|---|
-| `payments-api` | Two new endpoints: `GET /payments/roster-year?year=` returning every athlete in the org with a 12-slot month array (incl. `paymentId` and `amount` per paid month) in **one** query; and `DELETE /payments/:id`, org-scoped and transactional, recomputing `paidUntil` from the surviving payments. | — | BE (`my-academy-2-be`) |
+| `payments-api` | Two new endpoints: `GET /payments/roster-year?year=` returning every athlete in the org with a 12-slot month array (incl. `paymentId` and `amount` per paid month) in **one** query; and `DELETE /payments/:id`, org-scoped and transactional, recomputing `paidUntil` from the surviving payments. | — | BE (`athlos-API`) |
 | `payments-grid` | The screen itself, read-only: route `/app/payments` (wiring up the already-present sidebar link), year selector, athletes × months grid with paid / due / future cell states, roster-wide summary, loading + empty + error states, en/el copy. Responsive and keyboard-navigable. | `payments-api` | FE |
 | `payment-entry` | The record-payment dialog: opens prefilled from a clicked cell, multi-month selection within the chosen year, amount prefilled from the athlete's last payment, running total, posts one `POST /payments` per selected month, refreshes the grid. | `payments-grid` | FE |
 | `payment-delete` | Clicking an already-paid cell surfaces that payment's details (amount, date, notes) with a confirmed delete calling `DELETE /payments/:id`, then refreshes the grid. | `payments-grid`, `payments-api` | FE |
