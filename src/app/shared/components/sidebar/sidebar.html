@@ -48,15 +48,16 @@
   </nav>
 
   <!-- User -->
-  <div class="border-t border-white/[0.07] p-2.5">
+  <div class="relative border-t border-white/[0.07] p-2.5">
     <!-- Ολόκληρη η γραμμή ανοίγει το μενού χρήστη (SPEC-logout.md) -->
     <button
+      #userButton
       type="button"
       data-testid="user-menu-trigger"
+      aria-haspopup="menu"
+      [attr.aria-expanded]="menuOpen()"
       class="flex w-full cursor-pointer items-center gap-2.5 rounded-lg border-0 bg-transparent px-2.5 py-2 text-left text-inherit transition-colors hover:bg-white/[0.06]"
-      [matMenuTriggerFor]="userMenu"
-      (menuOpened)="menuOpen.set(true)"
-      (menuClosed)="menuOpen.set(false)"
+      (click)="userMenuTrigger.openMenu()"
     >
       <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/10 text-[11px] font-medium ">
         {{initials()}}
@@ -72,7 +73,17 @@
         style="font-size:16px; width:16px; height:16px;"
       >expand_more</mat-icon>
     </button>
-    <mat-menu #userMenu="matMenu" yPosition="above" xPosition="after">
+    <!-- Αόρατο σημείο αγκύρωσης στη δεξιά άκρη του sidebar, στο ύψος του κάτω μέρους της γραμμής:
+         το μενού βγαίνει δεξιά από το sidebar και ανεβαίνει προς τα πάνω. -->
+    <span
+      aria-hidden="true"
+      class="pointer-events-none absolute bottom-2.5 right-0 h-0 w-0"
+      #userMenuTrigger="matMenuTrigger"
+      [matMenuTriggerFor]="userMenu"
+      (menuOpened)="menuOpen.set(true)"
+      (menuClosed)="menuOpen.set(false); userButton.focus({ preventScroll: true })"
+    ></span>
+    <mat-menu #userMenu="matMenu" yPosition="above" xPosition="after" class="ml-2">
       <button mat-menu-item type="button" data-testid="logout" (click)="confirmLogout()">
         <mat-icon>logout</mat-icon>
         <span>{{ translate('sidebar.logout') }}</span>
