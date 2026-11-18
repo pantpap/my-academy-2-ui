@@ -87,7 +87,7 @@ describe('CustomerContainer', () => {
 
   it('should open the CustomerFormDialog with no data when adding a new customer', () => {
     component.addNewCustomer();
-    expect(dialogOpenSpy).toHaveBeenCalledWith(CustomerFormDialog, { width: '800px', height: '500px' });
+    expect(dialogOpenSpy).toHaveBeenCalledWith(CustomerFormDialog, { width: '800px', height: '650px' });
   });
 
   it('reloads the customer list after creating a customer', () => {

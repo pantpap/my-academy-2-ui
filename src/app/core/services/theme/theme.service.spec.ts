@@ -40,7 +40,7 @@ describe('ThemeService', () => {
     service.set('dark');
     // Allow the effect to run
     TestBed.flushEffects();
-    expect(localStorage.getItem('theme-preference')).toBe('dark');
+    expect(localStorage.getItem('CS_ACADEMY_THEME')).toBe(JSON.stringify('dark'));
   });
 });
 

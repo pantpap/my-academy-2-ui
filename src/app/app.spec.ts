@@ -28,10 +28,11 @@ describe('App', () => {
     expect(app).toBeTruthy();
   });
 
-  it('should render title', async () => {
+  // Το App είναι μόνο το router-outlet· οι σελίδες ελέγχονται στα δικά τους specs.
+  it('renders the router outlet', async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, material-recipe');
+    expect(compiled.querySelector('router-outlet')).not.toBeNull();
   });
 });

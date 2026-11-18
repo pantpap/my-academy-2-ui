@@ -113,6 +113,9 @@ describe('CustomerDetails', () => {
     component['openEditDialog']();
 
     expect(dialogOpenSpy).toHaveBeenCalledWith(CustomerFormDialog, {
+      width: '700px',
+      maxWidth: '700px',
+      height: '650px',
       data: { customer: existingCustomer },
     });
   });

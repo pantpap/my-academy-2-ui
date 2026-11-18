@@ -175,7 +175,7 @@ describe('PaymentsContainer', () => {
 
   it('requests roster-season for the selected season on init', async () => {
     await createFixture();
-    expect(getRosterSeasonSpy).toHaveBeenCalledWith(currentSeasonStartYear);
+    expect(getRosterSeasonSpy).toHaveBeenCalledWith(currentSeasonStartYear, '');
   });
 
   it('changing the season issues a new request with the new startYear', async () => {
@@ -186,7 +186,7 @@ describe('PaymentsContainer', () => {
     await fixture.whenStable();
 
     expect(component.selectedSeasonStartYear()).toBe(nextSeason);
-    expect(getRosterSeasonSpy).toHaveBeenCalledWith(nextSeason);
+    expect(getRosterSeasonSpy).toHaveBeenCalledWith(nextSeason, '');
   });
 
   it('offers a selectable range of seasons around the current one, labeled "YYYY-YY"', async () => {
