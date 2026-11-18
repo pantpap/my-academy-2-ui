@@ -1,5 +1,12 @@
 <mat-toolbar *transloco="let translate">
-  <button mat-icon-button>
+  <button
+    mat-icon-button
+    type="button"
+    data-testid="sidebar-toggle"
+    [attr.aria-label]="translate('header.menu')"
+    [attr.aria-expanded]="!sidebarCollapsed()"
+    (click)="toggleSidebar()"
+  >
     <mat-icon>menu</mat-icon>
   </button>
 

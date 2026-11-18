@@ -4,12 +4,14 @@ import { TranslocoTestingModule } from '@jsverse/transloco';
 import { Header } from './header';
 import { ThemeService } from '../../../core/services/theme/theme.service';
 import { LanguageService } from '../../../core/services/language/language.service';
+import { SidebarState } from '../../../core/services/sidebar/sidebar-state';
 
 const en = {
   header: {
     switchToLight: 'Switch to light mode',
     switchToDark: 'Switch to dark mode',
     switchLanguage: 'Switch language',
+    menu: 'Menu',
   },
 };
 
@@ -20,6 +22,7 @@ describe('Header', () => {
   let languageService: LanguageService;
 
   beforeEach(async () => {
+    localStorage.clear();
     await TestBed.configureTestingModule({
       imports: [
         Header,
@@ -74,5 +77,37 @@ describe('Header', () => {
     const icons = fixture.nativeElement.querySelectorAll('mat-icon');
     const themeIcon = icons[icons.length - 1];
     expect(themeIcon.textContent).toContain('light_mode');
+  });
+
+  // SPEC-sidebar-collapse.md
+  describe('burger', () => {
+    function burger(): HTMLButtonElement {
+      return fixture.nativeElement.querySelector('[data-testid="sidebar-toggle"]');
+    }
+
+    it('has a translated aria-label', () => {
+      expect(burger().getAttribute('aria-label')).toBe('Menu');
+    });
+
+    it('collapses and expands the sidebar on click', () => {
+      const sidebarState = TestBed.inject(SidebarState);
+      expect(sidebarState.collapsed()).toBe(false);
+
+      burger().click();
+      expect(sidebarState.collapsed()).toBe(true);
+
+      burger().click();
+      expect(sidebarState.collapsed()).toBe(false);
+    });
+
+    it('reports aria-expanded according to the sidebar state', async () => {
+      expect(burger().getAttribute('aria-expanded')).toBe('true');
+
+      burger().click();
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      expect(burger().getAttribute('aria-expanded')).toBe('false');
+    });
   });
 });

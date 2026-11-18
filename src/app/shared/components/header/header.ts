@@ -7,6 +7,7 @@ import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { ThemeService } from '../../../core/services/theme/theme.service';
 import { LanguageService, Language } from '../../../core/services/language/language.service';
+import { SidebarState } from '../../../core/services/sidebar/sidebar-state';
 
 @Component({
   selector: 'app-header',
@@ -27,9 +28,16 @@ import { LanguageService, Language } from '../../../core/services/language/langu
 export class Header {
   private readonly themeService = inject(ThemeService);
   private readonly languageService = inject(LanguageService);
+  private readonly sidebarState = inject(SidebarState);
 
   protected readonly isDark = this.themeService.isDark;
   protected readonly language = this.languageService.language;
+  protected readonly sidebarCollapsed = this.sidebarState.collapsed;
+
+  // Burger: ανοίγει/κλείνει το sidebar (SPEC-sidebar-collapse.md).
+  protected toggleSidebar(): void {
+    this.sidebarState.toggle();
+  }
 
   protected toggleTheme(): void {
     this.themeService.toggle();

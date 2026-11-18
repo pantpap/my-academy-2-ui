@@ -1,42 +1,57 @@
-<aside class="flex h-screen w-56 flex-col" *transloco="let translate">
+<!-- Ανοιχτό 224px, κλειστό 72px μόνο με εικονίδια (SPEC-sidebar-collapse.md) -->
+<aside
+  class="flex h-screen flex-col overflow-hidden whitespace-nowrap transition-[width] duration-300 ease-in-out"
+  [class.w-56]="!collapsed()"
+  [class.w-18]="collapsed()"
+  *transloco="let translate"
+>
 
   <!-- Logo -->
-  <div class="flex items-center gap-2.5 border-b border-white/[0.07] px-4 py-5">
-    <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10">
+  <div class="flex items-center gap-2.5 border-b border-white/[0.07] px-4 py-5"
+       [class.justify-center]="collapsed()">
+    <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/10">
       <mat-icon style="font-size:18px; width:18px; height:18px;">store</mat-icon>
     </div>
-    <span class="text-sm font-medium ">Athlos</span>
+    @if (!collapsed()) {
+      <span class="text-sm font-medium ">Athlos</span>
+    }
   </div>
 
   <!-- Nav sections -->
   <nav class="flex-1 overflow-y-auto px-2.5 py-3">
     @for (section of sections; track section.label; let last = $last) {
 
-      <p class="mb-1 px-1.5 text-[10px] font-medium uppercase tracking-widest">
-        {{ translate(section.label) }}
-      </p>
+      @if (!collapsed()) {
+        <p class="mb-1 px-1.5 text-[10px] font-medium uppercase tracking-widest">
+          {{ translate(section.label) }}
+        </p>
+      }
 
       @for (item of section.items; track item.route) {
         <a
           [routerLink]="item.route"
           routerLinkActive="bg-white/10 !text-gray [&_mat-icon]:!text-gray"
           class="group mb-0.5 flex items-center gap-2.5 rounded-lg px-2.5 py-2 transition-colors hover:bg-white/[0.06]"
+          [class.justify-center]="collapsed()"
+          [attr.aria-label]="collapsed() ? translate(item.label) : null"
         >
           <mat-icon class="text-white/50 transition-colors group-hover:text-white/70"
                     style="font-size:19px; width:19px; height:19px;">
             {{ item.icon }}
           </mat-icon>
 
-          <span class="flex-1 text-[13px]">{{ translate(item.label) }}</span>
+          @if (!collapsed()) {
+            <span class="flex-1 text-[13px]">{{ translate(item.label) }}</span>
 
-          @if (item.badge) {
-            <span
-              class="min-w-4.5 rounded-full px-1.5 py-px text-center text-[10px] font-medium text-white"
-              [class.bg-red-600]="item.badgeType === 'danger'"
-              [class.bg-amber-600]="item.badgeType === 'warning'"
-            >
-              {{ item.badge }}
-            </span>
+            @if (item.badge) {
+              <span
+                class="min-w-4.5 rounded-full px-1.5 py-px text-center text-[10px] font-medium text-white"
+                [class.bg-red-600]="item.badgeType === 'danger'"
+                [class.bg-amber-600]="item.badgeType === 'warning'"
+              >
+                {{ item.badge }}
+              </span>
+            }
           }
         </a>
       }
@@ -56,22 +71,27 @@
       data-testid="user-menu-trigger"
       aria-haspopup="menu"
       [attr.aria-expanded]="menuOpen()"
+      [attr.aria-label]="userData()?.name"
       class="flex w-full cursor-pointer items-center gap-2.5 rounded-lg border-0 bg-transparent px-2.5 py-2 text-left text-inherit transition-colors hover:bg-white/[0.06]"
+      [class.justify-center]="collapsed()"
       (click)="userMenuTrigger.openMenu()"
     >
       <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/10 text-[11px] font-medium ">
         {{initials()}}
       </div>
-      <div class="min-w-0 flex-1">
-        <p class="truncate text-[12px] font-medium">{{userData()?.name}}</p>
-<!--        <p class="text-[10px]">Διαχειριστής</p>-->
-      </div>
-      <mat-icon
-        data-testid="user-menu-arrow"
-        class="transition-transform duration-200"
-        [class.rotate-180]="menuOpen()"
-        style="font-size:16px; width:16px; height:16px;"
-      >expand_more</mat-icon>
+      <!-- Κλειστό sidebar: μόνο τα αρχικά (SPEC-sidebar-collapse.md) -->
+      @if (!collapsed()) {
+        <div class="min-w-0 flex-1">
+          <p class="truncate text-[12px] font-medium">{{userData()?.name}}</p>
+<!--          <p class="text-[10px]">Διαχειριστής</p>-->
+        </div>
+        <mat-icon
+          data-testid="user-menu-arrow"
+          class="transition-transform duration-200"
+          [class.rotate-180]="menuOpen()"
+          style="font-size:16px; width:16px; height:16px;"
+        >expand_more</mat-icon>
+      }
     </button>
     <!-- Αόρατο σημείο αγκύρωσης στη δεξιά άκρη του sidebar, στο ύψος του κάτω μέρους της γραμμής:
          το μενού βγαίνει δεξιά από το sidebar και ανεβαίνει προς τα πάνω. -->

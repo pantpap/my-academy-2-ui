@@ -2,7 +2,8 @@
   "header": {
     "switchToLight": "Εναλλαγή σε φωτεινή λειτουργία",
     "switchToDark": "Εναλλαγή σε σκοτεινή λειτουργία",
-    "switchLanguage": "Αλλαγή γλώσσας"
+    "switchLanguage": "Αλλαγή γλώσσας",
+    "menu": "Μενού"
   },
   "common": {
     "loading": "Φορτώνει...",

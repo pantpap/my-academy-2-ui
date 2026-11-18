@@ -9,6 +9,7 @@ import { LocalStorage } from '../../../core/services/localStorage/local-storage'
 import { ORGANIZATION } from '../../../common/constants/local-storage-constants';
 import { Organization } from '../../../common/interfaces/organization';
 import { Auth } from '../../../features/auth/services/auth';
+import { SidebarState } from '../../../core/services/sidebar/sidebar-state';
 import { ConfirmDialog, ConfirmDialogData } from '../confirm-dialog/confirm-dialog';
 
 const SETTINGS_SECTION: NavigationSection = {
@@ -84,6 +85,9 @@ export class Sidebar {
   private readonly auth = inject(Auth);
   private readonly dialog = inject(MatDialog);
   private readonly transloco = inject(TranslocoService);
+
+  // Κλειστό = μόνο εικονίδια (SPEC-sidebar-collapse.md).
+  protected readonly collapsed = inject(SidebarState).collapsed;
 
   readonly userData = signal(this.localStorageService.getItem<Organization | null>(ORGANIZATION));
   readonly initials = signal(this.userData()?.name?.[0] ?? '');

@@ -30,4 +30,17 @@ describe('Layout', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  // SPEC-sidebar-collapse.md: το sidebar είναι δίπλα στο περιεχόμενο μόνο από xl και πάνω
+  // (από κάτω οι πίνακες ξεχειλίζουν, απόφαση 2026-11-18).
+  it('βάζει το sidebar δίπλα στο περιεχόμενο μόνο από xl και πάνω', () => {
+    const root: HTMLElement = fixture.nativeElement.firstElementChild;
+    expect(root.classList).toContain('xl:flex');
+    expect(root.classList).not.toContain('flex');
+  });
+
+  it('το sidebar δεν συρρικνώνεται όταν το περιεχόμενο είναι φαρδύ', () => {
+    const sidebarWrapper = fixture.nativeElement.querySelector('app-sidebar').parentElement;
+    expect(sidebarWrapper.classList).toContain('shrink-0');
+  });
 });

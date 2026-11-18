@@ -2,7 +2,8 @@
   "header": {
     "switchToLight": "Switch to light mode",
     "switchToDark": "Switch to dark mode",
-    "switchLanguage": "Switch language"
+    "switchLanguage": "Switch language",
+    "menu": "Menu"
   },
   "common": {
     "loading": "Loading...",
