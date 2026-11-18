@@ -1,7 +1,7 @@
 <ng-container *transloco="let translate">
   <div class="dialog-header items-center">
     <h3 mat-dialog-title>
-      {{ translate('payments.detailTitle', { name: '', month: '', year:'' }) }}
+      {{ translate('payments.detailTitle', { name: athleteName, month: monthLabel(), year: month.year }) }}
     </h3>
     <button
       mat-icon-button
@@ -16,7 +16,6 @@
 
   <mat-dialog-content class="flex flex-col gap-4">
     <div class="flex flex-col gap-2">
-      <h3 class="mat-title-small">{{ athleteName }} - {{ monthLabel() }} {{ month.year }}</h3>
       <h3 class="mat-title-small">{{ translate('payments.entriesTitle') }}</h3>
       @for (entry of entries; track entry.paymentId) {
         <div class="rounded-md border border-(--mat-sys-outline-variant) p-2 text-sm">
