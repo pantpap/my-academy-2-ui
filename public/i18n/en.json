@@ -140,7 +140,14 @@
     "payments": "Payments",
     "events": "Events",
     "organizations": "Organizations",
-    "settings": "Settings"
+    "settings": "Settings",
+    "logout": "Logout",
+    "logoutConfirm": {
+      "title": "Logout",
+      "message": "Are you sure you want to log out?",
+      "confirm": "OK",
+      "cancel": "Cancel"
+    }
   },
   "organizations": {
     "searchLabel": "Search by name",

@@ -140,7 +140,14 @@
     "payments": "Πληρωμές",
     "events": "Events",
     "organizations": "Οργανισμοί",
-    "settings": "Ρυθμίσεις"
+    "settings": "Ρυθμίσεις",
+    "logout": "Αποσύνδεση",
+    "logoutConfirm": {
+      "title": "Αποσύνδεση",
+      "message": "Θέλετε σίγουρα να αποσυνδεθείτε;",
+      "confirm": "OK",
+      "cancel": "Ακύρωση"
+    }
   },
   "organizations": {
     "searchLabel": "Αναζήτηση με όνομα",
