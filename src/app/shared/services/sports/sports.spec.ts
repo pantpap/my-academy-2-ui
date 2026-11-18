@@ -4,6 +4,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 
 import { Sports } from './sports';
 import { Sport } from '../../../common/interfaces/sport';
+import { Session } from '../../../core/services/session/session';
 
 describe('Sports', () => {
   let service: Sports;
@@ -65,8 +66,8 @@ describe('Sports', () => {
   });
 
   // SPEC-logout.md: μετά από logout/login χωρίς reload στέλνεται ο νέος οργανισμός.
-  it('uses the organization currently in localStorage, not the one at creation', () => {
-    localStorage.setItem('CS_ACADEMY_ORGANIZATION', JSON.stringify({ id: 9 }));
+  it('uses the current organization from Session, not the one at creation', () => {
+    TestBed.inject(Session).setOrganization({ id: 9 } as never);
 
     service.getSports().subscribe();
 

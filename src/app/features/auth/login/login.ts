@@ -9,8 +9,9 @@ import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Auth } from '../services/auth';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { AUTH_TOKEN, ORGANIZATION } from '../../../common/constants/local-storage-constants';
+import { AUTH_TOKEN } from '../../../common/constants/local-storage-constants';
 import { LocalStorage } from '../../../core/services/localStorage/local-storage';
+import { Session } from '../../../core/services/session/session';
 import { Router } from '@angular/router';
 import { NotificationService } from '../../../core/services/notification/notification.service';
 
@@ -47,6 +48,7 @@ export class Login {
   private readonly destroyRef = inject(DestroyRef);
   private readonly authService = inject(Auth);
   private readonly localStorageService = inject(LocalStorage);
+  private readonly session = inject(Session);
   private readonly router = inject(Router);
   private readonly notification = inject(NotificationService);
   private readonly transloco = inject(TranslocoService);
@@ -77,7 +79,7 @@ export class Login {
       .subscribe({
         next: (res) => {
           this.localStorageService.setItem(AUTH_TOKEN, res.accessToken);
-          this.localStorageService.setItem(ORGANIZATION, res.organization);
+          this.session.setOrganization(res.organization);
           this.router.navigate(['/app']);
         },
         // Ανενεργός οργανισμός (SPEC-organizations-admin.md). Τα λάθος στοιχεία (401)

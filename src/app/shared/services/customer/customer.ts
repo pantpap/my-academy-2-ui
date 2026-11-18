@@ -1,10 +1,8 @@
-import { inject, Injectable } from '@angular/core';
+import { computed, inject, Injectable } from '@angular/core';
 import { Http } from '../../../core/services/http/http';
 import { ATHLETES_API } from '../../../common/constants/endpoints';
 import { Customer as CustomerModel, CustomersPagedResponse } from '../../../common/interfaces/customer';
-import { ORGANIZATION } from '../../../common/constants/local-storage-constants';
-import { Organization } from '../../../common/interfaces/organization';
-import { LocalStorage } from '../../../core/services/localStorage/local-storage';
+import { Session } from '../../../core/services/session/session';
 
 // Μία γραμμή περιόδου αθλήματος στο payload. Χωρίς `id`: νέα περίοδος. Με
 // `id`: ενημέρωση υπάρχουσας. Το `startDate` λείπει μόνο στο create, όπου
@@ -38,17 +36,16 @@ export interface CustomerPayload {
 })
 export class Customer {
   private readonly httpService = inject(Http);
-  private readonly localStorageService = inject(LocalStorage);
 
-  // Διαβάζεται σε κάθε κλήση: μετά από logout/login χωρίς reload πρέπει να στέλνεται
-  // ο νέος οργανισμός (SPEC-logout.md).
-  private get organizationId(): number {
-    return this.localStorageService.getItem<Organization>(ORGANIZATION).id;
-  }
+  private readonly session = inject(Session);
+
+  // Από το κεντρικό Session: μετά από logout/login χωρίς reload στέλνεται ο νέος
+  // οργανισμός (SPEC-logout.md). Χρησιμοποιείται μόνο όσο υπάρχει συνδεδεμένος χρήστης.
+  private readonly organizationId = computed(() => this.session.organization()!.id);
 
   getCustomers(page: number, take: number) {
     return this.httpService.get<CustomersPagedResponse>(ATHLETES_API, {
-      organizationId: this.organizationId,
+      organizationId: this.organizationId(),
       page,
       take,
     });
@@ -61,7 +58,7 @@ export class Customer {
   createCustomer(payload: CustomerPayload) {
     return this.httpService.post<CustomerPayload & { organizationId: number }>(ATHLETES_API, {
       ...payload,
-      organizationId: this.organizationId,
+      organizationId: this.organizationId(),
     });
   }
 
@@ -70,7 +67,7 @@ export class Customer {
       `${ATHLETES_API}/${id}`,
       {
         ...payload,
-        organizationId: this.organizationId,
+        organizationId: this.organizationId(),
       },
     );
   }

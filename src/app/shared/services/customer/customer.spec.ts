@@ -3,6 +3,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 
 import { Customer } from './customer';
+import { Session } from '../../../core/services/session/session';
 
 describe('Customer', () => {
   let service: Customer;
@@ -29,8 +30,8 @@ describe('Customer', () => {
   });
 
   // SPEC-logout.md: μετά από logout/login χωρίς reload στέλνεται ο νέος οργανισμός.
-  it('uses the organization currently in localStorage, not the one at creation', () => {
-    localStorage.setItem('CS_ACADEMY_ORGANIZATION', JSON.stringify({ id: 9 }));
+  it('uses the current organization from Session, not the one at creation', () => {
+    TestBed.inject(Session).setOrganization({ id: 9 } as never);
 
     service.getCustomers(1, 10).subscribe();
 

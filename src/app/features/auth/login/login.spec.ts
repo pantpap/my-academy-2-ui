@@ -6,6 +6,7 @@ import { of, throwError } from 'rxjs';
 import { Login } from './login';
 import { Auth } from '../services/auth';
 import { NotificationService } from '../../../core/services/notification/notification.service';
+import { Session } from '../../../core/services/session/session';
 
 const en = {
   login: {
@@ -136,6 +137,18 @@ describe('Login', () => {
       component['signIn'](credentials);
 
       expect(router.navigate).toHaveBeenCalledWith(['/app']);
+    });
+
+    // SPEC-logout.md: ο οργανισμός περνάει από το κεντρικό Session.
+    it('stores the organization in Session on success', () => {
+      auth.login.mockReturnValue(of({ accessToken: 't', organization: { id: 1 } }));
+      const component = TestBed.createComponent(Login).componentInstance;
+
+      component['signIn'](credentials);
+
+      expect(TestBed.inject(Session).organization()).toEqual({ id: 1 });
+      localStorage.removeItem('CS_ACADEMY_ORGANIZATION');
+      localStorage.removeItem('CS_ACADEMY_TOKEN');
     });
 
     it('shows the contact-the-administrator message for 403 ORGANIZATION_INACTIVE', () => {

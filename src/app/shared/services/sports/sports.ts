@@ -1,27 +1,24 @@
-import { inject, Injectable } from '@angular/core';
+import { computed, inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Http } from '../../../core/services/http/http';
 import { SPORTS_API } from '../../../common/constants/endpoints';
 import { Sport } from '../../../common/interfaces/sport';
-import { ORGANIZATION } from '../../../common/constants/local-storage-constants';
-import { Organization } from '../../../common/interfaces/organization';
-import { LocalStorage } from '../../../core/services/localStorage/local-storage';
+import { Session } from '../../../core/services/session/session';
 
 @Injectable({
   providedIn: 'root',
 })
 export class Sports {
   private readonly httpService = inject(Http);
-  private readonly localStorageService = inject(LocalStorage);
 
-  // Διαβάζεται σε κάθε κλήση: μετά από logout/login χωρίς reload πρέπει να στέλνεται
-  // ο νέος οργανισμός (SPEC-logout.md).
-  private get organizationId(): number {
-    return this.localStorageService.getItem<Organization>(ORGANIZATION).id;
-  }
+  private readonly session = inject(Session);
+
+  // Από το κεντρικό Session: μετά από logout/login χωρίς reload στέλνεται ο νέος
+  // οργανισμός (SPEC-logout.md). Χρησιμοποιείται μόνο όσο υπάρχει συνδεδεμένος χρήστης.
+  private readonly organizationId = computed(() => this.session.organization()!.id);
 
   getSports() {
-    return this.httpService.get<Sport[]>(SPORTS_API, { organizationId: this.organizationId });
+    return this.httpService.get<Sport[]>(SPORTS_API, { organizationId: this.organizationId() });
   }
 
   // Κοινός κατάλογος αθλημάτων (SPEC-organizations-admin.md).
