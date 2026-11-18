@@ -1,4 +1,4 @@
-import { inject, Injectable, signal } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Http } from '../../../core/services/http/http';
 import { SPORTS_API } from '../../../common/constants/endpoints';
@@ -14,10 +14,14 @@ export class Sports {
   private readonly httpService = inject(Http);
   private readonly localStorageService = inject(LocalStorage);
 
-  readonly organizationId = signal(this.localStorageService.getItem<Organization>(ORGANIZATION).id);
+  // Διαβάζεται σε κάθε κλήση: μετά από logout/login χωρίς reload πρέπει να στέλνεται
+  // ο νέος οργανισμός (SPEC-logout.md).
+  private get organizationId(): number {
+    return this.localStorageService.getItem<Organization>(ORGANIZATION).id;
+  }
 
   getSports() {
-    return this.httpService.get<Sport[]>(SPORTS_API, { organizationId: this.organizationId() });
+    return this.httpService.get<Sport[]>(SPORTS_API, { organizationId: this.organizationId });
   }
 
   // Κοινός κατάλογος αθλημάτων (SPEC-organizations-admin.md).

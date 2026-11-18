@@ -1,4 +1,4 @@
-import { inject, Injectable, signal } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { Http } from '../../../core/services/http/http';
 import { ATHLETES_API } from '../../../common/constants/endpoints';
 import { Customer as CustomerModel, CustomersPagedResponse } from '../../../common/interfaces/customer';
@@ -40,11 +40,15 @@ export class Customer {
   private readonly httpService = inject(Http);
   private readonly localStorageService = inject(LocalStorage);
 
-  readonly organizationId = signal(this.localStorageService.getItem<Organization>(ORGANIZATION).id);
+  // Διαβάζεται σε κάθε κλήση: μετά από logout/login χωρίς reload πρέπει να στέλνεται
+  // ο νέος οργανισμός (SPEC-logout.md).
+  private get organizationId(): number {
+    return this.localStorageService.getItem<Organization>(ORGANIZATION).id;
+  }
 
   getCustomers(page: number, take: number) {
     return this.httpService.get<CustomersPagedResponse>(ATHLETES_API, {
-      organizationId: this.organizationId(),
+      organizationId: this.organizationId,
       page,
       take,
     });
@@ -57,7 +61,7 @@ export class Customer {
   createCustomer(payload: CustomerPayload) {
     return this.httpService.post<CustomerPayload & { organizationId: number }>(ATHLETES_API, {
       ...payload,
-      organizationId: this.organizationId(),
+      organizationId: this.organizationId,
     });
   }
 
@@ -66,7 +70,7 @@ export class Customer {
       `${ATHLETES_API}/${id}`,
       {
         ...payload,
-        organizationId: this.organizationId(),
+        organizationId: this.organizationId,
       },
     );
   }

@@ -188,4 +188,15 @@ describe('Payments', () => {
     req.flush(null);
     expect(completed).toBe(true);
   });
+
+  // SPEC-logout.md: μετά από logout/login χωρίς reload στέλνεται ο νέος οργανισμός.
+  it('uses the organization currently in localStorage, not the one at creation', () => {
+    localStorage.setItem('CS_ACADEMY_ORGANIZATION', JSON.stringify({ id: 9 }));
+
+    service.getRosterYear(2026).subscribe();
+
+    const req = httpMock.expectOne((r) => r.url.endsWith('/payments/roster-year'));
+    expect(req.request.params.get('organizationId')).toBe('9');
+    req.flush([]);
+  });
 });

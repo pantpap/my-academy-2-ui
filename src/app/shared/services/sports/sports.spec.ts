@@ -63,4 +63,15 @@ describe('Sports', () => {
     req.flush({ id: 9, name: 'Judo' });
     expect(result).toEqual({ id: 9, name: 'Judo' });
   });
+
+  // SPEC-logout.md: μετά από logout/login χωρίς reload στέλνεται ο νέος οργανισμός.
+  it('uses the organization currently in localStorage, not the one at creation', () => {
+    localStorage.setItem('CS_ACADEMY_ORGANIZATION', JSON.stringify({ id: 9 }));
+
+    service.getSports().subscribe();
+
+    const req = httpMock.expectOne((r) => r.url.endsWith('/sports'));
+    expect(req.request.params.get('organizationId')).toBe('9');
+    req.flush([]);
+  });
 });

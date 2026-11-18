@@ -1,4 +1,4 @@
-import { inject, Injectable, signal } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Http } from '../../../core/services/http/http';
 import { PAYMENTS_API } from '../../../common/constants/endpoints';
@@ -44,18 +44,22 @@ export class Payments {
   private readonly httpService = inject(Http);
   private readonly localStorageService = inject(LocalStorage);
 
-  readonly organizationId = signal(this.localStorageService.getItem<Organization>(ORGANIZATION).id);
+  // Διαβάζεται σε κάθε κλήση: μετά από logout/login χωρίς reload πρέπει να στέλνεται
+  // ο νέος οργανισμός (SPEC-logout.md).
+  private get organizationId(): number {
+    return this.localStorageService.getItem<Organization>(ORGANIZATION).id;
+  }
 
   createPayment(payload: CreatePaymentPayload): Observable<CreatePaymentResult> {
     return this.httpService.post<CreatePaymentPayload & { organizationId: number }>(PAYMENTS_API, {
       ...payload,
-      organizationId: this.organizationId(),
+      organizationId: this.organizationId,
     });
   }
 
   getPaymentStatus(athleteId: number, year?: number) {
     return this.httpService.get<PaymentStatus>(`${PAYMENTS_API}/status`, {
-      organizationId: this.organizationId(),
+      organizationId: this.organizationId,
       athleteId,
       ...(year !== undefined ? { year } : {}),
     });
@@ -63,7 +67,7 @@ export class Payments {
 
   getRosterStatus(year: number, month: number) {
     return this.httpService.get<RosterStatusEntry[]>(`${PAYMENTS_API}/roster-status`, {
-      organizationId: this.organizationId(),
+      organizationId: this.organizationId,
       year,
       month,
     });
@@ -71,14 +75,14 @@ export class Payments {
 
   getRosterYear(year: number) {
     return this.httpService.get<RosterYearEntry[]>(`${PAYMENTS_API}/roster-year`, {
-      organizationId: this.organizationId(),
+      organizationId: this.organizationId,
       year,
     });
   }
 
   getRosterSeason(startYear: number, searchTerm: string) {
     return this.httpService.get<RosterSeasonEntry[]>(`${PAYMENTS_API}/roster-season`, {
-      organizationId: this.organizationId(),
+      organizationId: this.organizationId,
       startYear,
       searchTerm,
     });
@@ -88,7 +92,7 @@ export class Payments {
   // βλ. DELETE /payments/months στο SPEC-payments-sports-api.md.
   deleteMonth(athleteId: number, month: number, year: number) {
     return this.httpService.delete<void>(`${PAYMENTS_API}/months`, {
-      organizationId: this.organizationId(),
+      organizationId: this.organizationId,
       athleteId,
       month,
       year,
